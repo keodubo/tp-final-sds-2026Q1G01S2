@@ -2,11 +2,11 @@
 
 **Materia:** 72.25 Simulación de Sistemas (ITBA, Prof. Daniel Parisi) — 2026 Q1
 **Grupo:** G01S2 · **Modalidad:** grupal · **Stack:** Java/Maven (motor) + Python (análisis y animación)
-**Fecha:** 2026-06-28 · **Versión:** v1 (spec de diseño, previo a scaffolding)
+**Fecha:** 2026-06-28 · **Versión:** v1 (spec de diseño + esqueleto inicial auditado)
 
-> **Estado:** documento de diseño para revisión interna del grupo. Doble propósito: (1) base de la
-> sección *Modelo / Simulaciones* del informe, y (2) material para confirmar con el profesor las
-> decisiones marcadas como **[CONFIRMAR]**.
+> **Estado:** documento de diseño para revisión interna del grupo y contrato del esqueleto inicial.
+> Doble propósito: (1) base de la sección *Modelo / Simulaciones* del informe, y (2) material para
+> confirmar con el profesor las decisiones marcadas como **[CONFIRMAR]**.
 
 ---
 
@@ -27,7 +27,7 @@ conocido**.
 
 ---
 
-## 2. El sistema real (resumen del paper)
+## 2. El sistema real (resumen del artículo)
 
 | Característica | Valor |
 |---|---|
@@ -38,13 +38,13 @@ conocido**.
 | Velocidad libre individual | **uniforme en 90–120 mm/s** (de 37 VDV descartaron el más rápido y el más lento → 30) |
 | Captura | 24 fps; velocidades por diferencia finita de 4° orden |
 | Protocolo | Arrancan con N=5, cada 180 s agregan 5, hasta N=30 (densidades crecientes) |
-| Órdenes de inserción | *ascending* (lentos primero), *descending* (rápidos primero), *random* |
+| Órdenes de inserción | creciente (*ascending*), decreciente (*descending*) y aleatorio (*random*) |
 
-**Observables del paper que debemos reproducir/comparar:**
+**Observables del artículo que debemos reproducir/comparar:**
 
 1. **Velocidad media global vs N** (Fig. 2): `v̄ = ⟨L_i / 180 s⟩`. Decrece con N; las tres
    configuraciones convergen a N=30. Hallazgo clave: a saturación la velocidad media es **menor que la
-   del VDV más lento** (colapso por clusters).
+   del VDV más lento** (colapso por agrupamientos).
 2. **PDF de densidades** (Fig. 3): densidad individual `ρ_i = 1/d_i`, con `d_i` = distancia al vecino
    más cercano sobre la pista. Pico en **ρ ≈ 0.023 1/mm = 1/44 mm** (distancia de contacto).
 3. **PDF de velocidades** (Fig. 4): velocidad microscópica por VDV y por frame. Se **angosta y se
@@ -81,15 +81,18 @@ Para cada vehículo `i`, con velocidad entera `v_i ∈ {0,…,v_max,i}` (celdas/
 
 - **R2 — Resolución de colisión (modificada por el profe).** Reemplaza la R2 clásica anticipatoria
   `v_i ← min(v_i, g_i)`. Dos variantes a comparar (**[CONFIRMAR]** cuál es la oficial):
-  - **(A) Contacto puro** *(primaria — matchea el paper)*: el vehículo **no frena** mientras no alcance
+  - **(A) Contacto puro** *(primaria experimental)*: el vehículo **no frena** mientras no alcance
     al de adelante.
     - si `v_i ≤ g_i` → avanza libre a `v_i`;
-    - si `v_i > g_i` → **colisión**: toma la velocidad del líder `v_i ← v_{i+1}` y queda **pegado**
-      (a contacto) detrás de él.
+    - si `v_i > g_i` → **colisión**: la regla debe producir un desplazamiento final compatible con
+      el líder para que el vehículo quede a contacto detrás de él sin solaparse. La frase informal
+      “toma la velocidad del líder” no alcanza por sí sola si después se aplica R4.
   - **(B) Clásica salvo a distancia 0**: `v_i ← min(v_i, g_i)` (anticipa), pero si `g_i = 0` entonces
     `v_i ← v_{i+1}` (en vez de quedar en 0).
-  - En ambas, los vehículos en contacto forman **clusters** que se mueven a la velocidad del que va
-    al frente del cluster (en una ruta totalmente llena, todos a la mínima).
+  - En ambas, los vehículos en contacto forman **agrupamientos**. Para la variante A queda como
+    contrato pendiente definir el caso de cadena trabada y el anillo completamente lleno; la opción
+    candidata es resolver desplazamientos finales con `d_i ≤ g_i + d_lider` y, si todos están a
+    contacto, usar un desplazamiento común igual al mínimo de los desplazamientos deseados.
 
 - **R3 — Frenado aleatorio.** Con probabilidad `p`, si `v_i > 0` → `v_i ← v_i − 1`.
   Si `p = 0` (NaSch determinista) esta regla nunca se aplica. Usa un PRNG **sembrado por realización**.
@@ -99,20 +102,21 @@ Para cada vehículo `i`, con velocidad entera `v_i ∈ {0,…,v_max,i}` (celdas/
 ### 3.3 Heterogeneidad
 
 Cada agente tiene su **velocidad máxima propia** `v_max,i`, derivada de una velocidad libre
-`v_free,i ~ U[90,120] mm/s` (igual que los 30 VDV del paper). Esto es **imprescindible** para reproducir
-las Figs. 2 y 4 y para el estudio de órdenes *ascending/descending/random* (extensión, §6).
+`v_free,i ~ U[90,120] mm/s` (igual que los 30 VDV del artículo). Esto es **imprescindible** para
+reproducir las Figs. 2 y 4 y para el estudio de órdenes creciente/decreciente/aleatorio (§6).
 
 ### 3.4 Esquema de actualización (decisiones explícitas — Parisi exige colisiones reproducibles)
 
-- Actualización **síncrona/paralela**: las velocidades nuevas se calculan a partir de la configuración
-  al **inicio** del paso; luego se mueven todos. `v_{i+1}` en R2 se toma de esa configuración inicial
-  (decisión documentada; **[CONFIRMAR]** con el profe si prefiere la velocidad del líder *post*-R1/R3).
-- **Sin solapamiento garantizado:** en la variante A el desplazamiento se resuelve por clusters
-  (cadenas de vehículos a contacto) recorriendo la ruta desde un vehículo libre; en la variante B el
-  `min(v_i, g_i)` ya impide el solapamiento. El algoritmo exacto de resolución de clusters se fija en la
-  fase de implementación con tests de invariantes (sin solapamiento, N conservado).
-- El motor es **100 % determinista dada la semilla** (posiciones iniciales + `v_free,i` + secuencia del
-  PRNG).
+- Actualización **síncrona/paralela**: R2 se resuelve a partir de snapshots inmutables de gaps y
+  velocidades (`CollisionContext`), y recién después se aplican los resultados a la ruta. Esto evita que
+  la regla dependa del orden de iteración.
+- `v_{i+1}` en R2 queda como decisión explícita a confirmar: velocidad pre-R1, post-R1 o post-R3.
+  El esqueleto del código separa `leaderVelocitiesForR2` para que esa elección no quede implícita.
+- **Sin solapamiento garantizado:** en la variante A no basta con mutar velocidades; hay que resolver
+  desplazamientos finales compatibles con el líder. Además, si R3 queda después de R2, puede romper la
+  restricción de contacto; por eso la interacción R2/R3 es **[CONFIRMAR]** antes de implementar.
+- El motor es **100 % determinista dada la realización** (posiciones iniciales + `v_free,i` + secuencia
+  reproducible del PRNG).
 
 ---
 
@@ -127,9 +131,9 @@ resolución.
 | Paso espacial | `Δx` | **0.25 mm** | elegido (resolución de velocidad) |
 | Paso temporal | `dt` | **1/24 s ≈ 0.0417 s** | cadencia de cámara (24 fps) → 1 paso = 1 frame |
 | Cuanto de velocidad | `Δv = Δx/dt` | **6 mm/s** | derivado |
-| Largo de vehículo | `ℓ` | 44 mm = **176 celdas** | paper |
+| Largo de vehículo | `ℓ` | 44 mm = **176 celdas** | artículo |
 | Largo de pista | `L` | 1320 mm = **5280 celdas** | `30·ℓ` (cierre exacto a N=30) |
-| Velocidad libre | `v_free,i` | `U[90,120]` mm/s | paper (30 VDV uniformes) |
+| Velocidad libre | `v_free,i` | `U[90,120]` mm/s | artículo (30 VDV uniformes) |
 | Velocidad máx. (lattice) | `v_max,i = round(v_free,i/Δv)` | **{15,…,20}** celdas/paso | derivado (6 clases) |
 | Densidad global | `ρ = N/L_phys` | hasta **0.0227 1/mm** | derivado (N=30 → contacto) |
 | Prob. de frenado | `p` | barrido (§6) | parámetro |
@@ -138,43 +142,51 @@ resolución.
 - `Δx = 0.25 mm` es la perilla de resolución: más chico → más clases de velocidad pero lattice más
   grande/lento. 0.25 mm da 6 clases de `v_max` (15–20) y una ruta de 5280 celdas (manejable, N≤30).
 - Se fija `L = 30·ℓ = 5280` celdas (1320 mm) en vez de 1313 mm para que **N=30 cierre exactamente a
-  contacto** (diferencia 0.5 % con el paper; consistente con que el paper también dice "≈ 1313 mm" y
+  contacto** (diferencia 0.5 % con el artículo; consistente con que el artículo también dice "≈ 1313 mm" y
   admite leve solapamiento/desalineación).
+- **Sensibilidades obligatorias:** correr al menos comparaciones de control para `L=1313 mm` vs.
+  `L=1320 mm`, y documentar si `dt=1/24 s` se usa como dinámica del autómata o como frecuencia de
+  muestreo. Si el profesor pide una tasa física de frenado, convertir `p` por paso a `p(dt)=1-exp(-λdt)`.
 - **Limitación honesta (va en Discusión del informe):** en NaSch la velocidad está acotada por la
   velocidad *media* libre (`v_max,i`), por lo que el modelo **no** reproduce la cola instantánea de
   hasta ~300 mm/s de la Fig. 4 (que viene del ruido instantáneo del robot vibrante). Esperamos
   reproducir bien la **forma y las tendencias** (PDF de densidad geométrica, corrimiento/angostamiento
-  de la PDF de velocidad con N, caída del diagrama fundamental), no el match absoluto de la cola.
+  de la PDF de velocidad con N, caída del diagrama fundamental), no la coincidencia absoluta de la cola.
 
 ---
 
 ## 5. Parámetros vs. condiciones iniciales (distinción explícita — corrección recurrente de Parisi)
 
 - **Parámetros del modelo:** `L`, `ℓ`, `Δx`, `dt`, `p`, `N`, el rango de velocidad libre `[90,120]`,
-  la variante de R2.
+  la variante de R2, el orden de inserción y el protocolo de corrida.
 - **Condiciones iniciales (cambian por realización):** posiciones iniciales de los vehículos, el valor
-  concreto sorteado de `v_free,i` por agente, y la semilla del PRNG.
+  concreto sorteado de `v_free,i` por agente, y el identificador reproducible del PRNG.
 
 ---
 
 ## 6. Matriz de experimentos
 
-**Núcleo (lo que pidió el profe — variar N y p):**
+**Núcleo: validación + comparación con el artículo**
 
 | Estudio | Barrido | Fijo |
 |---|---|---|
 | Velocidad media vs **N** | `N ∈ {5,10,15,20,25,30}` (+ N finos para FD) | `p = 0.1` (y repetir para otros p) |
 | Velocidad media vs **p** | `p ∈ {0, 0.1, 0.2, 0.3, 0.4}` | varios N |
 | Validación determinista | `p = 0` | homogéneo (§8) |
+| Protocolo del artículo | `orden ∈ {creciente, decreciente, aleatorio}` y protocolo incremental cada 180 s | comparar ambas variantes R2 |
 
 - **Variante de R2:** correr A y B y comparar (decisión Q2).
-- **Realizaciones:** M por cada `(N, p)` (M a determinar por convergencia; arrancamos con ~30–50).
-- **Estacionario:** se descarta el transitorio **por inspección** del observable vs. tiempo, no con un
-  porcentaje fijo (corrección de Parisi en TP2/TP3).
+- **Realizaciones:** arrancar con M=30 por combinación y aumentar si la velocidad media no estabiliza
+  su error relativo. Reportar M, desvío entre realizaciones y criterio usado; no ocultar M como detalle
+  de código.
+- **Estacionario:** guardar evolución suficiente y elegir el corte **por inspección** del observable vs.
+  tiempo. El corte final (`since_step`) debe quedar en un manifiesto de análisis; no usar descarte fijo
+  en porcentaje.
+- **N fijo vs. incremental:** N fijo queda como protocolo de validación/barrido limpio. La comparación
+  principal con Figs. 2–5 debe incluir el protocolo incremental de 180 s y los tres órdenes, porque el
+  artículo estudia explícitamente el efecto de historia de inserción.
 
-**Extensiones (si da el tiempo / si el profe quiere acercarse más al paper):**
-- Órdenes de inserción **ascending / descending / random** (Fig. 2) usando la heterogeneidad de `v_free`.
-- Protocolo **incremental** (agregar 5 cada 180 s) en vez de N fijo, para replicar el experimento tal cual.
+**Extensiones (si da el tiempo):**
 - Doble carril con cambio de carril.
 
 ---
@@ -207,7 +219,7 @@ estímulos = `N` y `p`.
 - **Invariantes (tests):** N se conserva, nunca hay solapamiento de cuerpos, el orden periódico se
   preserva, y con `p=0` la corrida es bit-a-bit reproducible.
 - Recién con el motor validado se pasa a la configuración **calibrada/heterogénea** (§4) para comparar
-  con el paper.
+  con el artículo.
 
 ---
 
@@ -219,28 +231,30 @@ Escribe **solo variables físicas**; sin color ni radio (corrección de Parisi e
 
 ```
 Vehicle            id, posición (cola), velocidad, vMax        (estado puro)
-Ring               L, ℓ; gaps periódicos; vecino más cercano
-CollisionRule      «interface { resolve(...) }»
-  ├ ContactoPuro   (variante A, primaria)
-  └ ClasicaSalvo0  (variante B)
+PeriodicTrack      L, ℓ; gaps periódicos; vecino más cercano
+CollisionContext   snapshots inmutables para R2
+CollisionRule      «interface { resolve(CollisionContext) }»
+  ├ ContactoPuro   (variante A, primaria experimental)
+  └ ClasicaSalvoCero (variante B; default inicial para validar NaSch clásico)
 NaSchEngine        paso síncrono: R1 → R2(rule) → R3(rng) → R4
-RandomBrake        PRNG sembrado por realización
-Config             parámetros (L, ℓ, Δx, dt, N, p, rango v_free, rule, seed, pasos, transitorio)
+RandomBrake        PRNG reproducible por realización
+Config             parámetros (L, ℓ, Δx, dt, N, p, rango v_free, rule, order, protocol, seed, pasos)
 OutputWriter       escribe estado físico por paso (id, x_mm, v_mmps)
 Main / CLI         corre UNA simulación dada una config
 ```
 
 - Representación eficiente: vehículos en lista ordenada por posición (N ≤ 30) → gaps en O(N) por paso
   (no hace falta un array de 5280 celdas).
-- **Salida:** un archivo por `(N, p, variante, realización)`. Formato compacto: bloques por paso de
-  tiempo con `id  x[mm]  v[mm/s]`. Se escriben solo los pasos del régimen a analizar (configurable) para
-  no explotar en tamaño. `data/` va en `.gitignore`.
+- **Salida:** un archivo por `(N, p, variante, orden, protocolo, realización)`. Formato compacto:
+  bloques por paso de tiempo con `id  x[mm]  v[mm/s]` y cabecera de metadatos. Para decidir
+  estacionario por inspección se debe conservar evolución suficiente; cualquier submuestreo se controla
+  con `output_every`. `data/` va en `.gitignore`.
 
 ### 9.2 Orquestación y análisis (Python) — `analysis/`
 
 ```
-run_matrix.py    invoca el jar sobre la matriz (N × p × variante × realizaciones) vía subprocess
-io.py            carga archivos de salida
+run_matrix.py    invoca el jar sobre la matriz (N × p × variante × orden × protocolo × realizaciones)
+run_io.py        carga archivos de salida
 observables.py   velocidad media vs N/p, PDF densidad, PDF velocidad, diagrama fundamental,
                  detección de estacionario por inspección, error correcto entre realizaciones
 plots.py         figuras del informe (una figura con curvas de colores; texto grande; log donde ayude)
@@ -265,7 +279,7 @@ tp-final-sds-2026Q1G01S2/
 ├── analysis/        requirements.txt, *.py
 ├── data/            salidas del motor            (gitignored)
 ├── figures/         figuras generadas
-└── extras/          FD_VDV.pdf (paper)           (ya está)
+└── extras/          FD_VDV.pdf (artículo)        (ya está)
 ```
 
 - **Nombres de entregables:** `SdS_TPFinal_2026Q1G01S2_Informe.pdf`,
@@ -277,13 +291,14 @@ tp-final-sds-2026Q1G01S2/
 
 ## 11. Decisiones abiertas a confirmar con el profe
 
-1. **Semántica oficial de la R2** (variante A vs. B; y si `v_{i+1}` es del inicio o del fin del paso).
-   Proponemos A (contacto puro) como primaria y mostramos ambas.
-2. **Protocolo:** N fijo por corrida (estándar para el diagrama fundamental) vs. incremental cada 180 s
-   (réplica exacta del experimento). Proponemos N fijo en el núcleo, incremental como extensión.
+1. **Semántica oficial de la R2** (variante A vs. B; y si `v_{i+1}` es pre-R1, post-R1 o post-R3).
+   Proponemos A (contacto puro) como primaria experimental y B como primer hito de validación.
+2. **Interacción R2/R3:** confirmar si el frenado aleatorio se aplica después de resolver contacto,
+   antes de la proyección final de contactos, o de forma común por agrupamiento.
 3. **Alcance de la comparación:** ¿basta con tendencias/formas (dado el límite de la cola instantánea,
-   §4) o esperan match cuantitativo de la Fig. 4?
-4. ¿Incluimos los órdenes ascending/descending/random (Fig. 2) en el núcleo o como extensión?
+   §4) o esperan coincidencia cuantitativa de la Fig. 4?
+4. ¿Aceptan N fijo como comparación secundaria, dejando el protocolo incremental como comparación
+   principal con el artículo?
 
 ---
 
@@ -291,14 +306,14 @@ tp-final-sds-2026Q1G01S2/
 
 | Hito | Entregable | Estado |
 |---|---|---|
-| 0 | **Este spec** revisado por el grupo | ⏳ en revisión |
-| 1 | Scaffold: Maven `engine/` + esqueleto Python `analysis/` + README + `.gitignore` | pendiente |
+| 0 | **Este spec** revisado por el grupo | completado |
+| 1 | Esqueleto: Maven `engine/` + Python `analysis/` + README + `.gitignore` | en curso auditado |
 | 2 | Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD) | pendiente |
 | 3 | **Validación p=0** contra el diagrama fundamental analítico | pendiente |
-| 4 | Variante A (contacto puro) + resolución de clusters + tests | pendiente |
-| 5 | Calibración + corrida de la matriz (N, p) + observables Python | pendiente |
-| 6 | Figuras + animaciones + comparación con el paper | pendiente |
-| 7 | Extensiones (órdenes, incremental, doble carril) si da el tiempo | pendiente |
+| 4 | Variante A (contacto puro) + resolución de agrupamientos + tests | pendiente |
+| 5 | Calibración + matriz (N, p, variante, orden, protocolo) + observables Python | pendiente |
+| 6 | Figuras + animaciones + comparación con el artículo | pendiente |
+| 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente |
 | 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | pendiente |
 
 ---
@@ -312,4 +327,3 @@ tp-final-sds-2026Q1G01S2/
   significativas acordes al error; **desvío bien calculado**. · Una figura con curvas de colores;
   texto de figuras grande; log donde ayude. · Español sin anglicismos. · Nombrar el método (autómata
   celular / dirigido por paso temporal), no "el TP X". · Distinguir **parámetros de condiciones iniciales**.
-```
