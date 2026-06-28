@@ -1,7 +1,7 @@
 """Observables del modelo — se calculan SIEMPRE post-simulación (regla de la cátedra).
 
 Todos toman objetos :class:`io.Run` (o listas de ellos, una por realización) y devuelven los
-observables del paper: velocidad media vs N, PDF de densidades, PDF de velocidades y diagrama
+observables del artículo: velocidad media vs N, PDF de densidades, PDF de velocidades y diagrama
 fundamental. La detección del estacionario es por inspección (no descarte fijo) y el error se
 calcula como desvío correcto entre realizaciones.
 
@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from io import Run  # type: ignore  # (se importa el Run del módulo io.py local en runtime)
+from run_io import Run
 
 
 def detect_stationary(time_series: np.ndarray) -> int:

@@ -10,7 +10,7 @@ Esqueleto a completar en el Hito 6.
 """
 from __future__ import annotations
 
-from io import load_run  # type: ignore  # módulo io.py local
+from run_io import load_run
 
 
 def animate(path: str, outfile: str | None = None, fps: int = 24) -> None:

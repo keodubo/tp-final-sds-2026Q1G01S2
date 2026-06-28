@@ -25,7 +25,7 @@ def configure(base_fontsize: int = 14) -> None:
 
 
 def plot_mean_speed_vs_n(results_by_p, outfile: str) -> None:
-    """Velocidad media vs N, una curva de color por cada p (≈ Fig. 2 del paper). TODO (Hito 6)."""
+    """Velocidad media vs N, una curva de color por cada p (≈ Fig. 2 del artículo). TODO (Hito 6)."""
     raise NotImplementedError
 
 
