@@ -12,6 +12,12 @@ import java.util.List;
  *
  * <p>Geometría pura (gaps, vecinos): es determinista y está implementada y testeada. La dinámica
  * (R1–R4) vive en el motor.
+ *
+ * <p><b>Alcance de la validación:</b> la consistencia geométrica (sin solapamiento) se chequea
+ * <b>en construcción</b>. La lista de vehículos es inmutable, pero los {@link Vehicle} son mutables
+ * (el motor actualiza posición/velocidad por paso), así que la no-superposición <b>no</b> es un
+ * invariante de por vida: el motor es responsable de mantenerla en cada paso (lo verifican los tests
+ * de invariantes del Hito 2 con {@link #isConsistent()}).
  */
 public final class PeriodicTrack {
 
@@ -20,9 +26,21 @@ public final class PeriodicTrack {
     private final List<Vehicle> vehicles; // ordenados periódicamente por posición
 
     public PeriodicTrack(int latticeLength, int vehicleLength, List<Vehicle> vehicles) {
+        if (latticeLength <= 0) throw new IllegalArgumentException("latticeLength debe ser > 0");
+        if (vehicleLength <= 0) throw new IllegalArgumentException("vehicleLength debe ser > 0");
+        if (vehicles == null || vehicles.isEmpty())
+            throw new IllegalArgumentException("la ruta debe tener al menos un vehículo");
         this.latticeLength = latticeLength;
         this.vehicleLength = vehicleLength;
-        this.vehicles = vehicles;
+        this.vehicles = List.copyOf(vehicles);
+        for (Vehicle v : this.vehicles) {
+            if (v.position() < 0 || v.position() >= latticeLength) {
+                throw new IllegalArgumentException("posición fuera de rango: " + v.position());
+            }
+        }
+        if (!isConsistent()) {
+            throw new IllegalArgumentException("configuración geométrica inconsistente");
+        }
     }
 
     public int latticeLength() { return latticeLength; }

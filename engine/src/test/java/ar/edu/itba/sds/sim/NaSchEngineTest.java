@@ -11,26 +11,27 @@ import org.junit.jupiter.api.Test;
 class NaSchEngineTest {
 
     @Test
-    @Disabled("Hito 2: la condición inicial deja un anillo consistente y N vehículos")
-    void initializeDejaAnilloConsistente() { }
+    @Disabled("Hito 2: la condición inicial deja una ruta consistente y N vehículos")
+    void initializeDejaRutaConsistente() { }
 
     @Test
     @Disabled("Hito 2: vMax_i = round(vfree_i / Δv) cae en el rango esperado {15..20}")
     void velocidadesMaximasEnRango() { }
 
     @Test
-    @Disabled("Hito 2: cada paso conserva N y deja el anillo consistente (sin solapamiento)")
+    @Disabled("Hito 2: cada paso conserva N y deja la ruta consistente (sin solapamiento)")
     void cadaPasoConservaNySinSolapamiento() { }
 
     @Test
-    @Disabled("Hito 2: con la misma semilla la corrida es bit-a-bit reproducible")
-    void mismaSemillaMismaCorrida() { }
+    @Disabled("Hito 2: con el mismo identificador de realización la corrida es bit-a-bit reproducible")
+    void mismaRealizacionMismaCorrida() { }
 
     @Test
     @Disabled("Hito 3: homogéneo + p=0 reproduce el diagrama fundamental analítico Q(ρ)=min(ρ·vmax, 1-ρ)")
     void deterministaReproduceDiagramaFundamentalAnalitico() { }
 
     @Test
-    @Disabled("Hito 4: contacto puro reproduce 'la velocidad de saturación es menor que la del más lento'")
-    void contactoPuroColapsaPorDebajoDelMasLento() { }
+    @Disabled("Hito 4/5: con p>0 (stop-and-go) la velocidad de saturación cae por debajo de la del más "
+            + "lento; con p=0 el cluster va exactamente a la del más lento. Confirmar antes de testearlo como propiedad")
+    void contactoPuroColapsaConFrenadoAleatorio() { }
 }

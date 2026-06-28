@@ -10,8 +10,8 @@ import java.util.Random;
 
 /**
  * Motor de Nagel-Schreckenberg con la Regla 2 modificada. Actualización síncrona por paso de
- * tiempo, en orden <b>R1 → R2 → R3 → R4</b>. Es 100 % determinista dada la semilla de la
- * configuración (condiciones iniciales + secuencia del PRNG).
+ * tiempo, en orden <b>R1 → R2 → R3 → R4</b>. Es 100 % determinista dado el identificador
+ * reproducible de la realización (condiciones iniciales + secuencia del PRNG).
  */
 public final class NaSchEngine {
 
@@ -60,7 +60,9 @@ public final class NaSchEngine {
      * Avanza un paso de tiempo (actualización síncrona):
      * <ol>
      *   <li><b>R1</b> acelerar: {@code v ← min(v+1, vMax)} para todos;</li>
-     *   <li><b>R2</b> resolver colisiones según {@link CollisionRule} (sobre la configuración inicial del paso);</li>
+     *   <li><b>R2</b> resolver colisiones según {@link CollisionRule}, sobre un snapshot del paso. La
+     *       convención exacta de qué velocidad del líder se usa (pre-R1/post-R1/post-R3) y cómo se
+     *       ordena R2 frente a R3 son <b>decisiones abiertas</b> a confirmar con el profe (ver diseño §11);</li>
      *   <li><b>R3</b> frenar con probabilidad {@code p}: si {@code brake.brakes(p)} y {@code v>0}, {@code v ← v-1};</li>
      *   <li><b>R4</b> mover: {@code x ← (x + v) mod L}, manteniendo el orden periódico.</li>
      * </ol>

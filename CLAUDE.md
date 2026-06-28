@@ -1,7 +1,7 @@
 # CLAUDE.md — TP Final SdS (Nagel-Schreckenberg + VDV)
 
 Instrucciones para trabajar en este repo. **Leé primero el documento de diseño**
-`diseno-tp-final-vdv-nasch_v1.md` y el paper `extras/FD_VDV.pdf`.
+`diseno-tp-final-vdv-nasch_v1.md` y el artículo `extras/FD_VDV.pdf`.
 
 ## Qué es esto
 
@@ -24,10 +24,15 @@ Ruta periódica de `L` celdas; vehículos extendidos de `ℓ` celdas; velocidad 
 
 - **R1 Aceleración:** `v ← min(v+1, vmax_i)`.
 - **R2 Colisión (modificada):** dos variantes intercambiables (`CollisionRule`):
-  - *Contacto puro* (primaria): si `v ≤ gap` avanza libre; si `v > gap` toma `v_lider` y queda pegado.
+  - *Contacto puro* (primaria experimental): si `v ≤ gap` avanza libre; si `v > gap` debe resolver un
+    desplazamiento final compatible con el líder para quedar a contacto sin solaparse.
   - *Clásica salvo a distancia 0*: `v ← min(v, gap)`, pero si `gap=0` entonces `v ← v_lider`.
 - **R3 Frenado aleatorio:** con prob `p`, si `v>0` → `v ← v-1`. `p=0` ⇒ determinista.
 - **R4 Movimiento:** `x ← (x+v) mod L`.
+
+El contrato de `CollisionRule` usa snapshots (`CollisionContext`) y no muta la ruta. Antes de
+implementar contacto puro hay que confirmar con el profesor si R3 se aplica después de R2, antes de
+la proyección de contactos, o de forma común por agrupamiento.
 
 Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre `~U[90,120] mm/s`.
 
@@ -57,10 +62,11 @@ Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre 
 
 - Entregables: `SdS_TPFinal_2026Q1G01S2_Informe.pdf`, `SdS_TPFinal_2026Q1G01S2_Presentación.pdf`.
 - Documentos de trabajo: `YYYY-MM-DD_tema_vN.md`.
-- Una **realización** = una semilla (posiciones iniciales + `vfree_i` + secuencia del PRNG).
+- Una **realización** = condiciones iniciales concretas + velocidades libres concretas + secuencia
+  reproducible del PRNG. En CLI puede seguir existiendo `--seed` como identificador técnico.
 - `data/` y `figures/` generados van fuera de git (ver `.gitignore`).
 
 ## Pendientes a confirmar con el profe
 
-Semántica oficial de R2 · protocolo N-fijo vs incremental · alcance de la comparación (formas vs
-cuantitativo) · si los órdenes ascending/descending/random van en el núcleo.
+Semántica oficial de R2 · interacción R2/R3 en contacto puro · alcance de la comparación (formas vs
+cuantitativo) · sensibilidad de `dt`, `L` y `Δx`.
