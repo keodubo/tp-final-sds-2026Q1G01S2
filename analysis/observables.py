@@ -1,6 +1,6 @@
 """Observables del modelo — se calculan SIEMPRE post-simulación (regla de la cátedra).
 
-Todos toman objetos :class:`io.Run` (o listas de ellos, una por realización) y devuelven los
+Todos toman objetos :class:`run_io.Run` (o listas de ellos, una por realización) y devuelven los
 observables del artículo: velocidad media vs N, PDF de densidades, PDF de velocidades y diagrama
 fundamental. La detección del estacionario es por inspección (no descarte fijo) y el error se
 calcula como desvío correcto entre realizaciones.
@@ -39,7 +39,7 @@ def mean_speed_with_error(runs: list[Run], since_step: int = 0) -> tuple[float, 
 
 def density_pdf(runs: list[Run], since_step: int = 0, bins: int = 100):
     """PDF de la densidad individual ρ_i = 1 / d_i, con d_i = distancia (centro a centro) al vecino
-    más cercano sobre el anillo, calculada desde las posiciones. Esperado: pico en 1/44 mm.
+    más cercano sobre la ruta periódica, calculada desde las posiciones. Esperado: pico en 1/44 mm.
     Devuelve (centros_bins, pdf). TODO (Hito 5)."""
     raise NotImplementedError
 
