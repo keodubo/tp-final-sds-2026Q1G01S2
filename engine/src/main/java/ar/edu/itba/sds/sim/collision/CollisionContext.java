@@ -10,8 +10,11 @@ import java.util.List;
  * parciales sobre la ruta. La implementación del motor debe construirlo luego de R1 y aplicar el
  * resultado de {@link CollisionRule#resolve(CollisionContext)} recién al terminar el cálculo de R2.
  *
- * <p>{@code leaderVelocitiesForR2} deja explícita la decisión pendiente con el profesor: puede venir
- * de velocidades pre-R1, post-R1 u otra convención, pero debe quedar fijada antes de implementar.
+ * <p>{@code leaderVelocitiesForR2} es un campo <b>provisorio</b> que deja explícita una decisión
+ * pendiente con el profesor: la velocidad del líder usada por R2 puede venir pre-R1, post-R1 o post-R3.
+ * A propósito <b>no</b> se valida su coherencia con la velocidad real del líder (eso depende de la
+ * convención aún no confirmada); cuando se fije la semántica, este campo se deriva de
+ * {@code velocitiesAfterR1} o se reemplaza, y el contrato deja de necesitarlo.
  */
 public record CollisionContext(
         int latticeLength,

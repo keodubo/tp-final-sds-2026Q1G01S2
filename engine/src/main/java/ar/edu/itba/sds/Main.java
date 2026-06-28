@@ -61,6 +61,9 @@ public final class Main {
             stderr.println(e.getMessage());
             stderr.println("Usá --help para ver las opciones válidas.");
             return 1;
+        } catch (UncheckedIOException e) {
+            stderr.println("error de E/S al escribir la salida: " + e.getMessage());
+            return 3;
         } catch (UnsupportedOperationException e) {
             stderr.println("[esqueleto] motor aún no implementado: " + e.getMessage());
             stderr.println("Ver hitos en diseno-tp-final-vdv-nasch_v1.md");
@@ -91,13 +94,10 @@ public final class Main {
             Files.move(tmp, out, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             stdout.println("listo → " + out);
         } catch (IOException e) {
+            deleteQuietly(tmp);
             throw new UncheckedIOException("no se pudo publicar la salida: " + out, e);
         } catch (RuntimeException e) {
-            try {
-                Files.deleteIfExists(tmp);
-            } catch (IOException ignored) {
-                // Si falla la limpieza del temporal, el error original sigue siendo el relevante.
-            }
+            deleteQuietly(tmp);
             throw e;
         }
     }
@@ -192,6 +192,14 @@ public final class Main {
         Path name = out.getFileName();
         String tmpName = "." + (name == null ? "salida" : name) + ".tmp";
         return out.resolveSibling(tmpName);
+    }
+
+    private static void deleteQuietly(Path p) {
+        try {
+            Files.deleteIfExists(p);
+        } catch (IOException ignored) {
+            // Si falla la limpieza del temporal, el error original sigue siendo el relevante.
+        }
     }
 
     private static void printUsage(PrintStream out) {

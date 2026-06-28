@@ -36,9 +36,9 @@ public record Config(
                 10,                            // N
                 0.1,                           // p
                 90.0, 120.0,                   // velocidad libre U[90,120] mm/s
-                CollisionRuleType.CLASICA_SALVO_CERO,
+                CollisionRuleType.CLASICA_SALVO_CERO, // default = variante de validación (Hito 2); la primaria experimental es CONTACTO_PURO
                 InsertionOrder.RANDOM,
-                RunProtocol.FIXED_N,
+                RunProtocol.FIXED_N,                  // núcleo: N fijo (variar N y p); el incremental es opt-in
                 1L,                            // identificador reproducible
                 10_000,                        // pasos
                 2_000,                         // transitorio (informativo)

@@ -12,6 +12,12 @@ import java.util.List;
  *
  * <p>Geometría pura (gaps, vecinos): es determinista y está implementada y testeada. La dinámica
  * (R1–R4) vive en el motor.
+ *
+ * <p><b>Alcance de la validación:</b> la consistencia geométrica (sin solapamiento) se chequea
+ * <b>en construcción</b>. La lista de vehículos es inmutable, pero los {@link Vehicle} son mutables
+ * (el motor actualiza posición/velocidad por paso), así que la no-superposición <b>no</b> es un
+ * invariante de por vida: el motor es responsable de mantenerla en cada paso (lo verifican los tests
+ * de invariantes del Hito 2 con {@link #isConsistent()}).
  */
 public final class PeriodicTrack {
 
