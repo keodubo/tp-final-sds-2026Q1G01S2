@@ -1,6 +1,6 @@
 # TP Final — Nagel-Schreckenberg aplicado a *Vibration-Driven Vehicles*
 
-**72.25 Simulación de Sistemas** (ITBA, Prof. Daniel Parisi) — 2026 Q1 · Grupo **G01CS2**
+**72.25 Simulación de Sistemas** (ITBA, Prof. Daniel Parisi) — 2026 Q1 · Grupo **G01S2**
 
 Simulación de tráfico 1D con un autómata celular de **Nagel-Schreckenberg** (Regla 2 modificada
 por contacto) aplicado al experimento de robots *vibration-driven vehicles* (Hexbug) de

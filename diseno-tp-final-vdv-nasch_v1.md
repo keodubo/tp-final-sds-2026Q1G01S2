@@ -1,7 +1,7 @@
 # Diseño TP Final SdS — Nagel-Schreckenberg aplicado a *Vibration-Driven Vehicles*
 
 **Materia:** 72.25 Simulación de Sistemas (ITBA, Prof. Daniel Parisi) — 2026 Q1
-**Grupo:** G01CS2 · **Modalidad:** grupal · **Stack:** Java/Maven (motor) + Python (análisis y animación)
+**Grupo:** G01S2 · **Modalidad:** grupal · **Stack:** Java/Maven (motor) + Python (análisis y animación)
 **Fecha:** 2026-06-28 · **Versión:** v1 (spec de diseño, previo a scaffolding)
 
 > **Estado:** documento de diseño para revisión interna del grupo. Doble propósito: (1) base de la
@@ -268,10 +268,10 @@ tp-final-sds-2026Q1G01S2/
 └── extras/          FD_VDV.pdf (paper)           (ya está)
 ```
 
-- **Nombres de entregables** (según tus TPs previos): `SdS_TPFinal_2026Q1G01CS2_Informe.pdf`,
-  `SdS_TPFinal_2026Q1G01CS2_Presentación.pdf`.
-- **[CONFIRMAR] inconsistencia de código de grupo:** la carpeta del repo dice `G01S2`, pero tus
-  entregables de TP2–TP5 y la memoria dicen `G01CS2`. Conviene unificar (probablemente `G01CS2`).
+- **Nombres de entregables:** `SdS_TPFinal_2026Q1G01S2_Informe.pdf`,
+  `SdS_TPFinal_2026Q1G01S2_Presentación.pdf`.
+- **Código de grupo:** `G01S2` (confirmado). Nota: los TP2–TP5 previos se entregaron como `G01CS2`;
+  para este TP se usa `G01S2`.
 
 ---
 

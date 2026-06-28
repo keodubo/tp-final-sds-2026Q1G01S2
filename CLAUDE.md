@@ -9,7 +9,7 @@ Autómata celular de **Nagel-Schreckenberg** (R2 modificada por contacto) en una
 (la pista circular del experimento se modela como una línea periódica: lo que sale por un extremo
 reentra por el otro; la curvatura no entra en el modelo), calibrado para reproducir el experimento de
 *vibration-driven vehicles* (Hexbug) de Patterson & Parisi, y comparar observables. Materia 72.25
-(ITBA, Prof. Daniel Parisi). Grupo G01CS2.
+(ITBA, Prof. Daniel Parisi). Grupo G01S2.
 
 ## Stack y comandos
 
@@ -55,7 +55,7 @@ Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre 
 
 ## Convenciones del repo
 
-- Entregables: `SdS_TPFinal_2026Q1G01CS2_Informe.pdf`, `SdS_TPFinal_2026Q1G01CS2_Presentación.pdf`.
+- Entregables: `SdS_TPFinal_2026Q1G01S2_Informe.pdf`, `SdS_TPFinal_2026Q1G01S2_Presentación.pdf`.
 - Documentos de trabajo: `YYYY-MM-DD_tema_vN.md`.
 - Una **realización** = una semilla (posiciones iniciales + `vfree_i` + secuencia del PRNG).
 - `data/` y `figures/` generados van fuera de git (ver `.gitignore`).
@@ -63,5 +63,4 @@ Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre 
 ## Pendientes a confirmar con el profe
 
 Semántica oficial de R2 · protocolo N-fijo vs incremental · alcance de la comparación (formas vs
-cuantitativo) · si los órdenes ascending/descending/random van en el núcleo · código de grupo
-(¿`G01CS2` o `G01S2`?).
+cuantitativo) · si los órdenes ascending/descending/random van en el núcleo.
