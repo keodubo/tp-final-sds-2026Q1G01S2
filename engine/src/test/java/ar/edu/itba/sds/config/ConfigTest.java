@@ -59,4 +59,55 @@ class ConfigTest {
                 d.seed(), -1, d.transientSteps(), d.outputEvery()
         ));
     }
+
+    @Test
+    void rechazaRutaSinCapacidadParaLosVehiculos() {
+        Config d = Config.defaults();
+        // latticeLength < n * vehicleLength → no entran los vehículos
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.vehicleLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), d.brakeProb(), d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+    }
+
+    @Test
+    void rechazaProbabilidadDeFrenadoFueraDeRango() {
+        Config d = Config.defaults();
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), 1.5, d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), -0.1, d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+    }
+
+    @Test
+    void rechazaOutputEveryNoPositivo() {
+        Config d = Config.defaults();
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), d.brakeProb(), d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), 0
+        ));
+    }
+
+    @Test
+    void rechazaEnumsNulos() {
+        Config d = Config.defaults();
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), d.brakeProb(), d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                null, d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+    }
 }
