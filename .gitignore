@@ -1,0 +1,26 @@
+# === Java / Maven ===
+target/
+*.class
+*.jar
+!.mvn/wrapper/maven-wrapper.jar
+
+# === Python ===
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# === Salidas de simulación y figuras generadas ===
+data/*
+!data/.gitkeep
+figures/*
+!figures/.gitkeep
+
+# === IDEs ===
+.idea/
+*.iml
+.vscode/
+
+# === macOS ===
+.DS_Store
