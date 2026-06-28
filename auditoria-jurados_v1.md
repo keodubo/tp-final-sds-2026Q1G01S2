@@ -259,3 +259,46 @@ git diff --check
 - [ ] Validar `p=0` contra el diagrama fundamental analitico.
 - [ ] Implementar contacto puro y casos de agrupamiento trabado.
 - [ ] Completar observables post-simulacion y protocolo incremental.
+
+---
+
+## Re-auditoría (segunda ronda, Claude) — 2026-06-28
+
+Re-auditoría con 4 jurados independientes (física/modelo, cátedra/Parisi, arquitectura/tests, abogado
+del diablo) + verificación propia del build. **Veredicto unánime: APROBAR CON CAMBIOS.** El reporte de
+Codex resultó honesto (el conteo de tests y el diff-stat coinciden con la realidad) y la disciplina de
+alcance se respetó (ningún hito implementado; los 6 tests del motor siguen `@Disabled`). Se aplicaron
+las correcciones de los jurados **antes** del merge a `main`:
+
+- **Scope creep revertido (ALTA):** los órdenes de inserción + el protocolo incremental vuelven a ser
+  **capa de comparación condicionada a Q4** (no núcleo); se restauró "núcleo = variar N y p (N fijo)" y
+  Q4 como pregunta abierta sin presuponer la respuesta. (`diseno §6/§11`)
+- **Matriz desinflada (ALTA/MEDIA):** `run_matrix.py` ya no hace el producto cartesiano de 10.800;
+  respeta la semántica de cada protocolo (FIXED_N no cruza órdenes; INCREMENTAL no cruza N) y por
+  defecto corre solo el núcleo. Pasos por protocolo (10.000 / 25.920).
+- **Contrato de R2 no cementado (ALTA):** `CollisionRule` queda marcado **provisorio**, con la semántica
+  comprometida (celdas efectivas a avanzar) y la advertencia de que contacto puro puede requerir un tipo
+  más rico (desplazamiento + velocidad heredada); migrará al confirmar R2/R3. `leaderVelocitiesForR2`
+  documentado como provisorio.
+- **Javadoc de R2 alineado al diseño (MEDIA):** `ContactoPuro` lidera con la formulación de
+  desplazamientos finales (no la frase informal); el efecto "saturación < más lento" se condiciona a
+  p>0 (con p=0 es igual a la del más lento).
+- **"anillo"→"ruta" para el modelo (MEDIA):** corregido en `diseno`, `observables.py` y `NaSchEngineTest`
+  ("circular" se mantiene solo para el experimento real).
+- **Cobertura de `Config` (MEDIA):** tests agregados para capacidad `L<n·ℓ`, `p∈[0,1]`, `outputEvery>0`
+  y enums null.
+- **CLI E/S (BAJA):** corregido el bug de `catch` paralelos en `Main` (un fallo de `Files.move` ahora
+  limpia el `.tmp` y devuelve exit 3); `PeriodicTrack` documenta que la consistencia es solo de
+  construcción.
+- **Lenguaje (BAJA):** "sembrado"→"reproducible"; nombres de tests sin "semilla"; default vs primaria de
+  R2 reconciliado en `Config.defaults()`.
+
+**Nota de honestidad (corrige el reporte original):** (a) la reformulación de R2 había quedado solo en el
+`.md`; ahora está también en el código (`ContactoPuro`/`CollisionRule`). (b) La promoción de
+órdenes/incremental al núcleo había sido etiquetada "Bloqueante" por el Jurado 5; en rigor era una
+**decisión de alcance** que el profe no pidió y que el propio diseño dejaba como pregunta abierta — se
+revirtió a capa opcional.
+
+**Diferido a Hito 2+ (correcto que siga abierto):** semántica oficial de R2 y timing R2/R3 (preguntas
+para el profe); tipo de retorno definitivo de `resolve`; disciplina del draw del PRNG; implementación
+real de los hitos.

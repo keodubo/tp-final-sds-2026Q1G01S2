@@ -66,7 +66,8 @@ java -jar target/nasch-vdv-1.0-SNAPSHOT.jar --help
 cd analysis
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python3 run_matrix.py --help     # orquesta N × p × variante × orden × protocolo × realizaciones
+python3 run_matrix.py --help     # núcleo: N × p × variante × realizaciones (N fijo).
+                                 # órdenes + protocolo incremental: capa de comparación opt-in
 ```
 
 ---

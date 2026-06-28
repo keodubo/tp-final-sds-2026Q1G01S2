@@ -90,12 +90,12 @@ Para cada vehículo `i`, con velocidad entera `v_i ∈ {0,…,v_max,i}` (celdas/
   - **(B) Clásica salvo a distancia 0**: `v_i ← min(v_i, g_i)` (anticipa), pero si `g_i = 0` entonces
     `v_i ← v_{i+1}` (en vez de quedar en 0).
   - En ambas, los vehículos en contacto forman **agrupamientos**. Para la variante A queda como
-    contrato pendiente definir el caso de cadena trabada y el anillo completamente lleno; la opción
+    contrato pendiente definir el caso de cadena trabada y la ruta completamente llena; la opción
     candidata es resolver desplazamientos finales con `d_i ≤ g_i + d_lider` y, si todos están a
     contacto, usar un desplazamiento común igual al mínimo de los desplazamientos deseados.
 
 - **R3 — Frenado aleatorio.** Con probabilidad `p`, si `v_i > 0` → `v_i ← v_i − 1`.
-  Si `p = 0` (NaSch determinista) esta regla nunca se aplica. Usa un PRNG **sembrado por realización**.
+  Si `p = 0` (NaSch determinista) esta regla nunca se aplica. Usa un PRNG **reproducible por realización**.
 
 - **R4 — Movimiento.** `x_i ← (x_i + v_i) mod L`.
 
@@ -166,25 +166,29 @@ resolución.
 
 ## 6. Matriz de experimentos
 
-**Núcleo: validación + comparación con el artículo**
+**Núcleo (lo que pidió el profe — variar N y p):** protocolo de **N fijo**.
 
 | Estudio | Barrido | Fijo |
 |---|---|---|
 | Velocidad media vs **N** | `N ∈ {5,10,15,20,25,30}` (+ N finos para FD) | `p = 0.1` (y repetir para otros p) |
 | Velocidad media vs **p** | `p ∈ {0, 0.1, 0.2, 0.3, 0.4}` | varios N |
 | Validación determinista | `p = 0` | homogéneo (§8) |
-| Protocolo del artículo | `orden ∈ {creciente, decreciente, aleatorio}` y protocolo incremental cada 180 s | comparar ambas variantes R2 |
 
-- **Variante de R2:** correr A y B y comparar (decisión Q2).
+- **Variante de R2:** validar primero **B** (clásica salvo 0); luego comparar **A** (contacto puro). El
+  *default* del esqueleto es B por orden de implementación; la **primaria experimental** es A (ver Q1/§3.2).
 - **Realizaciones:** arrancar con M=30 por combinación y aumentar si la velocidad media no estabiliza
   su error relativo. Reportar M, desvío entre realizaciones y criterio usado; no ocultar M como detalle
   de código.
 - **Estacionario:** guardar evolución suficiente y elegir el corte **por inspección** del observable vs.
   tiempo. El corte final (`since_step`) debe quedar en un manifiesto de análisis; no usar descarte fijo
   en porcentaje.
-- **N fijo vs. incremental:** N fijo queda como protocolo de validación/barrido limpio. La comparación
-  principal con Figs. 2–5 debe incluir el protocolo incremental de 180 s y los tres órdenes, porque el
-  artículo estudia explícitamente el efecto de historia de inserción.
+
+**Capa de comparación con el artículo (condicionada a Q4 — confirmar con el profe, §11):**
+- **Órdenes de inserción** `creciente / decreciente / aleatorio` + **protocolo incremental** cada 180 s.
+  El artículo estudia explícitamente el efecto de la historia de inserción (Fig. 2), así que esta capa es
+  la que permite superponer sobre Figs. 2–5 — pero **excede el "variar N y p"** pedido y por eso **no es
+  el núcleo**: se incluye solo si el profe lo confirma. En el orquestador es opt-in
+  (`--protocol INCREMENTAL_180S`); el `default` corre solo el núcleo de N fijo.
 
 **Extensiones (si da el tiempo):**
 - Doble carril con cambio de carril.
@@ -297,8 +301,9 @@ tp-final-sds-2026Q1G01S2/
    antes de la proyección final de contactos, o de forma común por agrupamiento.
 3. **Alcance de la comparación:** ¿basta con tendencias/formas (dado el límite de la cola instantánea,
    §4) o esperan coincidencia cuantitativa de la Fig. 4?
-4. ¿Aceptan N fijo como comparación secundaria, dejando el protocolo incremental como comparación
-   principal con el artículo?
+4. **Órdenes de inserción + protocolo incremental:** ¿los incluimos como capa de comparación con el
+   artículo (§6) o quedan como extensión? El núcleo "variar N y p" usa **N fijo**; los órdenes y el
+   incremental **exceden lo pedido** y quedan condicionados a esta confirmación (no se asumen resueltos).
 
 ---
 
