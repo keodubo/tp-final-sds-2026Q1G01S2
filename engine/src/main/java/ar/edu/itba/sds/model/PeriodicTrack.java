@@ -20,9 +20,21 @@ public final class PeriodicTrack {
     private final List<Vehicle> vehicles; // ordenados periódicamente por posición
 
     public PeriodicTrack(int latticeLength, int vehicleLength, List<Vehicle> vehicles) {
+        if (latticeLength <= 0) throw new IllegalArgumentException("latticeLength debe ser > 0");
+        if (vehicleLength <= 0) throw new IllegalArgumentException("vehicleLength debe ser > 0");
+        if (vehicles == null || vehicles.isEmpty())
+            throw new IllegalArgumentException("la ruta debe tener al menos un vehículo");
         this.latticeLength = latticeLength;
         this.vehicleLength = vehicleLength;
-        this.vehicles = vehicles;
+        this.vehicles = List.copyOf(vehicles);
+        for (Vehicle v : this.vehicles) {
+            if (v.position() < 0 || v.position() >= latticeLength) {
+                throw new IllegalArgumentException("posición fuera de rango: " + v.position());
+            }
+        }
+        if (!isConsistent()) {
+            throw new IllegalArgumentException("configuración geométrica inconsistente");
+        }
     }
 
     public int latticeLength() { return latticeLength; }

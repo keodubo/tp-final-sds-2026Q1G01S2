@@ -2,6 +2,7 @@ package ar.edu.itba.sds.model;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -58,11 +59,35 @@ class PeriodicTrackTest {
     }
 
     @Test
-    void solapamientoNoEsConsistente() {
+    void rechazaSolapamientosAlConstruir() {
         // cuerpos [0,3] y [2,5] se solapan
-        PeriodicTrack t = new PeriodicTrack(20, 4, List.of(
+        assertThrows(IllegalArgumentException.class, () -> new PeriodicTrack(20, 4, List.of(
                 new Vehicle(0, 0, 0, 5),
-                new Vehicle(1, 2, 0, 5)));
-        assertFalse(t.isConsistent());
+                new Vehicle(1, 2, 0, 5))));
+    }
+
+    @Test
+    void rechazaRutaVacia() {
+        assertThrows(IllegalArgumentException.class, () -> new PeriodicTrack(20, 4, List.of()));
+    }
+
+    @Test
+    void rechazaPosicionesFueraDeRango() {
+        assertThrows(IllegalArgumentException.class, () -> new PeriodicTrack(20, 4, List.of(
+                new Vehicle(0, -1, 0, 5))));
+        assertThrows(IllegalArgumentException.class, () -> new PeriodicTrack(20, 4, List.of(
+                new Vehicle(0, 20, 0, 5))));
+    }
+
+    @Test
+    void copiaLaListaDeEntrada() {
+        List<Vehicle> vehicles = new ArrayList<>(List.of(
+                new Vehicle(0, 0, 0, 5),
+                new Vehicle(1, 8, 0, 5)));
+
+        PeriodicTrack t = new PeriodicTrack(20, 4, vehicles);
+        vehicles.add(new Vehicle(2, 14, 0, 5));
+
+        assertEquals(2, t.size());
     }
 }

@@ -10,8 +10,8 @@ import java.util.Random;
 
 /**
  * Motor de Nagel-Schreckenberg con la Regla 2 modificada. Actualización síncrona por paso de
- * tiempo, en orden <b>R1 → R2 → R3 → R4</b>. Es 100 % determinista dada la semilla de la
- * configuración (condiciones iniciales + secuencia del PRNG).
+ * tiempo, en orden <b>R1 → R2 → R3 → R4</b>. Es 100 % determinista dado el identificador
+ * reproducible de la realización (condiciones iniciales + secuencia del PRNG).
  */
 public final class NaSchEngine {
 

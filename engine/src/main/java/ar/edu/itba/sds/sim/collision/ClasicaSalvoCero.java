@@ -1,6 +1,6 @@
 package ar.edu.itba.sds.sim.collision;
 
-import ar.edu.itba.sds.model.PeriodicTrack;
+import java.util.List;
 
 /**
  * Variante B — «clásica salvo a distancia 0».
@@ -15,7 +15,7 @@ import ar.edu.itba.sds.model.PeriodicTrack;
  */
 public final class ClasicaSalvoCero implements CollisionRule {
     @Override
-    public void apply(PeriodicTrack track) {
+    public List<Integer> resolve(CollisionContext context) {
         throw new UnsupportedOperationException("TODO Hito 2: implementar Regla 2 clásica-salvo-0 con TDD");
     }
 }

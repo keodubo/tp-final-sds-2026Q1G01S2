@@ -4,7 +4,7 @@ import java.util.random.RandomGenerator;
 
 /**
  * Regla 3 (frenado aleatorio). Encapsula la fuente de aleatoriedad para que la corrida sea
- * reproducible dada la semilla (una realización).
+ * reproducible dado el identificador técnico de la realización.
  */
 public final class RandomBrake {
 
