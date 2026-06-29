@@ -34,7 +34,8 @@ no-solapamiento garantizado):
 
 El contrato de `CollisionRule.resolve` usa snapshots (`CollisionContext`) y devuelve un
 `Movimiento(desplazamiento, velocidadSiguiente)`; no muta la ruta. **Validación analítica `Q(ρ)=min(ρ·vmax,1−ρ)`
-solo aplica a la variante B**; la A (contacto puro) da `Q=ρ·vmax` (flujo libre hasta el contacto).
+solo aplica a la variante B**; la A (contacto puro) no se valida contra esa curva. En el caso
+homogéneo `p=0`, A mantiene flujo libre hasta el contacto.
 
 Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre `~U[90,120] mm/s`.
 
@@ -68,7 +69,9 @@ Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre 
   reproducible del PRNG. En CLI puede seguir existiendo `--seed` como identificador técnico.
 - `data/` y `figures/` generados van fuera de git (ver `.gitignore`).
 
-## Pendientes a confirmar con el profe
+## Temas a documentar en la defensa
 
-Semántica oficial de R2 · interacción R2/R3 en contacto puro · alcance de la comparación (formas vs
-cuantitativo) · sensibilidad de `dt`, `L` y `Δx`.
+No reabrir las decisiones ya confirmadas (R2 oficial A, orden R1→R3→R2→R4, órdenes+incremental en
+alcance, `p` por paso, `L=1320`, error entre realizaciones, observables post-simulación). Sí documentar:
+contrato temporal exacto de salida en la frontera incremental, sensibilidad de `dt`, `L` y `Δx`, y
+nivel de coincidencia cuantitativa que den los barridos reales.

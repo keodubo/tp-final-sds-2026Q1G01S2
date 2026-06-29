@@ -49,6 +49,24 @@ def test_density_pdf_pico_en_equiespaciado():
     assert abs(pico - 1.0 / 330.0) < 3e-4
 
 
+def test_density_pdf_sin_vecino_devuelve_nan():
+    run = make_run(np.array([[0.0]]), np.zeros((1, 1)), n=1)
+
+    centros, pdf = obs.density_pdf(run, bins=3, rho_range=(0.0, 0.03))
+
+    assert centros.shape == (3,)
+    assert np.all(np.isnan(pdf))
+
+
+def test_fundamental_diagram_sin_vecino_devuelve_vacio():
+    run = make_run(np.array([[0.0]]), np.array([[100.0]]), n=1)
+
+    rho, v = obs.fundamental_diagram(run)
+
+    assert rho.size == 0
+    assert v.size == 0
+
+
 def test_detect_stationary_encuentra_el_corte():
     serie = np.concatenate([np.linspace(0.0, 100.0, 40), np.full(60, 100.0)])
     corte = obs.detect_stationary(serie)

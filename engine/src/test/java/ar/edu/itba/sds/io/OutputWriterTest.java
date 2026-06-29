@@ -31,6 +31,8 @@ class OutputWriterTest {
 
         String text = Files.readString(out);
         assertTrue(text.contains("# columnas: paso id x_mm v_mmps"));
+        assertTrue(text.contains("realizacion_id=1"));
+        assertFalse(text.contains("realization_seed"));
         assertTrue(text.contains("12 7 2.0000 18.0000"));
         assertFalse(text.contains("color"));
         assertFalse(text.contains("radio"));

@@ -45,7 +45,7 @@ def _nearest_center_distances(x_mm: np.ndarray, ell_mm: float, track_mm: float) 
     centers = np.sort((x_mm + ell_mm / 2.0) % track_mm)
     n = centers.size
     if n < 2:
-        return np.array([track_mm] * n)
+        return np.array([])
     diffs = np.diff(centers)
     wrap = centers[0] + track_mm - centers[-1]
     ahead = np.append(diffs, wrap)          # hueco hacia el de adelante
@@ -121,8 +121,16 @@ def density_pdf(runs, since_step: int = 0, bins: int = 100, rho_range=None):
     for run in _as_runs(runs):
         ell, track = _ell_mm(run), _track_mm(run)
         for x in _steps(run, since_step)[1]:
-            rhos.append(1.0 / _nearest_center_distances(x, ell, track))
+            distances = _nearest_center_distances(x, ell, track)
+            if distances.size:
+                rhos.append(1.0 / distances)
     rho = np.concatenate(rhos) if rhos else np.array([])
+    if rho.size == 0:
+        if rho_range is None:
+            edges = np.linspace(0.0, 1.0, bins + 1)
+        else:
+            edges = np.linspace(rho_range[0], rho_range[1], bins + 1)
+        return 0.5 * (edges[:-1] + edges[1:]), np.full(bins, np.nan)
     hist, edges = np.histogram(rho, bins=bins, range=rho_range, density=True)
     return 0.5 * (edges[:-1] + edges[1:]), hist
 
@@ -148,8 +156,11 @@ def fundamental_diagram(runs, since_step: int = 0, window: int = 1000):
         ell, track = _ell_mm(run), _track_mm(run)
         _, gx, gv = _steps(run, since_step)
         for x, v in zip(gx, gv):
+            distances = _nearest_center_distances(x, ell, track)
+            if distances.size == 0:
+                continue
             order = np.argsort((x + ell / 2.0) % track)
-            rho_all.append(1.0 / _nearest_center_distances(x, ell, track))  # en orden de posición
+            rho_all.append(1.0 / distances)  # en orden de posición
             v_all.append(v[order])
     if not rho_all:
         return np.array([]), np.array([])

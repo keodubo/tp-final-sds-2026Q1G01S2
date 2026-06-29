@@ -22,8 +22,8 @@ import java.util.Random;
  * {@link Config#seed()}.
  *
  * <h2>Orden de las reglas y garantía de no-solapamiento</h2>
- * El esquema lógico es R1 → R2 → R3 → R4, pero por el requisito de la cátedra de
- * <b>colisiones reproducibles y sin solapamiento jamás</b> el motor aplica:
+ * Las reglas se nombran como R1-R4, pero por el requisito de la cátedra de
+ * <b>colisiones reproducibles y sin solapamiento jamás</b> el motor las aplica en este orden:
  * <ol>
  *   <li><b>R1</b> aceleración sobre la velocidad heredada: {@code deseada = min(v_heredada + 1, vMax)};</li>
  *   <li><b>R3</b> frenado aleatorio sobre la velocidad deseada: con prob {@code p},

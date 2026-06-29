@@ -28,18 +28,24 @@ def configure(base_fontsize: int = 14) -> None:
     })
 
 
-def plot_mean_speed_vs_n(results_by_p, outfile) -> None:
+def _curve_label(key) -> str:
+    if isinstance(key, (int, float)):
+        return f"p = {key:g}"
+    return str(key)
+
+
+def plot_mean_speed_vs_n(results_by_p, outfile, legend_title: str = "frenado aleatorio") -> None:
     """Velocidad media vs N, una curva de color por cada p (≈ Fig. 2 del artículo).
 
-    ``results_by_p``: dict ``p -> (N, media, error)`` con arreglos del mismo largo."""
+    ``results_by_p``: dict ``p/etiqueta -> (N, media, error)`` con arreglos del mismo largo."""
     configure()
     fig, ax = plt.subplots(figsize=(7, 5))
     for p in sorted(results_by_p):
         n, mean, err = results_by_p[p]
-        ax.errorbar(n, mean, yerr=err, marker="o", capsize=3, label=f"p = {p:g}")
+        ax.errorbar(n, mean, yerr=err, marker="o", capsize=3, label=_curve_label(p))
     ax.set_xlabel("N (vehículos)")
     ax.set_ylabel("velocidad media [mm/s]")
-    ax.legend(title="frenado aleatorio")
+    ax.legend(title=legend_title)
     fig.savefig(outfile)
     plt.close(fig)
 

@@ -42,11 +42,11 @@ class NaSchEngineTest {
      * Config para el protocolo incremental con intervalo corto de test: dt=90 ⇒ pasosPorLote =
      * round(180/90) = 2; Δx=90 ⇒ Δv=1; vfree 3..6 ⇒ vMax 3..6; ℓ=1; L=400 (sobra lugar para insertar).
      */
-    private static Config incremental(int target, InsertionOrder orden) {
+    private static Config incremental(int target, InsertionOrder orden, CollisionRuleType regla) {
         return new Config(
                 400, 1, 90.0, 90.0,
                 target, 0.0, 3.0, 6.0,
-                CollisionRuleType.CLASICA_SALVO_CERO, orden, RunProtocol.INCREMENTAL_180S,
+                regla, orden, RunProtocol.INCREMENTAL_180S,
                 7L, 0, 0, 1);
     }
 
@@ -113,23 +113,28 @@ class NaSchEngineTest {
 
     @Test
     void protocoloIncrementalCreceEnLotesSinSolaparse() {
-        Config cfg = incremental(20, InsertionOrder.ASCENDING);
-        NaSchEngine engine = new NaSchEngine(cfg);
-        engine.initialize();
+        for (CollisionRuleType regla : CollisionRuleType.values()) {
+            Config cfg = incremental(20, InsertionOrder.ASCENDING, regla);
+            NaSchEngine engine = new NaSchEngine(cfg);
+            engine.initialize();
 
-        assertEquals(5, engine.track().size(), "el protocolo incremental arranca con 5");
+            assertEquals(5, engine.track().size(), "el protocolo incremental arranca con 5");
 
-        int previo = 5;
-        for (int t = 0; t < 200; t++) {
-            engine.step();
-            int ahora = engine.track().size();
-            assertTrue(ahora >= previo, "N no debe decrecer (paso " + t + ")");
-            assertTrue(ahora <= 20, "N no debe pasar del objetivo");
-            assertTrue(ahora == previo || ahora == previo + 5, "los vehículos entran de a lotes de 5");
-            assertTrue(engine.track().isConsistent(), "sin solapamiento al insertar (paso " + t + ")");
-            previo = ahora;
+            int previo = 5;
+            for (int t = 0; t < 200; t++) {
+                engine.step();
+                int ahora = engine.track().size();
+                assertTrue(ahora >= previo, "N no debe decrecer (" + regla + ", paso " + t + ")");
+                assertTrue(ahora <= 20, "N no debe pasar del objetivo (" + regla + ")");
+                assertTrue(ahora == previo || ahora == previo + 5,
+                        "los vehículos entran de a lotes de 5 (" + regla + ")");
+                assertTrue(engine.track().isConsistent(),
+                        "sin solapamiento al insertar (" + regla + ", paso " + t + ")");
+                previo = ahora;
+            }
+            assertEquals(20, engine.track().size(),
+                    "debe alcanzar el objetivo (N=20) por lotes de 5 con " + regla);
         }
-        assertEquals(20, engine.track().size(), "debe alcanzar el objetivo (N=20) por lotes de 5");
     }
 
     @Test

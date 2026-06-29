@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Orquestador del análisis POST-simulación.
+"""Orquestador del análisis posterior a la simulación.
 
 Lee las salidas del motor en un directorio (``data/``), agrupa las realizaciones por
-(**variante de R2**, p, N) según los metadatos de cada archivo, calcula los observables y genera las
-figuras en ``figures/``. Nada se calcula durante la simulación: esto corre después, sobre los
-archivos ya escritos.
+(**variante de R2**, orden, protocolo, p, N) según los metadatos de cada archivo, calcula los
+observables y genera las figuras en ``figures/``. Nada se calcula durante la simulación: esto corre
+después, sobre los archivos ya escritos.
 
-IMPORTANTE: las corridas se agrupan **por variante de R2** (``regla2``). Mezclar CONTACTO_PURO y
-CLASICA_SALVO_CERO en un mismo promedio sería comparar dos modelos distintos y reportar su diferencia
-como si fuera error entre realizaciones. Por eso cada variante genera su propio juego de figuras, y el
-diagrama fundamental las muestra como curvas separadas y etiquetadas.
+IMPORTANTE: las corridas se agrupan por variante de R2 (``regla2``), orden, protocolo y ``p`` donde
+corresponde. Mezclar esos metadatos en un mismo promedio sería comparar experimentos distintos y
+reportar su diferencia como si fuera error entre realizaciones.
 
 Ejemplo:
     python3 analyze.py --data-dir ../data --figures-dir ../figures --since-step 4320
@@ -31,6 +30,112 @@ def _discover(data_dir: Path):
     return sorted(data_dir.glob("*.txt"))
 
 
+def _rule(run) -> str:
+    return str(run.meta.get("regla2", "SIN_REGLA"))
+
+
+def _order(run) -> str:
+    return str(run.meta.get("order", "SIN_ORDEN"))
+
+
+def _protocol(run) -> str:
+    return str(run.meta.get("protocol", "FIXED_N"))
+
+
+def _p(run) -> float:
+    return float(run.meta["p"])
+
+
+def _n_nominal(run) -> int:
+    return int(run.meta["N"])
+
+
+def group_fixed_runs(runs):
+    """Agrupa corridas de N fijo sin mezclar variante, orden ni p."""
+    groups = collections.defaultdict(list)
+    for run in runs:
+        if _protocol(run) != "FIXED_N":
+            continue
+        groups[(_rule(run), _order(run), _p(run), _n_nominal(run))].append(run)
+    return dict(groups)
+
+
+def group_fundamental_runs(runs):
+    """Agrupa datos para diagrama fundamental sin mezclar variante, orden, protocolo ni p."""
+    groups = collections.defaultdict(list)
+    for run in runs:
+        groups[(_rule(run), _order(run), _protocol(run), _p(run))].append(run)
+    return dict(groups)
+
+
+def select_representative_p(ps, requested=None) -> float:
+    """Elige el p para PDFs de apoyo: pedido explícito, o el menor p positivo disponible."""
+    values = sorted(float(p) for p in ps)
+    if not values:
+        raise ValueError("no hay valores de p disponibles")
+    if requested is not None:
+        requested = float(requested)
+        if requested not in values:
+            raise ValueError(f"p representativo {requested:g} no existe en las corridas: {values}")
+        return requested
+    positive = [p for p in values if p > 0]
+    return positive[0] if positive else values[0]
+
+
+def stationary_cut_step(steps, serie) -> int:
+    """Mapea el índice sugerido por ``detect_stationary`` al paso real registrado."""
+    steps = np.asarray(steps, dtype=int)
+    if steps.size == 0:
+        return 0
+    cut_idx = int(obs.detect_stationary(serie))
+    cut_idx = max(0, min(cut_idx, steps.size - 1))
+    return int(steps[cut_idx])
+
+
+def _step_groups(run):
+    for step in np.unique(run.step):
+        mask = run.step == step
+        yield int(step), run.vid[mask], run.v_mmps[mask]
+
+
+def incremental_speed_by_order(runs):
+    """Velocidad media incremental por (regla, orden, p) y N activo.
+
+    El header de una corrida incremental contiene el N nominal final. Para comparar contra el artículo
+    se usa el N realmente activo en cada paso registrado, lo que además vuelve robusta la frontera de
+    inserción si la salida está desplazada una muestra.
+    """
+    means_by_key_and_n = collections.defaultdict(lambda: collections.defaultdict(list))
+    for run in runs:
+        if _protocol(run) != "INCREMENTAL_180S":
+            continue
+        key = (_rule(run), _order(run), _p(run))
+        values_by_n = collections.defaultdict(list)
+        for _, vids, velocities in _step_groups(run):
+            active_n = int(np.unique(vids).size)
+            values_by_n[active_n].append(velocities)
+        for active_n, chunks in values_by_n.items():
+            values = np.concatenate(chunks)
+            if values.size:
+                means_by_key_and_n[key][active_n].append(float(np.mean(values)))
+
+    summary = {}
+    for key, by_n in means_by_key_and_n.items():
+        ns = np.array(sorted(by_n), dtype=int)
+        means = []
+        errs = []
+        for n in ns:
+            per_run = np.array(by_n[int(n)], dtype=float)
+            means.append(float(np.mean(per_run)))
+            errs.append(float(np.std(per_run, ddof=1)) if per_run.size > 1 else float("nan"))
+        summary[key] = (ns, np.array(means), np.array(errs))
+    return summary
+
+
+def _label_key(key) -> str:
+    return "_".join(str(part).lower().replace(".", "") for part in key)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data-dir", default="../data")
@@ -38,6 +143,8 @@ def main() -> None:
     ap.add_argument("--since-step", type=int, default=0,
                     help="corte del transitorio (por inspección; 0 = sin recorte, incluye el cuadro 0 "
                          "con v=0). Mirá la figura de evolución temporal para elegirlo.")
+    ap.add_argument("--p-representativo", type=float, default=None,
+                    help="p usado para PDFs de densidad/velocidad; por defecto, el menor p positivo disponible")
     ap.add_argument("--bins", type=int, default=80)
     ap.add_argument("--fd-window", type=int, default=20000, help="ventana de media móvil del diagrama fundamental")
     args = ap.parse_args()
@@ -53,27 +160,17 @@ def main() -> None:
     figdir.mkdir(parents=True, exist_ok=True)
     plots.configure()
 
-    # núcleo: solo FIXED_N (variar N y p). Agrupado SIEMPRE por variante de R2.
-    fixed = [r for r in runs if str(r.meta.get("protocol")) == "FIXED_N"]
-    if not fixed:
-        print("no hay corridas FIXED_N; nada que graficar en el núcleo")
-        return
+    fixed_groups = group_fixed_runs(runs)
+    fixed_by_rule_order = collections.defaultdict(lambda: collections.defaultdict(list))
+    fixed_ps = collections.defaultdict(set)
+    for (rule, order, p, n), rs in fixed_groups.items():
+        fixed_by_rule_order[(rule, order)][(p, n)].extend(rs)
+        fixed_ps[(rule, order)].add(p)
 
-    rules = sorted({str(r.meta.get("regla2")) for r in fixed})
-    fd_curves = {}
-
-    for rule in rules:
-        rule_runs = [r for r in fixed if str(r.meta.get("regla2")) == rule]
-        by_pN = collections.defaultdict(list)
-        by_N = collections.defaultdict(list)
-        ps = set()
-        for r in rule_runs:
-            p, n = float(r.meta["p"]), int(r.meta["N"])
-            by_pN[(p, n)].append(r)
-            by_N[n].append(r)
-            ps.add(p)
-        ps = sorted(ps)
-        tag = rule.lower()
+    for (rule, order), by_pN in sorted(fixed_by_rule_order.items()):
+        ps = sorted(fixed_ps[(rule, order)])
+        ns_all = sorted({n for (_, n) in by_pN})
+        tag = _label_key((rule, order, "fixed"))
 
         # ≈ Fig. 2: velocidad media vs N, una curva por p
         results_by_p = {}
@@ -84,31 +181,47 @@ def main() -> None:
         plots.plot_mean_speed_vs_n(results_by_p, figdir / f"velocidad_media_vs_N_{tag}.png")
 
         # ≈ Figs. 3 y 4: PDF de densidad y velocidad por N, a un p representativo (el menor)
-        p_rep = ps[0]
+        p_rep = select_representative_p(ps, args.p_representativo)
         dens, vels = {}, {}
-        for n, rs in by_N.items():
-            rs_p = [r for r in rs if float(r.meta["p"]) == p_rep] or rs
+        for n in ns_all:
+            rs_p = by_pN.get((p_rep, n), [])
+            if not rs_p:
+                continue
             dens[n] = obs.density_pdf(rs_p, args.since_step, args.bins, rho_range=(0.0, 0.03))
             vels[n] = obs.velocity_pdf(rs_p, args.since_step, args.bins, v_range=(0.0, 130.0))
-        plots.plot_density_pdf(dens, figdir / f"pdf_densidad_{tag}.png")
-        plots.plot_velocity_pdf(vels, figdir / f"pdf_velocidad_{tag}.png")
+        if dens:
+            plots.plot_density_pdf(dens, figdir / f"pdf_densidad_p{p_rep:g}_{tag}.png")
+            plots.plot_velocity_pdf(vels, figdir / f"pdf_velocidad_p{p_rep:g}_{tag}.png")
 
         # evolución temporal (regla 4 de la cátedra) + sugerencia de estacionario, en un caso representativo
-        n_rep = max(by_N)
-        rep = by_pN.get((p_rep, n_rep), rule_runs)[0]
+        n_rep = max(ns_all)
+        rep = by_pN.get((p_rep, n_rep), next(iter(by_pN.values())))[0]
         steps, serie = obs.mean_speed_series(rep)
-        cut = obs.detect_stationary(serie)
+        cut = stationary_cut_step(steps, serie)
         plots.plot_time_evolution(
-            {f"{rule} (N={n_rep}, p={p_rep:g})": (steps, serie, cut)},
+            {f"{rule} {order} (N={n_rep}, p={p_rep:g})": (steps, serie, cut)},
             figdir / f"evolucion_temporal_{tag}.png",
         )
 
-        # diagrama fundamental: curva por variante (NO se mezclan)
-        rho, v = obs.fundamental_diagram(rule_runs, args.since_step, window=args.fd_window)
-        fd_curves[rule] = (rho, v)
+    incremental_summary = incremental_speed_by_order(runs)
+    incremental_by_rule_p = collections.defaultdict(dict)
+    for (rule, order, p), values in incremental_summary.items():
+        incremental_by_rule_p[(rule, p)][order] = values
+    for (rule, p), by_order in sorted(incremental_by_rule_p.items()):
+        tag = _label_key((rule, f"p{p:g}", "incremental"))
+        plots.plot_mean_speed_vs_n(
+            by_order,
+            figdir / f"velocidad_media_incremental_{tag}.png",
+            legend_title="orden de inserción",
+        )
 
-    plots.plot_fundamental_diagram(fd_curves, figdir / "diagrama_fundamental.png")
-    print(f"figuras generadas en {figdir} para variantes: {rules}")
+    fd_curves = {}
+    for (rule, order, protocol, p), rs in sorted(group_fundamental_runs(runs).items()):
+        rho, v = obs.fundamental_diagram(rs, args.since_step, window=args.fd_window)
+        fd_curves[f"{rule} {order} {protocol} p={p:g}"] = (rho, v)
+    if fd_curves:
+        plots.plot_fundamental_diagram(fd_curves, figdir / "diagrama_fundamental.png")
+    print(f"figuras generadas en {figdir}")
 
 
 if __name__ == "__main__":

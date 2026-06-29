@@ -1,7 +1,7 @@
 package ar.edu.itba.sds.config;
 
 /**
- * Parámetros de una corrida del modelo. Todas las cantidades del lattice están en celdas y pasos;
+ * Parámetros de una corrida del modelo. Todas las cantidades de la malla están en celdas y pasos;
  * los métodos derivados convierten a unidades físicas (mm, mm/s) según la calibración.
  *
  * <p>Distinción (correción recurrente de la cátedra): aquí viven los <b>parámetros</b>. Las

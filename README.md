@@ -58,7 +58,7 @@ java -jar target/nasch-vdv-1.0-SNAPSHOT.jar --help
 > **Estado actual:** **motor completo y verificado.** Inicialización física, R1–R4, ambas variantes de
 > R2 (A contacto puro oficial, B clásica para validar), órdenes de inserción y protocolos FIXED_N e
 > INCREMENTAL_180S, con validación `p=0` de la **variante B** contra el diagrama fundamental analítico
-> (la variante A da `Q=ρ·vmax`, flujo libre hasta el contacto). `mvn test` → 39 tests
+> (en el caso homogéneo `p=0`, la variante A da flujo libre hasta el contacto). `mvn test` → 39 tests
 > en verde; 0 solapamientos y reproducibilidad bit-a-bit verificadas. El motor escribe **solo estado
 > físico**; los observables se calculan después (Python).
 
@@ -68,18 +68,22 @@ java -jar target/nasch-vdv-1.0-SNAPSHOT.jar --help
 cd analysis
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python3 -m pytest tests -q                 # tests blackbox de los observables
+python3 -m pytest tests -q                 # tests de comportamiento de los observables
 
-# pipeline completo (los observables se calculan DESPUÉS de las corridas):
+# flujo completo (los observables se calculan DESPUÉS de las corridas):
 python3 run_matrix.py --out-dir ../data    # 1) genera las corridas (núcleo N×p, N fijo)
 python3 analyze.py --data-dir ../data \
-        --figures-dir ../figures           # 2) calcula observables y genera las figuras
-python3 -c "import animate; animate.animate('../data/<archivo>.txt')"  # 3) animación (GIF)
+        --figures-dir ../figures           # 2) genera evolución temporal y figuras preliminares
+python3 analyze.py --data-dir ../data \
+        --figures-dir ../figures \
+        --since-step <paso_elegido>        # 3) recalcula figuras finales tras inspeccionar estacionario
+python3 -c "import animate; animate.animate('../data/<archivo>.txt')"  # 4) animación (GIF)
 ```
 
-> `run_matrix.py` por defecto corre solo el **núcleo** (N × p × variante × realizaciones, N fijo).
+> `run_matrix.py` por defecto corre solo el **núcleo** (N × p × realizaciones, N fijo, variante B).
 > Los **órdenes** de inserción y el **protocolo incremental** son opt-in
-> (`--protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM`).
+> (`--protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM`). Para comparar contra el artículo:
+> `python3 run_matrix.py --rule CONTACTO_PURO --protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM --out-dir ../data`.
 
 ---
 
@@ -93,5 +97,5 @@ Ver la tabla de **hitos** al final del documento de diseño. Resumen:
 - [x] Hito 3 — Validación `p=0` (variante B) contra el diagrama fundamental analítico
 - [x] Hito 4 — Variante A (contacto puro) + resolución de agrupamientos
 - [x] Hito 5 — Matriz + observables Python (**falta correr** el barrido)
-- [x] Hito 6 — Figuras + animación (código listo; se generan al correr)
+- [x] Hito 6 — Código de figuras + animación (la comparación final requiere correr el barrido y elegir estacionario)
 - [ ] Hitos 7–8 — sensibilidades, informe y presentación (tras correr las simulaciones)

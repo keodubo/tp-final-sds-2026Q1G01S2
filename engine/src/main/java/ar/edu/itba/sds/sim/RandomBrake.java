@@ -17,9 +17,9 @@ public final class RandomBrake {
     /**
      * ¿Frena este vehículo en este paso? Verdadero con probabilidad {@code p}.
      *
-     * <p>El motor decide <b>cuándo</b> invocarlo (p. ej. solo si {@code v>0}); esa convención —y por lo
-     * tanto en qué momento se consume un número del PRNG— se fija en el TDD del Hito 2, porque afecta la
-     * reproducibilidad bit-a-bit de la realización.
+     * <p>El motor decide <b>cuándo</b> invocarlo. En la implementación actual lo invoca una vez por
+     * vehículo y por paso cuando {@code p>0}, para que el consumo del PRNG sea reproducible y no dependa
+     * de casos particulares de velocidad.
      */
     public boolean brakes(double p) {
         return p > 0 && rng.nextDouble() < p;

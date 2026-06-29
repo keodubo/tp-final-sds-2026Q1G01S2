@@ -31,24 +31,24 @@
 - `run_matrix.py`: barrido; por defecto el núcleo (N×p, N fijo, variante B); órdenes/incremental opt-in.
 
 ## Verificación (evidencia)
-- `mvn -f engine/pom.xml clean test` → **39 tests, 0 fallas**. `python3 -m pytest analysis/tests -q` → **5 passed**.
+- `mvn -f engine/pom.xml clean test` → **39 tests, 0 fallas**. `python3 -m pytest analysis/tests -q` → **13 passed**.
 - **0 solapamientos** (verificado por mí y fuzz de 2M casos de un jurado); **reproducibilidad bit-a-bit**.
 - Validación `p=0` (variante B, ℓ=1) reproduce `Q(ρ)=min(ρ·vmax, 1−ρ)` con tolerancia 1e-9.
-- Pipeline end-to-end: genera las 4 figuras (por variante) + animación GIF sin errores.
+- Flujo de extremo a extremo: genera figuras del núcleo, figuras incrementales por orden, diagrama
+  fundamental separado por variante/orden/protocolo/`p`, y animación GIF sin calcular observables en el motor.
 
-## Decisiones / supuestos asumidos (corregir si alguno no va)
+## Decisiones confirmadas / supuestos operativos
 1. **Cierre de R2-A** = contacto (gap 0) + herencia de velocidad del líder (interpretación de "queda
    una casilla detrás, sin solapar").
-2. **Orden R1→R3→R2→R4**: elegido para garantizar no-solapamiento. *A confirmar con el profe en la
-   defensa* (a p=0 es equivalente al canónico; a p>0 difiere levemente). 
+2. **Orden R1→R3→R2→R4**: decisión confirmada; se eligió para garantizar no-solapamiento.
 3. **Default de variante = B** (validación primero). La **oficial/experimental es A**: para el dataset
-   del experimento correr `run_matrix.py --rule CONTACTO_PURO`.
+   del experimento correr `run_matrix.py --rule CONTACTO_PURO --protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM`.
 4. **Error = desvío entre realizaciones** (ddof=1), no SEM (cumple la corrección de Parisi). `nan` con
    una sola realización.
-5. **Contacto puro a p=0 ⇒ Q=ρ·vmax** (flujo libre hasta el contacto, sin rama congestionada): correcto
-   físicamente; por eso la validación analítica triangular es solo de B.
+5. **Contacto puro homogéneo a p=0** da flujo libre hasta el contacto, sin rama congestionada; por eso
+   la validación analítica triangular es solo de B.
 6. **El colapso "saturación < más lento" (Fig 2) requiere p>0**; a p=0 da exactamente la del más lento.
-7. **N=30 es singular** (ρ_lattice=1, 0 celdas libres): no apoyar conclusiones de saturación solo ahí.
+7. **N=30 es singular** (ocupación de malla = 1, 0 celdas libres): no apoyar conclusiones de saturación solo ahí.
 8. **Incremental** puede estabilizar en **N=29** cerca de saturación (inserción geométrica en huecos).
 9. `p` por paso (wikipedia); `L=1320 mm`; grupo `G01S2`.
 
@@ -56,9 +56,12 @@
 1. **Correr el barrido** (el motor está listo; no lo corrí). Sugerido para comparar con el artículo:
    ```bash
    cd analysis && pip install -r requirements.txt
-   # dataset experimental (variante oficial A) — ojo: es grande
-   python3 run_matrix.py --rule CONTACTO_PURO --out-dir ../data
-   python3 analyze.py --data-dir ../data --figures-dir ../figures --since-step 4320
+   # dataset experimental (variante oficial A, protocolo del artículo) — ojo: es grande
+   python3 run_matrix.py --rule CONTACTO_PURO --protocol INCREMENTAL_180S \
+       --order ASCENDING DESCENDING RANDOM --out-dir ../data
+   python3 analyze.py --data-dir ../data --figures-dir ../figures
+   # mirar evolución temporal y repetir con el corte elegido
+   python3 analyze.py --data-dir ../data --figures-dir ../figures --since-step <paso_elegido>
    ```
 2. Elegir el corte de estacionario **por inspección** mirando `figures/evolucion_temporal_*.png`.
 3. Escribir **informe** (GuiaInformes) y **presentación** con esos resultados y las animaciones.
@@ -67,6 +70,8 @@
 Física **APROBAR C/CAMBIOS**, Arquitectura **APROBAR**, Abogado del diablo **APROBAR C/CAMBIOS**,
 Cátedra (cubierta por mí). Sin bugs de motor. Correcciones ya aplicadas:
 - **[ALTA]** `analyze.py` ahora agrupa por variante de R2 (antes mezclaba A y B en un promedio).
+- **[ALTA]** re-auditoría v2: `analyze.py` separa además orden/protocolo/`p`, y agrega lectura
+  incremental por N activo para las curvas por orden del artículo.
 - **[MEDIA]** doc: orden R1→R3→R2→R4; validación analítica solo variante B; N=30 singular; p>0 para el colapso; evolución temporal cableada.
 - **[BAJA]** error `nan` con 1 realización; `transient_steps` en cabecera; `n_steps` robusto; "anillo"→"ruta"; docs de R3.
 

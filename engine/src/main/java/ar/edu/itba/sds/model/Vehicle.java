@@ -1,7 +1,7 @@
 package ar.edu.itba.sds.model;
 
 /**
- * Estado puro de un vehículo en el lattice. Posición = celda de la <b>cola</b>; el cuerpo ocupa
+ * Estado puro de un vehículo en la malla. Posición = celda de la <b>cola</b>; el cuerpo ocupa
  * {@code [position, position + ℓ - 1]} (módulo L). Velocidad en celdas/paso, acotada por {@code vMax}.
  */
 public final class Vehicle {
