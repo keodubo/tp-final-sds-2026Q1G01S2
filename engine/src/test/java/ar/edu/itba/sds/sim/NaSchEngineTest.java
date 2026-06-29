@@ -38,6 +38,18 @@ class NaSchEngineTest {
                 1L, 0, 0, 1);
     }
 
+    /**
+     * Config para el protocolo incremental con intervalo corto de test: dt=90 ⇒ pasosPorLote =
+     * round(180/90) = 2; Δx=90 ⇒ Δv=1; vfree 3..6 ⇒ vMax 3..6; ℓ=1; L=400 (sobra lugar para insertar).
+     */
+    private static Config incremental(int target, InsertionOrder orden) {
+        return new Config(
+                400, 1, 90.0, 90.0,
+                target, 0.0, 3.0, 6.0,
+                CollisionRuleType.CLASICA_SALVO_CERO, orden, RunProtocol.INCREMENTAL_180S,
+                7L, 0, 0, 1);
+    }
+
     // ------------------------------------------------------------------
     // Hito 2: condición inicial
     // ------------------------------------------------------------------
@@ -67,6 +79,57 @@ class NaSchEngineTest {
         PeriodicTrack track = engine.track();
         assertEquals(7, track.size());
         assertTrue(track.isConsistent());
+    }
+
+    @Test
+    void ordenDeInsercionOrdenaPorVelocidadLibre() {
+        // FIXED_N: los vehículos quedan a lo largo de la ruta en orden de inserción (por vfree).
+        // ASCENDING ⇒ vMax no decreciente; DESCENDING ⇒ no creciente (round es monótona).
+        assertOrdenEspacialPorVmax(InsertionOrder.ASCENDING, true);
+        assertOrdenEspacialPorVmax(InsertionOrder.DESCENDING, false);
+    }
+
+    private void assertOrdenEspacialPorVmax(InsertionOrder orden, boolean noDecreciente) {
+        Config d = Config.defaults();
+        Config cfg = new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                30, 0.0, d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                CollisionRuleType.CLASICA_SALVO_CERO, orden, RunProtocol.FIXED_N,
+                5L, 0, 0, 1);
+        NaSchEngine engine = new NaSchEngine(cfg);
+        engine.initialize();
+
+        PeriodicTrack track = engine.track();
+        for (int i = 0; i + 1 < track.size(); i++) {
+            int actual = track.get(i).vMax();
+            int siguiente = track.get(i + 1).vMax();
+            if (noDecreciente) {
+                assertTrue(actual <= siguiente, "ASCENDING: " + actual + " > " + siguiente);
+            } else {
+                assertTrue(actual >= siguiente, "DESCENDING: " + actual + " < " + siguiente);
+            }
+        }
+    }
+
+    @Test
+    void protocoloIncrementalCreceEnLotesSinSolaparse() {
+        Config cfg = incremental(20, InsertionOrder.ASCENDING);
+        NaSchEngine engine = new NaSchEngine(cfg);
+        engine.initialize();
+
+        assertEquals(5, engine.track().size(), "el protocolo incremental arranca con 5");
+
+        int previo = 5;
+        for (int t = 0; t < 200; t++) {
+            engine.step();
+            int ahora = engine.track().size();
+            assertTrue(ahora >= previo, "N no debe decrecer (paso " + t + ")");
+            assertTrue(ahora <= 20, "N no debe pasar del objetivo");
+            assertTrue(ahora == previo || ahora == previo + 5, "los vehículos entran de a lotes de 5");
+            assertTrue(engine.track().isConsistent(), "sin solapamiento al insertar (paso " + t + ")");
+            previo = ahora;
+        }
+        assertEquals(20, engine.track().size(), "debe alcanzar el objetivo N=30/20 por lotes");
     }
 
     @Test
