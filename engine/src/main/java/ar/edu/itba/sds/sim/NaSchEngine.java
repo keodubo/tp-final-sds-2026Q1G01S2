@@ -1,11 +1,14 @@
 package ar.edu.itba.sds.sim;
 
 import ar.edu.itba.sds.config.Config;
+import ar.edu.itba.sds.config.RunProtocol;
 import ar.edu.itba.sds.model.PeriodicTrack;
 import ar.edu.itba.sds.model.Vehicle;
 import ar.edu.itba.sds.sim.collision.ClasicaSalvoCero;
+import ar.edu.itba.sds.sim.collision.CollisionContext;
 import ar.edu.itba.sds.sim.collision.CollisionRule;
 import ar.edu.itba.sds.sim.collision.ContactoPuro;
+import ar.edu.itba.sds.sim.collision.Movimiento;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -145,8 +148,94 @@ public final class NaSchEngine {
         this.track = new PeriodicTrack(config.latticeLength(), ell, vehiculos);
     }
 
+    /**
+     * Avanza un paso de tiempo (actualización síncrona R1 → R3 → R2 → R4; ver la documentación de la
+     * clase). Lee la velocidad heredada de cada vehículo, acelera (R1), frena al azar (R3), proyecta
+     * los desplazamientos contra los huecos para no solapar (R2 vía {@link CollisionRule}) y mueve
+     * (R4). Guarda en cada vehículo el desplazamiento del cuadro y registra aparte la velocidad
+     * heredada para el próximo paso.
+     */
     public void step() {
-        throw new UnsupportedOperationException("TODO Hito 2: implementar el paso síncrono R1–R4 con TDD");
+        if (track == null) throw new IllegalStateException("hay que llamar initialize() antes de step()");
+
+        // Protocolo incremental: insertar el próximo lote si toca este paso.
+        insertarLoteSiCorresponde();
+
+        int n = track.size();
+        int L = config.latticeLength();
+        double p = config.brakeProb();
+
+        // R1 (acelerar) + R3 (frenar) → velocidad deseada de cada vehículo.
+        List<Integer> deseadas = new ArrayList<>(n);
+        for (int i = 0; i < n; i++) {
+            Vehicle v = track.get(i);
+            int deseada = Math.min(carriedVelocity[v.id()] + 1, v.vMax()); // R1
+            if (brake.brakes(p)) {                                          // R3
+                deseada = Math.max(0, deseada - 1);
+            }
+            deseadas.add(deseada);
+        }
+
+        // R2 (proyección de contactos sobre el snapshot, sin solapamiento).
+        CollisionContext ctx = CollisionContext.from(track, deseadas);
+        List<Movimiento> movimientos = collisionRule.resolve(ctx);
+
+        // R4 (mover) + registrar velocidades.
+        for (int i = 0; i < n; i++) {
+            Vehicle v = track.get(i);
+            Movimiento m = movimientos.get(i);
+            v.setPosition(Math.floorMod(v.position() + m.desplazamiento(), L));
+            v.setVelocity(m.desplazamiento());              // velocidad observable del cuadro
+            carriedVelocity[v.id()] = m.velocidadSiguiente(); // base de R1 del próximo paso
+        }
+
+        proximoPaso++;
+    }
+
+    /** Inserta el próximo lote del protocolo incremental, si este paso es múltiplo del intervalo. */
+    private void insertarLoteSiCorresponde() {
+        if (config.protocol() != RunProtocol.INCREMENTAL_180S) return;
+        if (pendientes.isEmpty()) return;
+        if (proximoPaso == 0 || proximoPaso % pasosPorLote != 0) return;
+
+        int aInsertar = Math.min(VEHICULOS_POR_LOTE_INCREMENTAL, pendientes.size());
+        for (int k = 0; k < aInsertar; k++) {
+            EspecieVehiculo e = pendientes.get(0);
+            if (!insertarEnHueco(e)) break; // no hay hueco para más; se reintenta en el próximo lote
+            pendientes.remove(0);
+        }
+    }
+
+    /**
+     * Inserta un vehículo nuevo (velocidad 0) en un hueco libre de tamaño {@code ≥ ℓ}, elegido al
+     * azar, dejándolo en la posición cíclica correcta. Devuelve {@code false} si no hay ningún hueco
+     * que lo aloje (ruta demasiado llena/fragmentada): limitación honesta del protocolo incremental
+     * cerca de la saturación.
+     */
+    private boolean insertarEnHueco(EspecieVehiculo e) {
+        int L = config.latticeLength();
+        int ell = config.vehicleLength();
+        int n = track.size();
+
+        List<Integer> candidatos = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            if (track.gapAhead(i) >= ell) candidatos.add(i);
+        }
+        if (candidatos.isEmpty()) return false;
+
+        int i = candidatos.get(rng.nextInt(candidatos.size()));
+        int hueco = track.gapAhead(i);
+        int offset = rng.nextInt(hueco - ell + 1);
+        int nuevaPos = Math.floorMod(track.get(i).position() + ell + offset, L);
+
+        List<Vehicle> vehiculos = new ArrayList<>(n + 1);
+        for (int k = 0; k < n; k++) {
+            vehiculos.add(track.get(k));
+            if (k == i) vehiculos.add(new Vehicle(e.id(), nuevaPos, 0, e.vMax()));
+        }
+        this.track = new PeriodicTrack(L, ell, vehiculos);
+        this.carriedVelocity[e.id()] = 0;
+        return true;
     }
 
     // ------------------------------------------------------------------

@@ -77,12 +77,49 @@ class NaSchEngineTest {
     // ------------------------------------------------------------------
 
     @Test
-    @Disabled("Hito 2: cada paso conserva N y deja la ruta consistente (sin solapamiento)")
-    void cadaPasoConservaNySinSolapamiento() { }
+    void cadaPasoConservaNySinSolapamiento() {
+        Config cfg = calibrada(12, 0.3, CollisionRuleType.CLASICA_SALVO_CERO, 2026L);
+        NaSchEngine engine = new NaSchEngine(cfg);
+        engine.initialize();
+
+        for (int t = 0; t < 600; t++) {
+            engine.step();
+            PeriodicTrack track = engine.track();
+            assertEquals(12, track.size(), "N debe conservarse (paso " + t + ")");
+            // isConsistent() exige huecos >= 0, suma correcta y orden cíclico: cubre
+            // "sin solapamiento" y "orden periódico preservado".
+            assertTrue(track.isConsistent(), "ruta inconsistente en el paso " + t);
+        }
+    }
 
     @Test
-    @Disabled("Hito 2: con el mismo identificador de realización la corrida es bit-a-bit reproducible")
-    void mismaRealizacionMismaCorrida() { }
+    void mismaRealizacionMismaCorrida() {
+        Config cfg = calibrada(15, 0.25, CollisionRuleType.CLASICA_SALVO_CERO, 99L);
+
+        NaSchEngine a = new NaSchEngine(cfg);
+        NaSchEngine b = new NaSchEngine(cfg);
+        a.initialize();
+        b.initialize();
+        assertEquals(snapshot(a.track()), snapshot(b.track()), "condición inicial idéntica");
+
+        for (int t = 0; t < 400; t++) {
+            a.step();
+            b.step();
+            assertEquals(snapshot(a.track()), snapshot(b.track()),
+                    "la corrida debe ser idéntica bit-a-bit en el paso " + t);
+        }
+    }
+
+    /** Estado de la ruta como lista de [id, posición, velocidad] ordenada por id (comparable). */
+    private static java.util.List<java.util.List<Integer>> snapshot(PeriodicTrack track) {
+        java.util.List<java.util.List<Integer>> filas = new java.util.ArrayList<>();
+        for (int i = 0; i < track.size(); i++) {
+            Vehicle v = track.get(i);
+            filas.add(java.util.List.of(v.id(), v.position(), v.velocity()));
+        }
+        filas.sort(java.util.Comparator.comparingInt(f -> f.get(0)));
+        return filas;
+    }
 
     @Test
     @Disabled("Hito 3: homogéneo + p=0 reproduce el diagrama fundamental analítico Q(ρ)=min(ρ·vmax, 1-ρ)")

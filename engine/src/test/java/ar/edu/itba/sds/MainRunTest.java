@@ -26,13 +26,17 @@ class MainRunTest {
     }
 
     @Test
-    void motorPendienteFallaSinDejarArchivoParcial() {
+    void corridaExitosaEscribeSalidaFisica() throws Exception {
         Path out = tmp.resolve("salida.txt");
-        Result result = run("--steps", "1", "--out", out.toString());
+        Result result = run("--n", "5", "--steps", "5", "--p", "0.1", "--out", out.toString());
 
-        assertEquals(2, result.exitCode());
-        assertFalse(Files.exists(out));
-        assertTrue(result.err().contains("motor aún no implementado"));
+        assertEquals(0, result.exitCode());
+        assertTrue(Files.exists(out));
+        String text = Files.readString(out);
+        assertTrue(text.contains("# columnas: paso id x_mm v_mmps"));
+        // 5 vehículos en el paso 0 (estado inicial, velocidad 0).
+        long filasPaso0 = text.lines().filter(l -> l.startsWith("0 ")).count();
+        assertEquals(5, filasPaso0);
     }
 
     @Test
