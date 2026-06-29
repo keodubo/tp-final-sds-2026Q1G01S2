@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import argparse
 import collections
+import csv
 from pathlib import Path
 
 import numpy as np
@@ -136,6 +137,33 @@ def _label_key(key) -> str:
     return "_".join(str(part).lower().replace(".", "") for part in key)
 
 
+def write_manifest(runs, since_step, figdir) -> Path:
+    """Escribe un manifiesto CSV con el corte (since_step) y las **realizaciones efectivas (M)** por
+    punto (regla, orden, protocolo, p, N). En el incremental, N es el N ACTIVO real y M cuenta cuántas
+    realizaciones lo alcanzaron (la velocidad activa es monótona, así que el N máximo = N en el último
+    paso). Da trazabilidad a las figuras (corrección pedida en la auditoría)."""
+    rows = []
+    for (rule, order, p, n), rs in group_fixed_runs(runs).items():
+        rows.append(("FIXED_N", rule, order, p, n, len(rs)))
+    inc = collections.defaultdict(list)  # (regla, orden, p) -> [N activo máximo por realización]
+    for r in runs:
+        if _protocol(r) != "INCREMENTAL_180S":
+            continue
+        last = r.step.max()
+        max_activo = int(np.unique(r.vid[r.step == last]).size)
+        inc[(_rule(r), _order(r), _p(r))].append(max_activo)
+    for (rule, order, p), maxes in inc.items():
+        for n in range(5, max(maxes) + 1, 5):
+            rows.append(("INCREMENTAL_180S", rule, order, p, n, sum(1 for x in maxes if x >= n)))
+    path = Path(figdir) / "manifiesto.csv"
+    with open(path, "w", newline="") as fh:
+        w = csv.writer(fh)
+        w.writerow(["protocolo", "regla", "orden", "p", "N", "M_realizaciones", "since_step"])
+        for row in sorted(rows, key=lambda r: (r[0], r[1], r[2], float(r[3]), r[4])):
+            w.writerow([*row, since_step])
+    return path
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--data-dir", default="../data")
@@ -244,7 +272,9 @@ def main() -> None:
                 tag = _label_key((rule, protocol))
                 plots.plot_fundamental_diagram(
                     curves, figdir / f"diagrama_fundamental_{tag}{suffix}.png", legend_title=legend_title)
-    print(f"figuras generadas en {figdir}")
+
+    manifiesto = write_manifest(runs, args.since_step, figdir)
+    print(f"figuras generadas en {figdir} (manifiesto: {manifiesto}, since_step={args.since_step})")
 
 
 if __name__ == "__main__":
