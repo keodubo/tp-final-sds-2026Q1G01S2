@@ -43,9 +43,9 @@ public final class OutputWriter implements AutoCloseable {
                 "# L_celdas=%d ell_celdas=%d dx_mm=%.6f dt_s=%.6f dv_mmps=%.6f",
                 c.latticeLength(), c.vehicleLength(), c.cellSizeMm(), c.timeStepS(), c.velocityQuantumMmS()));
         line(String.format(Locale.US,
-                "# N=%d p=%.6f vfree_min_mmps=%.3f vfree_max_mmps=%.3f order=%s protocol=%s realization_seed=%d steps=%d output_every=%d",
+                "# N=%d p=%.6f vfree_min_mmps=%.3f vfree_max_mmps=%.3f order=%s protocol=%s realization_seed=%d steps=%d transient_steps=%d output_every=%d",
                 c.n(), c.brakeProb(), c.freeSpeedMinMmS(), c.freeSpeedMaxMmS(), c.insertionOrder(),
-                c.protocol(), c.seed(), c.steps(), c.outputEvery()));
+                c.protocol(), c.seed(), c.steps(), c.transientSteps(), c.outputEvery()));
         line("# columnas: paso id x_mm v_mmps");
     }
 

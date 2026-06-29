@@ -22,7 +22,8 @@ class Run:
 
     @property
     def n_steps(self) -> int:
-        return int(self.step.max()) + 1 if self.step.size else 0
+        """Cantidad de pasos REGISTRADOS (robusto ante output_every≠1, donde no son consecutivos)."""
+        return int(np.unique(self.step).size) if self.step.size else 0
 
     @property
     def n_vehicles(self) -> int:

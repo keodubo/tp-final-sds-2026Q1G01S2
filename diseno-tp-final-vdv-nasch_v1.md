@@ -80,19 +80,19 @@ Para cada vehículo `i`, con velocidad entera `v_i ∈ {0,…,v_max,i}` (celdas/
   Si no llegó a su velocidad máxima, acelera una unidad.
 
 - **R2 — Resolución de colisión (modificada por el profe).** Reemplaza la R2 clásica anticipatoria
-  `v_i ← min(v_i, g_i)`. Dos variantes a comparar (**[CONFIRMAR]** cuál es la oficial):
-  - **(A) Contacto puro** *(primaria experimental)*: el vehículo **no frena** mientras no alcance
-    al de adelante.
-    - si `v_i ≤ g_i` → avanza libre a `v_i`;
-    - si `v_i > g_i` → **colisión**: la regla debe producir un desplazamiento final compatible con
-      el líder para que el vehículo quede a contacto detrás de él sin solaparse. La frase informal
-      “toma la velocidad del líder” no alcanza por sí sola si después se aplica R4.
-  - **(B) Clásica salvo a distancia 0**: `v_i ← min(v_i, g_i)` (anticipa), pero si `g_i = 0` entonces
-    `v_i ← v_{i+1}` (en vez de quedar en 0).
-  - En ambas, los vehículos en contacto forman **agrupamientos**. Para la variante A queda como
-    contrato pendiente definir el caso de cadena trabada y la ruta completamente llena; la opción
-    candidata es resolver desplazamientos finales con `d_i ≤ g_i + d_lider` y, si todos están a
-    contacto, usar un desplazamiento común igual al mínimo de los desplazamientos deseados.
+  `v_i ← min(v_i, g_i)`. **Variante oficial confirmada: (A) contacto puro.** La (B) se implementa solo
+  para validar el NaSch clásico contra la solución analítica (§8).
+  - **(A) Contacto puro** *(oficial)*: el vehículo **no frena** mientras no alcance al de adelante.
+    - si no alcanzaría al líder este paso → avanza libre;
+    - si lo alcanzaría → **colisión**: avanza solo hasta quedar **inmediatamente detrás** del líder
+      (cuerpos a contacto, `g = 0`, **sin solaparse**) y **hereda la velocidad del líder** para el paso
+      siguiente.
+  - **(B) Clásica salvo a distancia 0** *(solo validación)*: `v_i ← min(v_i, g_i)`; si `g_i = 0` toma
+    `min(v_i, d_lider)` (acotado por la propia velocidad para que un seguidor lento no “teletransporte”).
+  - En ambas, los vehículos en contacto forman **agrupamientos**. Implementado por relajación de
+    desplazamientos finales `d_i ← min(deseada_i, g_i + d_lider)` hasta el mayor punto fijo (cada uno
+    avanza lo máximo sin atravesar al líder); la velocidad heredada se propaga de adelante hacia atrás.
+    En ruta totalmente llena el agrupamiento avanza rígido a la velocidad del más lento.
 
 - **R3 — Frenado aleatorio.** Con probabilidad `p`, si `v_i > 0` → `v_i ← v_i − 1`.
   Si `p = 0` (NaSch determinista) esta regla nunca se aplica. Usa un PRNG **reproducible por realización**.
@@ -107,16 +107,18 @@ reproducir las Figs. 2 y 4 y para el estudio de órdenes creciente/decreciente/a
 
 ### 3.4 Esquema de actualización (decisiones explícitas — Parisi exige colisiones reproducibles)
 
-- Actualización **síncrona/paralela**: R2 se resuelve a partir de snapshots inmutables de gaps y
-  velocidades (`CollisionContext`), y recién después se aplican los resultados a la ruta. Esto evita que
-  la regla dependa del orden de iteración.
-- `v_{i+1}` en R2 queda como decisión explícita a confirmar: velocidad pre-R1, post-R1 o post-R3.
-  El esqueleto del código separa `leaderVelocitiesForR2` para que esa elección no quede implícita.
-- **Sin solapamiento garantizado:** en la variante A no basta con mutar velocidades; hay que resolver
-  desplazamientos finales compatibles con el líder. Además, si R3 queda después de R2, puede romper la
-  restricción de contacto; por eso la interacción R2/R3 es **[CONFIRMAR]** antes de implementar.
+- Actualización **síncrona** sobre snapshots inmutables (`CollisionContext`): R2 se resuelve a partir de
+  los gaps y las velocidades deseadas, y recién después se aplica el resultado a la ruta (no depende del
+  orden de iteración). El contrato `CollisionRule.resolve` devuelve, por vehículo, un **`Movimiento`**
+  (desplazamiento de este paso + velocidad heredada para el siguiente).
+- **Orden confirmado (resuelve la interacción R2/R3 y el no-solapamiento): `R1 (acelerar) → R3 (frenar
+  la velocidad deseada) → R2 (proyectar desplazamientos sin solapar) → R4 (mover)`.** Como el frenado
+  solo *reduce* el avance, proyectar los contactos al final **garantiza no-solapamiento jamás**. A
+  `p = 0` el orden colapsa a `R1→R2→R4`; la **variante B** reproduce así el NaSch canónico y su diagrama
+  analítico (§8). *(La variante A da otro diagrama —`Q=ρ·v_max`—; "el orden equivale al canónico" no
+  significa "A = canónico".)*
 - El motor es **100 % determinista dada la realización** (posiciones iniciales + `v_free,i` + secuencia
-  reproducible del PRNG).
+  reproducible del PRNG). Verificado: 0 solapamientos y reproducibilidad bit-a-bit.
 
 ---
 
@@ -182,13 +184,25 @@ resolución.
 - **Estacionario:** guardar evolución suficiente y elegir el corte **por inspección** del observable vs.
   tiempo. El corte final (`since_step`) debe quedar en un manifiesto de análisis; no usar descarte fijo
   en porcentaje.
+- **`p > 0` para el colapso:** que la velocidad de saturación caiga **por debajo** de la del más lento
+  (resultado central de la Fig. 2) solo emerge con frenado aleatorio (`p > 0`); a `p = 0` la saturación
+  da exactamente la del más lento. Por eso la matriz incluye `p > 0` y la Discusión no debe atribuir el
+  colapso al contacto puro por sí solo.
+- **Singularidad N=30:** a N=30 la ruta queda exactamente a contacto (`30·ℓ = L`, ρ_lattice = 1, sin
+  celdas libres). Es el punto de máxima densidad pero **singular** y dependiente de la variante
+  (B ⇒ congelado, `Q=0`; A ⇒ crucero rígido a la del más lento); conviene no apoyar conclusiones de
+  saturación únicamente en ese punto.
 
-**Capa de comparación con el artículo (condicionada a Q4 — confirmar con el profe, §11):**
+**Capa de comparación con el artículo (CONFIRMADA en alcance por el profe):**
 - **Órdenes de inserción** `creciente / decreciente / aleatorio` + **protocolo incremental** cada 180 s.
-  El artículo estudia explícitamente el efecto de la historia de inserción (Fig. 2), así que esta capa es
-  la que permite superponer sobre Figs. 2–5 — pero **excede el "variar N y p"** pedido y por eso **no es
-  el núcleo**: se incluye solo si el profe lo confirma. En el orquestador es opt-in
-  (`--protocol INCREMENTAL_180S`); el `default` corre solo el núcleo de N fijo.
+  El artículo estudia explícitamente el efecto de la historia de inserción (Fig. 2); esta capa permite
+  superponer sobre Figs. 2–5. Está **implementada** (enums `InsertionOrder`/`RunProtocol`, motor y
+  matriz). En el orquestador es opt-in (`--protocol INCREMENTAL_180S`) para no inflar el barrido por
+  defecto, pero forma parte del alcance entregable.
+  - *Limitación conocida:* cerca de saturación la inserción geométrica en huecos no siempre llega a
+    N=30 exacto si el espacio libre se fragmenta por debajo de ℓ (en una corrida de ejemplo se estabilizó
+    en 29); los que no entran reintentan en el lote siguiente. El experimento físico los “encaja”; la
+    inserción discreta no siempre. Documentado en el código.
 
 **Extensiones (si da el tiempo):**
 - Doble carril con cambio de carril.
@@ -217,9 +231,14 @@ estímulos = `N` y `p`.
 
 ## 8. Validación
 
-- **`p = 0` determinista, homogéneo y puntual** (`ℓ = 1` celda, `v_max` único): el diagrama fundamental
-  tiene solución analítica clásica `Q(ρ) = min(ρ·v_max, 1−ρ)` (triangular, máximo en `ρ_c = 1/(v_max+1)`).
-  Se compara la simulación contra esa curva exacta → valida el motor.
+- **`p = 0` determinista, homogéneo y puntual** (`ℓ = 1` celda, `v_max` único), **con la variante B
+  (clásica)**: el diagrama fundamental tiene solución analítica `Q(ρ) = min(ρ·v_max, 1−ρ)` (triangular,
+  máximo en `ρ_c = 1/(v_max+1)`). Se compara la simulación contra esa curva exacta → valida el motor.
+- **Importante (no confundir):** la validación analítica triangular es **solo de la variante B**. La
+  variante A (contacto puro) **no** se valida contra esa curva: por su mecánica (flujo libre hasta el
+  contacto) da `Q(ρ) = ρ·v_max` **sin rama congestionada** — coherente con el artículo (velocidad casi
+  constante hasta `ρ ≈ 0.02`), pero distinta de la clásica. Que el orden `R1→R3→R2→R4` colapse a
+  `R1→R2→R4` a `p=0` es una propiedad del **orden**, no implica "A = NaSch canónico".
 - **Invariantes (tests):** N se conserva, nunca hay solapamiento de cuerpos, el orden periódico se
   preserva, y con `p=0` la corrida es bit-a-bit reproducible.
 - Recién con el motor validado se pasa a la configuración **calibrada/heterogénea** (§4) para comparar
@@ -240,7 +259,7 @@ CollisionContext   snapshots inmutables para R2
 CollisionRule      «interface { resolve(CollisionContext) }»
   ├ ContactoPuro   (variante A, primaria experimental)
   └ ClasicaSalvoCero (variante B; default inicial para validar NaSch clásico)
-NaSchEngine        paso síncrono: R1 → R2(rule) → R3(rng) → R4
+NaSchEngine        paso síncrono: R1 → R3(rng) → R2(rule) → R4
 RandomBrake        PRNG reproducible por realización
 Config             parámetros (L, ℓ, Δx, dt, N, p, rango v_free, rule, order, protocol, seed, pasos)
 OutputWriter       escribe estado físico por paso (id, x_mm, v_mmps)
@@ -293,17 +312,21 @@ tp-final-sds-2026Q1G01S2/
 
 ---
 
-## 11. Decisiones abiertas a confirmar con el profe
+## 11. Decisiones (confirmadas con el profe el 2026-06-28)
 
-1. **Semántica oficial de la R2** (variante A vs. B; y si `v_{i+1}` es pre-R1, post-R1 o post-R3).
-   Proponemos A (contacto puro) como primaria experimental y B como primer hito de validación.
-2. **Interacción R2/R3:** confirmar si el frenado aleatorio se aplica después de resolver contacto,
-   antes de la proyección final de contactos, o de forma común por agrupamiento.
-3. **Alcance de la comparación:** ¿basta con tendencias/formas (dado el límite de la cola instantánea,
-   §4) o esperan coincidencia cuantitativa de la Fig. 4?
-4. **Órdenes de inserción + protocolo incremental:** ¿los incluimos como capa de comparación con el
-   artículo (§6) o quedan como extensión? El núcleo "variar N y p" usa **N fijo**; los órdenes y el
-   incremental **exceden lo pedido** y quedan condicionados a esta confirmación (no se asumen resueltos).
+1. **Semántica oficial de la R2:** **A (contacto puro)**. B queda solo para validar el NaSch clásico.
+2. **Interacción R2/R3 y `v_líder`:** orden **R1 → R3 → R2 → R4**; la proyección de contactos al final
+   garantiza no-solapamiento (el frenado solo reduce el avance). El seguidor, al colisionar, hereda la
+   velocidad del líder. *(Decisión tomada por el grupo, coherente y verificada; conviene mencionarla en
+   la defensa por si el profe prefiere otra convención — a p=0 es idéntica al NaSch canónico.)*
+3. **Alcance de la comparación:** comparar **lo más posible** (cuantitativo donde el modelo lo permita),
+   declarando la limitación de la cola instantánea (§4) en la Discusión.
+4. **Órdenes de inserción + protocolo incremental:** **en alcance** (implementados; ver §6).
+5. **`p`:** por paso de tiempo (criterio de Wikipedia). **`L` para densidad:** 1320 mm.
+
+**Limitaciones/temas menores abiertos:** inserción incremental cerca de saturación (puede quedar en
+N=29, §6); solo la variante B a p=0 tiene validación analítica cerrada (el resto se cubre con
+invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad).
 
 ---
 
@@ -311,15 +334,19 @@ tp-final-sds-2026Q1G01S2/
 
 | Hito | Entregable | Estado |
 |---|---|---|
-| 0 | **Este spec** revisado por el grupo | completado |
-| 1 | Esqueleto: Maven `engine/` + Python `analysis/` + README + `.gitignore` | en curso auditado |
-| 2 | Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD) | pendiente |
-| 3 | **Validación p=0** contra el diagrama fundamental analítico | pendiente |
-| 4 | Variante A (contacto puro) + resolución de agrupamientos + tests | pendiente |
-| 5 | Calibración + matriz (N, p, variante, orden, protocolo) + observables Python | pendiente |
-| 6 | Figuras + animaciones + comparación con el artículo | pendiente |
+| 0 | **Este spec** revisado por el grupo | ✅ completado |
+| 1 | Esqueleto Maven `engine/` + Python `analysis/` + README + `.gitignore` | ✅ completado (auditado) |
+| 2 | Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD) | ✅ completado |
+| 3 | **Validación p=0** contra el diagrama fundamental analítico | ✅ completado |
+| 4 | Variante A (contacto puro) + resolución de agrupamientos + tests | ✅ completado |
+| 5 | Matriz (N, p, variante, orden, protocolo) + observables Python | ✅ motor+observables listos; **falta correr** las simulaciones |
+| 6 | Figuras + animaciones + comparación con el artículo | ✅ código listo; figuras/animación se generan al correr |
 | 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente |
-| 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | pendiente |
+| 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | pendiente (tras correr) |
+
+> **Estado:** el **motor y el análisis están implementados y verificados** (39 tests Java + 5 pytest en
+> verde; 0 solapamientos; reproducibilidad; pipeline corrible que genera las 4 figuras + animación).
+> Falta **correr** el barrido (lo hace el grupo) y, con esos resultados, escribir informe y presentación.
 
 ---
 
