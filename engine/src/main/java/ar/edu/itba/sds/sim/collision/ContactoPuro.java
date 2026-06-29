@@ -26,7 +26,7 @@ import java.util.List;
  */
 public final class ContactoPuro implements CollisionRule {
     @Override
-    public List<Integer> resolve(CollisionContext context) {
+    public List<Movimiento> resolve(CollisionContext context) {
         throw new UnsupportedOperationException("TODO Hito 4: implementar Regla 2 de contacto puro con TDD");
     }
 }

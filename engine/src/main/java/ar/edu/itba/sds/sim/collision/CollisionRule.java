@@ -3,22 +3,27 @@ package ar.edu.itba.sds.sim.collision;
 import java.util.List;
 
 /**
- * Regla 2 (resolución de colisión). Recibe un snapshot inmutable ({@link CollisionContext}) y devuelve,
- * por vehículo, las <b>celdas efectivas a avanzar en este paso</b> (lo que aplica R4). No muta la ruta.
- * Operar sobre un snapshot evita que la actualización síncrona dependa del orden de iteración.
+ * Regla 2 (resolución de colisión). Recibe un snapshot inmutable ({@link CollisionContext}) con los
+ * huecos y la <b>velocidad deseada</b> de cada vehículo (la que querría avanzar este paso, ya pasada
+ * por R1 y R3) y devuelve, por vehículo, un {@link Movimiento}: cuánto avanza efectivamente este paso
+ * y con qué velocidad entra al siguiente. No muta la ruta.
  *
- * <p><b>Contrato PROVISORIO (esqueleto, sin implementaciones ni llamadores todavía).</b> Dos
- * decisiones abiertas con el profe pueden cambiar esta firma (ver diseño §11):
- * <ul>
- *   <li>la interacción R2/R3 (si R3 va después de R2, antes de la proyección de contactos, o por
- *       agrupamiento);</li>
- *   <li>la variante de <i>contacto puro</i>: cerrar a contacto exige, además del desplazamiento,
- *       la velocidad que el seguidor <i>hereda</i> del líder para el paso siguiente — un único
- *       {@code List<Integer>} puede no alcanzar. Cuando se confirme la semántica, esto migrará a un
- *       tipo nombrado (p. ej. un record con desplazamiento + velocidad heredada). Cambiarlo ahora es
- *       barato porque {@code step()} aún no lo invoca.</li>
- * </ul>
+ * <p>Operar sobre un snapshot evita que la actualización síncrona dependa del orden de iteración: el
+ * resultado es función pura de {@code (huecos, velocidades deseadas)}. La regla es responsable de
+ * garantizar que los desplazamientos <b>no produzcan solapamiento</b>
+ * ({@code desplazamiento_i ≤ hueco_i + desplazamiento_lider_i}) resolviendo los agrupamientos de
+ * adelante hacia atrás.
+ *
+ * <p>El contrato devuelve {@code Movimiento} (y no un único entero) porque la variante de contacto
+ * puro necesita distinguir el desplazamiento de la velocidad heredada del líder (ver
+ * {@link Movimiento} y {@link ContactoPuro}).
  */
 public interface CollisionRule {
-    List<Integer> resolve(CollisionContext context);
+
+    /**
+     * Resuelve la Regla 2 para todos los vehículos.
+     *
+     * @return lista de tamaño {@code N} alineada por índice con los vehículos del contexto.
+     */
+    List<Movimiento> resolve(CollisionContext context);
 }

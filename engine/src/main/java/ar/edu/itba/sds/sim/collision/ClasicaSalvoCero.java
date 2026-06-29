@@ -15,7 +15,7 @@ import java.util.List;
  */
 public final class ClasicaSalvoCero implements CollisionRule {
     @Override
-    public List<Integer> resolve(CollisionContext context) {
+    public List<Movimiento> resolve(CollisionContext context) {
         throw new UnsupportedOperationException("TODO Hito 2: implementar Regla 2 clásica-salvo-0 con TDD");
     }
 }
