@@ -87,7 +87,11 @@ def detect_stationary(time_series, tol_frac: float = 0.05) -> int:
 def mean_speed(run: Run, since_step: int = 0) -> float:
     """Velocidad media [mm/s] de una realización. El promedio de la velocidad de cuadro sobre todos
     los vehículos y pasos equivale a ⟨L_i/T⟩ del artículo (la velocidad de cuadro es el
-    desplazamiento real por paso, sin problemas de envoltura)."""
+    desplazamiento real por paso, sin problemas de envoltura).
+
+    Válido tal cual para ``FIXED_N``. Para ``INCREMENTAL_180S`` conviene recortar por ventanas de 180 s
+    (los vehículos insertados tarde tienen menos cuadros y arrancan en v=0): pasar el ``since_step`` del
+    tramo correspondiente."""
     v = run.v_mmps[run.step >= since_step]
     return float(np.mean(v)) if v.size else float("nan")
 
@@ -103,7 +107,8 @@ def mean_speed_with_error(runs, since_step: int = 0) -> tuple[float, float]:
     if means.size == 0:
         return float("nan"), float("nan")
     mean = float(np.mean(means))
-    err = float(np.std(means, ddof=1)) if means.size > 1 else 0.0
+    # con una sola realización el error no está definido: nan (no 0.0, que sugeriría precisión perfecta)
+    err = float(np.std(means, ddof=1)) if means.size > 1 else float("nan")
     return mean, err
 
 
