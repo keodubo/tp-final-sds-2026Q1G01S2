@@ -62,7 +62,7 @@ preventivo tipo conductor humano.
 
 ### 3.1 Geometría
 
-- **Ruta unidimensional con condiciones periódicas** (single-lane), discretizada en **L celdas**. La
+- **Ruta unidimensional de un carril con condiciones periódicas**, discretizada en **L celdas**. La
   pista circular del experimento se modela como una **línea periódica**: lo que sale por un extremo
   reentra por el otro. La **curvatura no entra** en el modelo — la dinámica de NaSch depende solo de
   la coordenada 1D a lo largo de la pista, así que es equivalente a la pista circular real.
@@ -115,14 +115,14 @@ reproducir las Figs. 2 y 4 y para el estudio de órdenes creciente/decreciente/a
   la velocidad deseada) → R2 (proyectar desplazamientos sin solapar) → R4 (mover)`.** Como el frenado
   solo *reduce* el avance, proyectar los contactos al final **garantiza no-solapamiento jamás**. A
   `p = 0` el orden colapsa a `R1→R2→R4`; la **variante B** reproduce así el NaSch canónico y su diagrama
-  analítico (§8). *(La variante A da otro diagrama —`Q=ρ·v_max`—; "el orden equivale al canónico" no
-  significa "A = canónico".)*
+  analítico (§8). *(La variante A homogénea a `p=0` da flujo libre hasta el contacto; "el orden equivale
+  al canónico" no significa "A = canónico".)*
 - El motor es **100 % determinista dada la realización** (posiciones iniciales + `v_free,i` + secuencia
   reproducible del PRNG). Verificado: 0 solapamientos y reproducibilidad bit-a-bit.
 
 ---
 
-## 4. Calibración continuo → lattice
+## 4. Calibración continuo → malla discreta
 
 La idea es elegir el paso espacial y temporal para que **una corrida sea directamente comparable con el
 experimento** (ejes en mm/s y 1/mm) y las velocidades libres 90–120 mm/s caigan en enteros con buena
@@ -136,12 +136,12 @@ resolución.
 | Largo de vehículo | `ℓ` | 44 mm = **176 celdas** | artículo |
 | Largo de pista | `L` | 1320 mm = **5280 celdas** | `30·ℓ` (cierre exacto a N=30) |
 | Velocidad libre | `v_free,i` | `U[90,120]` mm/s | artículo (30 VDV uniformes) |
-| Velocidad máx. (lattice) | `v_max,i = round(v_free,i/Δv)` | **{15,…,20}** celdas/paso | derivado (6 clases) |
+| Velocidad máx. (malla) | `v_max,i = round(v_free,i/Δv)` | **{15,…,20}** celdas/paso | derivado (6 clases) |
 | Densidad global | `ρ = N/L_phys` | hasta **0.0227 1/mm** | derivado (N=30 → contacto) |
 | Prob. de frenado | `p` | barrido (§6) | parámetro |
 
 **Notas de calibración:**
-- `Δx = 0.25 mm` es la perilla de resolución: más chico → más clases de velocidad pero lattice más
+- `Δx = 0.25 mm` es la perilla de resolución: más chico → más clases de velocidad pero la malla es más
   grande/lento. 0.25 mm da 6 clases de `v_max` (15–20) y una ruta de 5280 celdas (manejable, N≤30).
 - Se fija `L = 30·ℓ = 5280` celdas (1320 mm) en vez de 1313 mm para que **N=30 cierre exactamente a
   contacto** (diferencia 0.5 % con el artículo; consistente con que el artículo también dice "≈ 1313 mm" y
@@ -188,7 +188,7 @@ resolución.
   (resultado central de la Fig. 2) solo emerge con frenado aleatorio (`p > 0`); a `p = 0` la saturación
   da exactamente la del más lento. Por eso la matriz incluye `p > 0` y la Discusión no debe atribuir el
   colapso al contacto puro por sí solo.
-- **Singularidad N=30:** a N=30 la ruta queda exactamente a contacto (`30·ℓ = L`, ρ_lattice = 1, sin
+- **Singularidad N=30:** a N=30 la ruta queda exactamente a contacto (`30·ℓ = L`, ocupación de malla = 1, sin
   celdas libres). Es el punto de máxima densidad pero **singular** y dependiente de la variante
   (B ⇒ congelado, `Q=0`; A ⇒ crucero rígido a la del más lento); conviene no apoyar conclusiones de
   saturación únicamente en ese punto.
@@ -235,10 +235,10 @@ estímulos = `N` y `p`.
   (clásica)**: el diagrama fundamental tiene solución analítica `Q(ρ) = min(ρ·v_max, 1−ρ)` (triangular,
   máximo en `ρ_c = 1/(v_max+1)`). Se compara la simulación contra esa curva exacta → valida el motor.
 - **Importante (no confundir):** la validación analítica triangular es **solo de la variante B**. La
-  variante A (contacto puro) **no** se valida contra esa curva: por su mecánica (flujo libre hasta el
-  contacto) da `Q(ρ) = ρ·v_max` **sin rama congestionada** — coherente con el artículo (velocidad casi
-  constante hasta `ρ ≈ 0.02`), pero distinta de la clásica. Que el orden `R1→R3→R2→R4` colapse a
-  `R1→R2→R4` a `p=0` es una propiedad del **orden**, no implica "A = NaSch canónico".
+  variante A (contacto puro) **no** se valida contra esa curva: en el caso homogéneo `p=0` mantiene
+  flujo libre hasta el contacto, coherente con el artículo (velocidad casi constante hasta
+  `ρ ≈ 0.02`), pero distinta de la clásica. Que el orden `R1→R3→R2→R4` colapse a `R1→R2→R4` a
+  `p=0` es una propiedad del **orden**, no implica "A = NaSch canónico".
 - **Invariantes (tests):** N se conserva, nunca hay solapamiento de cuerpos, el orden periódico se
   preserva, y con `p=0` la corrida es bit-a-bit reproducible.
 - Recién con el motor validado se pasa a la configuración **calibrada/heterogénea** (§4) para comparar
@@ -283,6 +283,10 @@ observables.py   velocidad media vs N/p, PDF densidad, PDF velocidad, diagrama f
 plots.py         figuras del informe (una figura con curvas de colores; texto grande; log donde ayude)
 animate.py       animación de la ruta (línea periódica horizontal); color DERIVADO de la velocidad (post-sim)
 ```
+
+`analyze.py` no mezcla variantes, órdenes, protocolos ni valores de `p`: el diagrama fundamental queda
+separado por esos metadatos. Para `INCREMENTAL_180S`, la velocidad media vs N se calcula con el N
+realmente activo en cada paso registrado, agrupado por orden de inserción.
 
 ### 9.3 Flujo
 
@@ -340,12 +344,13 @@ invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad)
 | 3 | **Validación p=0** contra el diagrama fundamental analítico | ✅ completado |
 | 4 | Variante A (contacto puro) + resolución de agrupamientos + tests | ✅ completado |
 | 5 | Matriz (N, p, variante, orden, protocolo) + observables Python | ✅ motor+observables listos; **falta correr** las simulaciones |
-| 6 | Figuras + animaciones + comparación con el artículo | ✅ código listo; figuras/animación se generan al correr |
+| 6 | Figuras + animaciones + comparación con el artículo | ✅ código listo; comparación final tras correr barridos y elegir estacionario |
 | 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente |
 | 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | pendiente (tras correr) |
 
-> **Estado:** el **motor y el análisis están implementados y verificados** (39 tests Java + 5 pytest en
-> verde; 0 solapamientos; reproducibilidad; pipeline corrible que genera las 4 figuras + animación).
+> **Estado:** el **motor y el análisis están implementados y verificados** (39 tests Java + 13 pytest en
+> verde; 0 solapamientos; reproducibilidad; flujo corrible que genera figuras del núcleo, incremental
+> por orden, diagrama fundamental separado por metadatos y animación).
 > Falta **correr** el barrido (lo hace el grupo) y, con esos resultados, escribir informe y presentación.
 
 ---
