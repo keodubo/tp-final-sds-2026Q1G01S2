@@ -27,6 +27,18 @@ class NaSchEngineTest {
                 seed, d.steps(), d.transientSteps(), d.outputEvery());
     }
 
+    /**
+     * Config homogénea puntual para la validación analítica: ℓ=1, un único vMax, p=0 y Δx=Δt=1
+     * (Δv=1, así vfree=vMax ⇒ round(vfree/Δv)=vMax).
+     */
+    private static Config homogenea(int n, int latticeLength, int vmax) {
+        return new Config(
+                latticeLength, 1, 1.0, 1.0,
+                n, 0.0, vmax, vmax,
+                CollisionRuleType.CLASICA_SALVO_CERO, InsertionOrder.RANDOM, RunProtocol.FIXED_N,
+                1L, 0, 0, 1);
+    }
+
     // ------------------------------------------------------------------
     // Hito 2: condición inicial
     // ------------------------------------------------------------------
@@ -122,8 +134,41 @@ class NaSchEngineTest {
     }
 
     @Test
-    @Disabled("Hito 3: homogéneo + p=0 reproduce el diagrama fundamental analítico Q(ρ)=min(ρ·vmax, 1-ρ)")
-    void deterministaReproduceDiagramaFundamentalAnalitico() { }
+    void deterministaReproduceDiagramaFundamentalAnalitico() {
+        // Configuración homogénea puntual: ℓ=1, vmax único, p=0, Δx=Δt=1 ⇒ Δv=1.
+        // Con condición inicial pareja (huecos iguales g) el estacionario es v̄ = min(vmax, g),
+        // así que el flujo Q = ρ·v̄ debe coincidir con el analítico min(ρ·vmax, 1−ρ).
+        int vmax = 5;
+        int n = 20;
+        int[] huecos = {10, 5, 4, 2, 1}; // cubre flujo libre, el pico ρc=1/(vmax+1) y la rama congestionada
+
+        for (int g : huecos) {
+            int L = n * (1 + g);          // ℓ=1 ⇒ huecos exactamente g
+            Config cfg = homogenea(n, L, vmax);
+
+            NaSchEngine engine = new NaSchEngine(cfg);
+            engine.initializeEvenlySpread();
+
+            int transitorio = 50;
+            int medicion = 50;
+            for (int t = 0; t < transitorio; t++) engine.step();
+
+            long avance = 0;
+            for (int t = 0; t < medicion; t++) {
+                engine.step();
+                for (int i = 0; i < engine.track().size(); i++) {
+                    avance += engine.track().get(i).velocity(); // velocidad = desplazamiento del cuadro
+                }
+            }
+            double vMedia = (double) avance / (n * medicion);
+            double rho = (double) n / L;
+            double qSim = rho * vMedia;
+            double qAnalitico = Math.min(rho * vmax, 1.0 - rho);
+
+            assertEquals(qAnalitico, qSim, 1e-9,
+                    "diagrama fundamental fuera de tolerancia en ρ=" + rho + " (hueco " + g + ")");
+        }
+    }
 
     @Test
     @Disabled("Hito 4/5: contacto puro forma agrupamientos sin atravesar al líder")
