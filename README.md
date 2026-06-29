@@ -55,10 +55,11 @@ mvn clean package            # compila, corre tests y arma el jar ejecutable
 java -jar target/nasch-vdv-1.0-SNAPSHOT.jar --help
 ```
 
-> **Estado actual:** esqueleto auditado. La geometría de la ruta periódica, la E/S y el CLI básico
-> están implementados y testeados; el paso de simulación (R1–R4), la inicialización física y las
-> reglas de colisión siguen como pendientes a completar con TDD (ver hitos en el documento de
-> diseño). `mvn test` pasa en verde con lo ya implementado.
+> **Estado actual:** **motor completo y verificado.** Inicialización física, R1–R4, ambas variantes de
+> R2 (A contacto puro oficial, B clásica para validar), órdenes de inserción y protocolos FIXED_N e
+> INCREMENTAL_180S, con validación `p=0` contra el diagrama fundamental analítico. `mvn test` → 39 tests
+> en verde; 0 solapamientos y reproducibilidad bit-a-bit verificadas. El motor escribe **solo estado
+> físico**; los observables se calculan después (Python).
 
 ### 2. Análisis (Python)
 
@@ -66,9 +67,18 @@ java -jar target/nasch-vdv-1.0-SNAPSHOT.jar --help
 cd analysis
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
-python3 run_matrix.py --help     # núcleo: N × p × variante × realizaciones (N fijo).
-                                 # órdenes + protocolo incremental: capa de comparación opt-in
+python3 -m pytest tests -q                 # tests blackbox de los observables
+
+# pipeline completo (los observables se calculan DESPUÉS de las corridas):
+python3 run_matrix.py --out-dir ../data    # 1) genera las corridas (núcleo N×p, N fijo)
+python3 analyze.py --data-dir ../data \
+        --figures-dir ../figures           # 2) calcula observables y genera las figuras
+python3 -c "import animate; animate.animate('../data/<archivo>.txt')"  # 3) animación (GIF)
 ```
+
+> `run_matrix.py` por defecto corre solo el **núcleo** (N × p × variante × realizaciones, N fijo).
+> Los **órdenes** de inserción y el **protocolo incremental** son opt-in
+> (`--protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM`).
 
 ---
 
@@ -77,7 +87,10 @@ python3 run_matrix.py --help     # núcleo: N × p × variante × realizaciones 
 Ver la tabla de **hitos** al final del documento de diseño. Resumen:
 
 - [x] Hito 0 — Spec de diseño
-- [~] Hito 1 — Esqueleto Maven/Python auditado
-- [ ] Hito 2 — Motor NaSch (R1–R4) con tests de invariantes (TDD)
-- [ ] Hito 3 — Validación `p=0` contra el diagrama fundamental analítico
-- [ ] Hitos 4–8 — variante de contacto, calibración, observables, figuras, informe y presentación
+- [x] Hito 1 — Esqueleto Maven/Python (auditado)
+- [x] Hito 2 — Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD)
+- [x] Hito 3 — Validación `p=0` contra el diagrama fundamental analítico
+- [x] Hito 4 — Variante A (contacto puro) + resolución de agrupamientos
+- [x] Hito 5 — Matriz + observables Python (**falta correr** el barrido)
+- [x] Hito 6 — Figuras + animación (código listo; se generan al correr)
+- [ ] Hitos 7–8 — sensibilidades, informe y presentación (tras correr las simulaciones)
