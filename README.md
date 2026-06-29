@@ -57,7 +57,8 @@ java -jar target/nasch-vdv-1.0-SNAPSHOT.jar --help
 
 > **Estado actual:** **motor completo y verificado.** Inicialización física, R1–R4, ambas variantes de
 > R2 (A contacto puro oficial, B clásica para validar), órdenes de inserción y protocolos FIXED_N e
-> INCREMENTAL_180S, con validación `p=0` contra el diagrama fundamental analítico. `mvn test` → 39 tests
+> INCREMENTAL_180S, con validación `p=0` de la **variante B** contra el diagrama fundamental analítico
+> (la variante A da `Q=ρ·vmax`, flujo libre hasta el contacto). `mvn test` → 39 tests
 > en verde; 0 solapamientos y reproducibilidad bit-a-bit verificadas. El motor escribe **solo estado
 > físico**; los observables se calculan después (Python).
 
@@ -89,7 +90,7 @@ Ver la tabla de **hitos** al final del documento de diseño. Resumen:
 - [x] Hito 0 — Spec de diseño
 - [x] Hito 1 — Esqueleto Maven/Python (auditado)
 - [x] Hito 2 — Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD)
-- [x] Hito 3 — Validación `p=0` contra el diagrama fundamental analítico
+- [x] Hito 3 — Validación `p=0` (variante B) contra el diagrama fundamental analítico
 - [x] Hito 4 — Variante A (contacto puro) + resolución de agrupamientos
 - [x] Hito 5 — Matriz + observables Python (**falta correr** el barrido)
 - [x] Hito 6 — Figuras + animación (código listo; se generan al correr)

@@ -20,19 +20,21 @@ reentra por el otro; la curvatura no entra en el modelo), calibrado para reprodu
 ## El modelo (referencia rápida)
 
 Ruta periódica de `L` celdas; vehículos extendidos de `ℓ` celdas; velocidad entera `v∈{0..vmax_i}`
-(celdas/paso). Paso síncrono, en orden **R1 → R2 → R3 → R4**:
+(celdas/paso). Paso síncrono, en orden **R1 → R3 → R2 → R4** (R3 antes de proyectar contactos ⇒
+no-solapamiento garantizado):
 
 - **R1 Aceleración:** `v ← min(v+1, vmax_i)`.
-- **R2 Colisión (modificada):** dos variantes intercambiables (`CollisionRule`):
-  - *Contacto puro* (primaria experimental): si `v ≤ gap` avanza libre; si `v > gap` debe resolver un
-    desplazamiento final compatible con el líder para quedar a contacto sin solaparse.
-  - *Clásica salvo a distancia 0*: `v ← min(v, gap)`, pero si `gap=0` entonces `v ← v_lider`.
-- **R3 Frenado aleatorio:** con prob `p`, si `v>0` → `v ← v-1`. `p=0` ⇒ determinista.
+- **R3 Frenado aleatorio:** con prob `p`, `v ← max(0, v-1)`. `p=0` ⇒ determinista (no consume PRNG).
+- **R2 Colisión (modificada):** dos variantes (`CollisionRule`); **oficial = contacto puro**:
+  - *Contacto puro* (A, oficial): si no alcanza al líder avanza libre; si lo alcanzaría queda
+    inmediatamente detrás (gap 0, sin solapar) y **hereda la velocidad del líder**. Resuelto por
+    agrupamientos (desplazamientos finales `d_i ← min(deseada, g_i+d_lider)`).
+  - *Clásica salvo a distancia 0* (B, solo validación): `v ← min(v, gap)`, si `gap=0` → `min(v, d_lider)`.
 - **R4 Movimiento:** `x ← (x+v) mod L`.
 
-El contrato de `CollisionRule` usa snapshots (`CollisionContext`) y no muta la ruta. Antes de
-implementar contacto puro hay que confirmar con el profesor si R3 se aplica después de R2, antes de
-la proyección de contactos, o de forma común por agrupamiento.
+El contrato de `CollisionRule.resolve` usa snapshots (`CollisionContext`) y devuelve un
+`Movimiento(desplazamiento, velocidadSiguiente)`; no muta la ruta. **Validación analítica `Q(ρ)=min(ρ·vmax,1−ρ)`
+solo aplica a la variante B**; la A (contacto puro) da `Q=ρ·vmax` (flujo libre hasta el contacto).
 
 Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre `~U[90,120] mm/s`.
 

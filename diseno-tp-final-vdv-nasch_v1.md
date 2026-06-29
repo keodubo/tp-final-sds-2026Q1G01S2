@@ -113,8 +113,10 @@ reproducir las Figs. 2 y 4 y para el estudio de órdenes creciente/decreciente/a
   (desplazamiento de este paso + velocidad heredada para el siguiente).
 - **Orden confirmado (resuelve la interacción R2/R3 y el no-solapamiento): `R1 (acelerar) → R3 (frenar
   la velocidad deseada) → R2 (proyectar desplazamientos sin solapar) → R4 (mover)`.** Como el frenado
-  solo *reduce* el avance, proyectar los contactos al final **garantiza no-solapamiento jamás**. Con
-  `p = 0` es idéntico al NaSch canónico (la validación analítica no se ve afectada).
+  solo *reduce* el avance, proyectar los contactos al final **garantiza no-solapamiento jamás**. A
+  `p = 0` el orden colapsa a `R1→R2→R4`; la **variante B** reproduce así el NaSch canónico y su diagrama
+  analítico (§8). *(La variante A da otro diagrama —`Q=ρ·v_max`—; "el orden equivale al canónico" no
+  significa "A = canónico".)*
 - El motor es **100 % determinista dada la realización** (posiciones iniciales + `v_free,i` + secuencia
   reproducible del PRNG). Verificado: 0 solapamientos y reproducibilidad bit-a-bit.
 
@@ -182,6 +184,14 @@ resolución.
 - **Estacionario:** guardar evolución suficiente y elegir el corte **por inspección** del observable vs.
   tiempo. El corte final (`since_step`) debe quedar en un manifiesto de análisis; no usar descarte fijo
   en porcentaje.
+- **`p > 0` para el colapso:** que la velocidad de saturación caiga **por debajo** de la del más lento
+  (resultado central de la Fig. 2) solo emerge con frenado aleatorio (`p > 0`); a `p = 0` la saturación
+  da exactamente la del más lento. Por eso la matriz incluye `p > 0` y la Discusión no debe atribuir el
+  colapso al contacto puro por sí solo.
+- **Singularidad N=30:** a N=30 la ruta queda exactamente a contacto (`30·ℓ = L`, ρ_lattice = 1, sin
+  celdas libres). Es el punto de máxima densidad pero **singular** y dependiente de la variante
+  (B ⇒ congelado, `Q=0`; A ⇒ crucero rígido a la del más lento); conviene no apoyar conclusiones de
+  saturación únicamente en ese punto.
 
 **Capa de comparación con el artículo (CONFIRMADA en alcance por el profe):**
 - **Órdenes de inserción** `creciente / decreciente / aleatorio` + **protocolo incremental** cada 180 s.
@@ -221,9 +231,14 @@ estímulos = `N` y `p`.
 
 ## 8. Validación
 
-- **`p = 0` determinista, homogéneo y puntual** (`ℓ = 1` celda, `v_max` único): el diagrama fundamental
-  tiene solución analítica clásica `Q(ρ) = min(ρ·v_max, 1−ρ)` (triangular, máximo en `ρ_c = 1/(v_max+1)`).
-  Se compara la simulación contra esa curva exacta → valida el motor.
+- **`p = 0` determinista, homogéneo y puntual** (`ℓ = 1` celda, `v_max` único), **con la variante B
+  (clásica)**: el diagrama fundamental tiene solución analítica `Q(ρ) = min(ρ·v_max, 1−ρ)` (triangular,
+  máximo en `ρ_c = 1/(v_max+1)`). Se compara la simulación contra esa curva exacta → valida el motor.
+- **Importante (no confundir):** la validación analítica triangular es **solo de la variante B**. La
+  variante A (contacto puro) **no** se valida contra esa curva: por su mecánica (flujo libre hasta el
+  contacto) da `Q(ρ) = ρ·v_max` **sin rama congestionada** — coherente con el artículo (velocidad casi
+  constante hasta `ρ ≈ 0.02`), pero distinta de la clásica. Que el orden `R1→R3→R2→R4` colapse a
+  `R1→R2→R4` a `p=0` es una propiedad del **orden**, no implica "A = NaSch canónico".
 - **Invariantes (tests):** N se conserva, nunca hay solapamiento de cuerpos, el orden periódico se
   preserva, y con `p=0` la corrida es bit-a-bit reproducible.
 - Recién con el motor validado se pasa a la configuración **calibrada/heterogénea** (§4) para comparar
@@ -244,7 +259,7 @@ CollisionContext   snapshots inmutables para R2
 CollisionRule      «interface { resolve(CollisionContext) }»
   ├ ContactoPuro   (variante A, primaria experimental)
   └ ClasicaSalvoCero (variante B; default inicial para validar NaSch clásico)
-NaSchEngine        paso síncrono: R1 → R2(rule) → R3(rng) → R4
+NaSchEngine        paso síncrono: R1 → R3(rng) → R2(rule) → R4
 RandomBrake        PRNG reproducible por realización
 Config             parámetros (L, ℓ, Δx, dt, N, p, rango v_free, rule, order, protocol, seed, pasos)
 OutputWriter       escribe estado físico por paso (id, x_mm, v_mmps)
