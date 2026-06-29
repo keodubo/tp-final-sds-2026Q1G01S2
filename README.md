@@ -69,21 +69,45 @@ cd analysis
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 python3 -m pytest tests -q                 # tests de comportamiento de los observables
-
-# flujo completo (los observables se calculan DESPUÉS de las corridas):
-python3 run_matrix.py --out-dir ../data    # 1) genera las corridas (núcleo N×p, N fijo)
-python3 analyze.py --data-dir ../data \
-        --figures-dir ../figures           # 2) genera evolución temporal y figuras preliminares
-python3 analyze.py --data-dir ../data \
-        --figures-dir ../figures \
-        --since-step <paso_elegido>        # 3) recalcula figuras finales tras inspeccionar estacionario
-python3 -c "import animate; animate.animate('../data/<archivo>.txt')"  # 4) animación (GIF)
 ```
 
-> `run_matrix.py` por defecto corre solo el **núcleo** (N × p × realizaciones, N fijo, variante B).
-> Los **órdenes** de inserción y el **protocolo incremental** son opt-in
-> (`--protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM`). Para comparar contra el artículo:
-> `python3 run_matrix.py --rule CONTACTO_PURO --protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM --out-dir ../data`.
+#### ⭐ Barrido completo del TP — comando recomendado (fijado)
+
+Corre **todas las variaciones** que diseñamos: ambas variantes de R2 (A contacto puro + B clásica),
+ambos protocolos (N fijo + incremental), los 3 órdenes de inserción, `N ∈ {5,10,15,20,25,30}`,
+`p ∈ {0, 0.1, 0.2, 0.3, 0.4}` y 30 realizaciones. Son **~2700 corridas** (~8–12 min, ~1,3 GB en disco
+gracias a `--output-every 10`). Los observables se calculan **después**, nunca durante la simulación.
+
+```bash
+cd analysis
+
+# 1) GENERAR todas las corridas del TP
+python3 run_matrix.py --out-dir ../data \
+    --rule CONTACTO_PURO CLASICA_SALVO_CERO \
+    --protocol FIXED_N INCREMENTAL_180S \
+    --order ASCENDING DESCENDING RANDOM \
+    --n 5 10 15 20 25 30 \
+    --p 0 0.1 0.2 0.3 0.4 \
+    --realizations 30 \
+    --output-every 10
+
+# 2) ANALIZAR → figuras preliminares + evolución temporal (para elegir el estacionario)
+python3 analyze.py --data-dir ../data --figures-dir ../figures
+
+# 3) Mirar figures/evolucion_temporal_*.png, elegir el corte y RECALCULAR las figuras finales
+python3 analyze.py --data-dir ../data --figures-dir ../figures --since-step <paso_elegido>
+
+# 4) Animación (GIF) de una corrida representativa
+python3 -c "import animate; animate.animate('../data/<archivo>.txt')"
+```
+
+**Notas:**
+- `--output-every 10` reduce disco/RAM/tiempo ~10× con pérdida estadística despreciable (los cuadros
+  consecutivos están correlacionados). Para FIXED_N el `--order` se ignora (sólo importa en el incremental),
+  así que no genera corridas redundantes.
+- **Más rápido / menos disco:** bajar `--realizations` (p. ej. 20) si el error entre realizaciones ya estabiliza.
+- **Solo el dataset experimental** (variante oficial A, protocolo del artículo):
+  `python3 run_matrix.py --out-dir ../data --rule CONTACTO_PURO --protocol INCREMENTAL_180S --order ASCENDING DESCENDING RANDOM --output-every 10`
 
 ---
 
