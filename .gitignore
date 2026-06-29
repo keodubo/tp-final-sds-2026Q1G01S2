@@ -25,3 +25,11 @@ data_anim/
 
 # === macOS ===
 .DS_Store
+
+# LaTeX (intermedios)
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+informe/*.pdf
