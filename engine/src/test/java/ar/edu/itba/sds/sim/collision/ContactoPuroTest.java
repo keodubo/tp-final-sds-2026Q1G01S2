@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Variante A (contacto puro). Se prueba el contrato observable de {@code resolve}: cómo un seguidor
  * rápido queda a contacto detrás de un líder lento (sin atravesarlo ni solaparse) y hereda su
- * velocidad, cómo avanza libre cuando no lo alcanza, y el anillo lleno.
+ * velocidad, cómo avanza libre cuando no lo alcanza, y la ruta llena.
  */
 class ContactoPuroTest {
 
@@ -41,7 +41,7 @@ class ContactoPuroTest {
     }
 
     @Test
-    void anilloTotalmenteLlenoAvanzaAlMinimo() {
+    void rutaTotalmenteLlenaAvanzaAlMinimo() {
         // ℓ=1, L=3, los tres a contacto: el agrupamiento avanza rígido a la velocidad del más lento.
         CollisionContext ctx = new CollisionContext(3, 1, List.of(0, 0, 0), List.of(3, 5, 4));
 
