@@ -154,6 +154,12 @@ public final class NaSchEngine {
      * los desplazamientos contra los huecos para no solapar (R2 vía {@link CollisionRule}) y mueve
      * (R4). Guarda en cada vehículo el desplazamiento del cuadro y registra aparte la velocidad
      * heredada para el próximo paso.
+     *
+     * <p>Nota de reproducibilidad: el sorteo de R3 ({@code brake.brakes(p)}) se consume <b>por
+     * vehículo en cada paso</b> siempre que {@code p>0}, independientemente de su velocidad. En el
+     * régimen calibrado la velocidad deseada tras R1 es ≥ 1, así que de hecho R3 solo puede afectar a
+     * vehículos con {@code v>0}; la decisión de consumir el número del PRNG de forma incondicional se
+     * fija acá para que el stream sea reproducible (cambiarla alteraría la secuencia).
      */
     public void step() {
         if (track == null) throw new IllegalStateException("hay que llamar initialize() antes de step()");

@@ -129,7 +129,7 @@ class NaSchEngineTest {
             assertTrue(engine.track().isConsistent(), "sin solapamiento al insertar (paso " + t + ")");
             previo = ahora;
         }
-        assertEquals(20, engine.track().size(), "debe alcanzar el objetivo N=30/20 por lotes");
+        assertEquals(20, engine.track().size(), "debe alcanzar el objetivo (N=20) por lotes de 5");
     }
 
     @Test

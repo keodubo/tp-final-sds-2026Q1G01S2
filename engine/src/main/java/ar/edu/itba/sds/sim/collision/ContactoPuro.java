@@ -22,7 +22,7 @@ import java.util.List;
  * deseada): cada vehículo avanza lo máximo posible sin atravesar a su líder. La velocidad heredada se
  * propaga de adelante hacia atrás dentro de cada agrupamiento: la cabeza (la que quedó con hueco
  * {@code > 0}) conserva su velocidad deseada y los de atrás, a contacto, heredan la del de adelante.
- * Una ruta totalmente llena (anillo a contacto) avanza rígidamente a la velocidad del más lento.
+ * Una ruta totalmente llena (a contacto) avanza rígidamente a la velocidad del más lento.
  *
  * <p>Garantía de no-solapamiento: por construcción {@code despl_i ≤ hueco_i + despl_lider}, así que el
  * hueco resultante {@code = hueco_i + despl_lider − despl_i ≥ 0} y la suma de huecos se conserva.
@@ -69,7 +69,7 @@ public final class ContactoPuro implements CollisionRule {
             }
         }
         if (cabeza < 0) {
-            // Anillo totalmente a contacto (ρ=1): todos llevan el desplazamiento común.
+            // Ruta totalmente a contacto (ρ=1): todos llevan el desplazamiento común.
             for (int i = 0; i < n; i++) velSiguiente[i] = disp[i];
         } else {
             // De adelante hacia atrás a partir de una cabeza: el líder ya está resuelto.
