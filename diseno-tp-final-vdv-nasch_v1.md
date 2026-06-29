@@ -199,10 +199,11 @@ resolución.
   superponer sobre Figs. 2–5. Está **implementada** (enums `InsertionOrder`/`RunProtocol`, motor y
   matriz). En el orquestador es opt-in (`--protocol INCREMENTAL_180S`) para no inflar el barrido por
   defecto, pero forma parte del alcance entregable.
-  - *Limitación conocida:* cerca de saturación la inserción geométrica en huecos no siempre llega a
-    N=30 exacto si el espacio libre se fragmenta por debajo de ℓ (en una corrida de ejemplo se estabilizó
-    en 29); los que no entran reintentan en el lote siguiente. El experimento físico los “encaja”; la
-    inserción discreta no siempre. Documentado en el código.
+  - *Inserción por empuje:* cuando entra un lote, los vehículos se **empujan** para hacer lugar
+    (consolidando el espacio libre), como al meter un VDV que corre a los que ya están. Así el
+    incremental **alcanza exactamente N=30** (verificado: las 6 fases llegan a 5→30 sin solapamiento).
+    Es una decisión de modelo (a mencionar en la defensa): a `N=30` la ruta queda llena exacta y el
+    empuje es una perturbación fuerte que el sistema relaja durante la fase de 180 s.
 
 **Extensiones (si da el tiempo):**
 - Doble carril con cambio de carril.
@@ -328,8 +329,9 @@ tp-final-sds-2026Q1G01S2/
 4. **Órdenes de inserción + protocolo incremental:** **en alcance** (implementados; ver §6).
 5. **`p`:** por paso de tiempo (criterio de Wikipedia). **`L` para densidad:** 1320 mm.
 
-**Limitaciones/temas menores abiertos:** inserción incremental cerca de saturación (puede quedar en
-N=29, §6); solo la variante B a p=0 tiene validación analítica cerrada (el resto se cubre con
+**Limitaciones/temas menores abiertos:** la inserción incremental por empuje alcanza N=30 pero es una
+perturbación a documentar (§6); el punto N=30 es singular (ruta llena exacta, §6); solo la variante B a
+p=0 tiene validación analítica cerrada (el resto se cubre con
 invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad).
 
 ---

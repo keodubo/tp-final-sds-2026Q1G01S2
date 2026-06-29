@@ -49,7 +49,8 @@
    la validación analítica triangular es solo de B.
 6. **El colapso "saturación < más lento" (Fig 2) requiere p>0**; a p=0 da exactamente la del más lento.
 7. **N=30 es singular** (ocupación de malla = 1, 0 celdas libres): no apoyar conclusiones de saturación solo ahí.
-8. **Incremental** puede estabilizar en **N=29** cerca de saturación (inserción geométrica en huecos).
+8. **Incremental** alcanza **N=30** mediante inserción **por empuje** (los vehículos se corren para
+   hacer lugar); es una perturbación a documentar y el punto N=30 queda singular (ruta llena exacta).
 9. `p` por paso (wikipedia); `L=1320 mm`; grupo `G01S2`.
 
 ## Qué falta (lo hacés vos)
