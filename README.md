@@ -111,6 +111,54 @@ python3 -c "import animate; animate.animate('../data/<archivo>.txt')"
 
 ---
 
+## 🎬 Animaciones (siguen las guías de formato)
+
+Estándar de la cátedra (`docs/Guias de Formato/GuiaPresentaciones.pdf`, puntos 2.4.1, 2.4.8 y 1.7–1.9),
+ya implementado en `animate.py`:
+
+- Una **animación característica por parámetro estudiado**, idealmente con **dos valores extremos** para
+  mostrar comportamientos distintos: p. ej. **baja densidad (N=5, flujo libre)** vs **alta densidad
+  (N=30, congestión)**; y los **tres órdenes** de inserción en el protocolo incremental.
+- Ejes con leyenda **en palabras + unidad MKS** (`posición (mm)`), **fuente ≥ 20**, **barra de color**
+  rotulada (`velocidad (mm/s)`), tiempo en segundos, y los **parámetros fijos al costado** de la figura.
+- **Tiempo real** por defecto (24 fps si la corrida se generó con `--output-every 1`, igual que la
+  cámara del experimento de 24 fps).
+- ⚠️ En el **PDF entregable NO van animaciones ni se entregan archivos de animación**: va una **imagen
+  fija** de un fotograma representativo y, **debajo, un link a YouTube** (o similar). `animate.py`
+  exporta ese fotograma (`*_fotograma.png`) junto al GIF.
+
+**Generar las animaciones** (corridas "hero" dedicadas, con `output_every=1` para que salgan suaves):
+
+```bash
+cd analysis
+
+# 1) corridas hero para animar (pocas, output_every=1): dos extremos de densidad + los 3 órdenes
+python3 run_matrix.py --out-dir ../data_anim --rule CONTACTO_PURO --protocol FIXED_N \
+    --n 5 30 --p 0.1 --realizations 1 --output-every 1 --steps 2000
+python3 run_matrix.py --out-dir ../data_anim --rule CONTACTO_PURO --protocol INCREMENTAL_180S \
+    --order ASCENDING DESCENDING RANDOM --p 0.1 --realizations 1 --output-every 10
+
+# 2) GIF + fotograma fijo (PNG) de cada corrida (clip de ~25 s en tiempo real)
+python3 - <<'PY'
+import sys, glob; sys.path.insert(0, ".")
+import animate
+for f in sorted(glob.glob("../data_anim/*.txt")):
+    gif, png = animate.animate(f)         # GIF (tiempo real) + *_fotograma.png
+    print("animación:", gif, "| fotograma:", png)
+PY
+```
+
+**Para el entregable:** subí cada GIF/MP4 a YouTube (no listado) y en el informe/presentación poné el
+`*_fotograma.png` correspondiente **con el link debajo**. Las **fórmulas y ecuaciones** del informe y la
+presentación van **numeradas y en LaTeX** (GuiaInformes): escalares en itálica, vectores en negrita,
+unidades sin itálica; en las **figuras**, los ejes van en palabras con unidades (no en símbolos).
+
+> Nota: un GIF en tiempo real de la corrida incremental completa (1080 s) sería enorme; por eso el hero
+> incremental usa `--output-every 10` (queda acelerado ~10×, suficiente para ilustrar el efecto del
+> orden). Para los extremos de densidad alcanza con el clip de ~25 s.
+
+---
+
 ## Estado del proyecto
 
 Ver la tabla de **hitos** al final del documento de diseño. Resumen:
