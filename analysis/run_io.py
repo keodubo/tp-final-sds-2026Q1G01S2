@@ -57,7 +57,16 @@ def load_run(path: str | Path) -> Run:
     """Carga una realización completa desde un archivo de salida del motor."""
     path = Path(path)
     meta = parse_header(path)
-    data = np.loadtxt(path, comments="#")
+    # Parseo rápido (np.loadtxt es ~10x más lento para estos volúmenes).
+    rows = []
+    with open(path) as fh:
+        for line in fh:
+            if line.startswith("#"):
+                continue
+            parts = line.split()
+            if parts:
+                rows.append(parts)
+    data = np.array(rows, dtype=float) if rows else np.empty((0, 4))
     if data.ndim == 1:  # un solo registro
         data = data.reshape(1, -1)
     return Run(

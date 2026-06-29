@@ -215,12 +215,35 @@ def main() -> None:
             legend_title="orden de inserción",
         )
 
-    fd_curves = {}
-    for (rule, order, protocol, p), rs in sorted(group_fundamental_runs(runs).items()):
-        rho, v = obs.fundamental_diagram(rs, args.since_step, window=args.fd_window)
-        fd_curves[f"{rule} {order} {protocol} p={p:g}"] = (rho, v)
-    if fd_curves:
-        plots.plot_fundamental_diagram(fd_curves, figdir / "diagrama_fundamental.png")
+    # Diagramas fundamentales: UNA figura por (regla, protocolo) con pocas curvas legibles
+    # (no todas las combinaciones juntas). FIXED_N → una curva por p; INCREMENTAL → una curva por
+    # orden a un p representativo (≈ Fig. 5D del artículo).
+    fd_groups = group_fundamental_runs(runs)  # (regla, orden, protocolo, p) -> corridas
+    rules_fd = sorted({k[0] for k in fd_groups})
+    protocols_fd = sorted({k[2] for k in fd_groups})
+    for rule in rules_fd:
+        for protocol in protocols_fd:
+            keys = [k for k in fd_groups if k[0] == rule and k[2] == protocol]
+            if not keys:
+                continue
+            orders_here = sorted({k[1] for k in keys})
+            ps_here = sorted({k[3] for k in keys})
+            curves, suffix, legend_title = {}, "", "frenado aleatorio"
+            if protocol == "INCREMENTAL_180S" and len(orders_here) > 1:
+                p_rep = select_representative_p(ps_here)
+                for order in orders_here:
+                    rs = fd_groups.get((rule, order, protocol, p_rep), [])
+                    if rs:
+                        curves[order] = obs.fundamental_diagram(rs, args.since_step, window=args.fd_window)
+                suffix, legend_title = f"_p{p_rep:g}", "orden de inserción"
+            else:
+                for p in ps_here:
+                    rs = [r for k in keys if k[3] == p for r in fd_groups[k]]
+                    curves[p] = obs.fundamental_diagram(rs, args.since_step, window=args.fd_window)
+            if curves:
+                tag = _label_key((rule, protocol))
+                plots.plot_fundamental_diagram(
+                    curves, figdir / f"diagrama_fundamental_{tag}{suffix}.png", legend_title=legend_title)
     print(f"figuras generadas en {figdir}")
 
 

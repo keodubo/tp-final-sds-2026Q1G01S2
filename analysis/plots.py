@@ -103,15 +103,17 @@ def plot_time_evolution(curves, outfile) -> None:
     plt.close(fig)
 
 
-def plot_fundamental_diagram(curves, outfile) -> None:
-    """Diagrama fundamental velocidad-densidad (≈ Fig. 5). ``curves``: dict ``etiqueta -> (rho, v)``."""
+def plot_fundamental_diagram(curves, outfile, legend_title: str = "caso") -> None:
+    """Diagrama fundamental velocidad-densidad (≈ Fig. 5). ``curves``: dict ``p/orden -> (rho, v)``.
+    Pocas curvas por figura (no todas las combinaciones juntas) para que sea legible."""
     configure()
     fig, ax = plt.subplots(figsize=FIGSIZE)
-    for label, (rho, v) in curves.items():
-        ax.plot(rho, v, label=label)
+    for key in sorted(curves):
+        rho, v = curves[key]
+        ax.plot(rho, v, label=_curve_label(key))
     ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto (1/44 mm)")
     ax.set_xlabel("densidad (mm$^{-1}$)")
     ax.set_ylabel("velocidad (mm/s)")
-    ax.legend()
+    ax.legend(title=legend_title)
     fig.savefig(outfile)
     plt.close(fig)
