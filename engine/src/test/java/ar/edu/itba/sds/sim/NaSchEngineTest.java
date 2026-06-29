@@ -138,6 +138,27 @@ class NaSchEngineTest {
     }
 
     @Test
+    void protocoloIncrementalAlcanzaSaturacionExactaEmpujando() {
+        // ℓ=1, L=10 ⇒ a N=10 la ruta queda EXACTAMENTE llena: insertar exige empujar/consolidar el
+        // espacio libre. Verifica que igual se alcanza el objetivo sin solapamiento (dt=90 ⇒ lote=2).
+        for (CollisionRuleType regla : CollisionRuleType.values()) {
+            Config cfg = new Config(10, 1, 90.0, 90.0, 10, 0.0, 3.0, 6.0,
+                    regla, InsertionOrder.RANDOM, RunProtocol.INCREMENTAL_180S, 5L, 0, 0, 1);
+            NaSchEngine engine = new NaSchEngine(cfg);
+            engine.initialize();
+            assertEquals(5, engine.track().size());
+
+            for (int t = 0; t < 10; t++) {
+                engine.step();
+                assertTrue(engine.track().isConsistent(),
+                        "sin solapamiento al insertar en ruta llena (" + regla + ", paso " + t + ")");
+            }
+            assertEquals(10, engine.track().size(),
+                    "el incremental debe alcanzar N=10 aun con la ruta llena (" + regla + ")");
+        }
+    }
+
+    @Test
     void velocidadesMaximasEnRango() {
         // Calibración: vfree ~ U[90,120], Δv=6 ⇒ vMax = round(vfree/6) ∈ {15..20}.
         Config cfg = calibrada(30, 0.1, CollisionRuleType.CLASICA_SALVO_CERO, 7L);

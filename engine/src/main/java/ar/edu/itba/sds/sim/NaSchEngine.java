@@ -207,39 +207,43 @@ public final class NaSchEngine {
         int aInsertar = Math.min(VEHICULOS_POR_LOTE_INCREMENTAL, pendientes.size());
         for (int k = 0; k < aInsertar; k++) {
             EspecieVehiculo e = pendientes.get(0);
-            if (!insertarEnHueco(e)) break; // no hay hueco para más; se reintenta en el próximo lote
+            if (!insertarConEmpuje(e)) break; // ruta llena al máximo (n·ℓ = L); no debería pasar antes de N=30
             pendientes.remove(0);
         }
     }
 
     /**
-     * Inserta un vehículo nuevo (velocidad 0) en un hueco libre de tamaño {@code ≥ ℓ}, elegido al
-     * azar, dejándolo en la posición cíclica correcta. Devuelve {@code false} si no hay ningún hueco
-     * que lo aloje (ruta demasiado llena/fragmentada): limitación honesta del protocolo incremental
-     * cerca de la saturación.
+     * Inserta un vehículo nuevo (velocidad 0) <b>empujando</b> a los demás para hacerle lugar, como
+     * cuando se mete un VDV en la pista y corre a los que ya están. Se elige un punto al azar y se
+     * inserta el vehículo justo delante de uno existente; los que siguen se desplazan hacia adelante
+     * lo mínimo necesario para no solaparse, consumiendo el espacio libre de la ruta.
+     *
+     * <p>Funciona siempre que quepa un vehículo más ({@code n·ℓ + ℓ ≤ L}), es decir hasta {@code N=30}
+     * con la calibración (a {@code N=30} la ruta queda exactamente llena, a contacto). Devuelve
+     * {@code false} solo si ya no entra ninguno.
      */
-    private boolean insertarEnHueco(EspecieVehiculo e) {
+    private boolean insertarConEmpuje(EspecieVehiculo e) {
         int L = config.latticeLength();
         int ell = config.vehicleLength();
         int n = track.size();
+        if ((long) (n + 1) * ell > L) return false; // no entra ni empujando
 
-        List<Integer> candidatos = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            if (track.gapAhead(i) >= ell) candidatos.add(i);
+        int i = rng.nextInt(n);                 // el nuevo va justo delante del vehículo i
+        int base = track.get(i).position();     // origen de coordenadas (i queda fijo en 0)
+
+        List<Vehicle> nuevos = new ArrayList<>(n + 1);
+        Vehicle vi = track.get(i);
+        nuevos.add(new Vehicle(vi.id(), base, vi.velocity(), vi.vMax()));            // i no se mueve
+        nuevos.add(new Vehicle(e.id(), Math.floorMod(base + ell, L), 0, e.vMax()));  // nuevo, a contacto delante de i
+        int finCuerpo = 2 * ell;                                                     // fin del cuerpo del nuevo (rel)
+        for (int m = 1; m < n; m++) {
+            Vehicle v = track.get((i + m) % n);
+            int rel = Math.floorMod(v.position() - base, L);   // posición relativa hacia adelante de i
+            int colocado = Math.max(rel, finCuerpo);           // empujar solo lo necesario
+            nuevos.add(new Vehicle(v.id(), Math.floorMod(base + colocado, L), v.velocity(), v.vMax()));
+            finCuerpo = colocado + ell;
         }
-        if (candidatos.isEmpty()) return false;
-
-        int i = candidatos.get(rng.nextInt(candidatos.size()));
-        int hueco = track.gapAhead(i);
-        int offset = rng.nextInt(hueco - ell + 1);
-        int nuevaPos = Math.floorMod(track.get(i).position() + ell + offset, L);
-
-        List<Vehicle> vehiculos = new ArrayList<>(n + 1);
-        for (int k = 0; k < n; k++) {
-            vehiculos.add(track.get(k));
-            if (k == i) vehiculos.add(new Vehicle(e.id(), nuevaPos, 0, e.vMax()));
-        }
-        this.track = new PeriodicTrack(L, ell, vehiculos);
+        this.track = new PeriodicTrack(L, ell, nuevos);        // valida no-solapamiento en el constructor
         this.carriedVelocity[e.id()] = 0;
         return true;
     }
