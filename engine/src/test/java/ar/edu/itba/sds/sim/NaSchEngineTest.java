@@ -6,7 +6,6 @@ import ar.edu.itba.sds.config.InsertionOrder;
 import ar.edu.itba.sds.config.RunProtocol;
 import ar.edu.itba.sds.model.PeriodicTrack;
 import ar.edu.itba.sds.model.Vehicle;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,17 +89,19 @@ class NaSchEngineTest {
 
     @Test
     void cadaPasoConservaNySinSolapamiento() {
-        Config cfg = calibrada(12, 0.3, CollisionRuleType.CLASICA_SALVO_CERO, 2026L);
-        NaSchEngine engine = new NaSchEngine(cfg);
-        engine.initialize();
+        for (CollisionRuleType regla : CollisionRuleType.values()) {
+            Config cfg = calibrada(12, 0.3, regla, 2026L);
+            NaSchEngine engine = new NaSchEngine(cfg);
+            engine.initialize();
 
-        for (int t = 0; t < 600; t++) {
-            engine.step();
-            PeriodicTrack track = engine.track();
-            assertEquals(12, track.size(), "N debe conservarse (paso " + t + ")");
-            // isConsistent() exige huecos >= 0, suma correcta y orden cíclico: cubre
-            // "sin solapamiento" y "orden periódico preservado".
-            assertTrue(track.isConsistent(), "ruta inconsistente en el paso " + t);
+            for (int t = 0; t < 600; t++) {
+                engine.step();
+                PeriodicTrack track = engine.track();
+                assertEquals(12, track.size(), "N debe conservarse (" + regla + ", paso " + t + ")");
+                // isConsistent() exige huecos >= 0, suma correcta y orden cíclico: cubre
+                // "sin solapamiento" y "orden periódico preservado".
+                assertTrue(track.isConsistent(), "ruta inconsistente con " + regla + " en el paso " + t);
+            }
         }
     }
 
@@ -171,6 +172,22 @@ class NaSchEngineTest {
     }
 
     @Test
-    @Disabled("Hito 4/5: contacto puro forma agrupamientos sin atravesar al líder")
-    void contactoPuroFormaAgrupamientos() { }
+    void contactoPuroFormaAgrupamientosSinSolaparse() {
+        // Densidad alta y heterogénea con contacto puro y p=0: los rápidos alcanzan a los lentos y
+        // forman agrupamientos (aparecen huecos en 0) sin atravesarlos nunca.
+        Config cfg = calibrada(25, 0.0, CollisionRuleType.CONTACTO_PURO, 123L);
+        NaSchEngine engine = new NaSchEngine(cfg);
+        engine.initialize();
+
+        boolean huboContacto = false;
+        for (int t = 0; t < 1000; t++) {
+            engine.step();
+            PeriodicTrack track = engine.track();
+            assertTrue(track.isConsistent(), "contacto puro no debe solapar (paso " + t + ")");
+            for (int i = 0; i < track.size(); i++) {
+                if (track.gapAhead(i) == 0) huboContacto = true;
+            }
+        }
+        assertTrue(huboContacto, "se esperaban agrupamientos a contacto (hueco 0) con contacto puro");
+    }
 }
