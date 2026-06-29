@@ -16,6 +16,7 @@ data/*
 !data/.gitkeep
 figures/*
 !figures/.gitkeep
+data_anim/
 
 # === IDEs ===
 .idea/
