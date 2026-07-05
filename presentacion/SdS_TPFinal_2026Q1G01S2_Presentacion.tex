@@ -1,0 +1,294 @@
+% ============================================================================
+%  TP Final - Simulación de Sistemas (72.25) - ITBA - 2026 Q1 - Grupo G01S2
+%  Presentación (Beamer). Compilar: pdflatex dos veces.
+%  Figuras en ../figures/ ; fotogramas hero en ../data_anim/.
+%  Duración objetivo: 10-15 min. Diapositivas numeradas; sin secciones numeradas.
+% ============================================================================
+\documentclass[10pt,aspectratio=169]{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% babel-spanish no está en este TeX Live (Debian); se omite para compilar de forma portable. Los
+% acentos salen por inputenc/fontenc y las diapositivas no usan rótulos automáticos en inglés.
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabla}
+
+\usetheme{Boadilla}
+\usecolortheme{whale}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{caption}{\raggedright\insertcaption\par}
+\setbeamerfont{footnote}{size=\tiny}
+\graphicspath{{../figures/}{../data_anim/}}
+
+\newcommand{\unit}[1]{\,\mathrm{#1}}
+
+\title[Diagrama fundamental de VDV]{Diagrama fundamental de \emph{vibration-driven vehicles}}
+\subtitle{Reproducción de tendencias con un autómata celular de Nagel--Schreckenberg con contacto}
+\author[Grupo G01S2]{Grupo G01S2 \\ \footnotesize [COMPLETAR: nombres y legajos]}
+\institute[ITBA]{72.25 Simulación de Sistemas --- ITBA}
+\date{2026, primer cuatrimestre}
+
+\begin{document}
+
+\begin{frame}[plain]\titlepage\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{El sistema real: \emph{vibration-driven vehicles}}
+\begin{columns}[T]
+\begin{column}{0.58\textwidth}
+\begin{itemize}
+  \item Robots comerciales (Hexbug Nano, $44\times15\times18\unit{mm}$): la vibración
+  rectificada por cerdas asimétricas los hace avanzar.
+  \item Confinados en un canal \textbf{circular} de $\approx1313\unit{mm}$: sistema
+  \textbf{unidimensional}. Hasta $30$ vehículos.
+  \item Interactúan \textbf{solo por contacto}: sin sensado remoto (no ``ven'' al de
+  adelante).
+  \item Velocidades libres $\sim\mathcal{U}[90,120]\unit{mm/s}$, heterogéneas.
+\end{itemize}
+\end{column}
+\begin{column}{0.4\textwidth}
+\footnotesize
+Aísla la parte del diagrama fundamental debida \textbf{solo a colisiones físicas},
+sin la reducción voluntaria de velocidad del tráfico convencional.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Lo que mide el experimento (Patterson \& Parisi, 2023)}
+\begin{itemize}
+  \item Velocidad media casi \textbf{constante} a densidad baja y media.
+  \item \textbf{Caída del $25$--$40\%$} al acercarse a la densidad de contacto ($1/44\unit{mm}$).
+  \item El \textbf{orden de inserción} (por velocidad libre) importa: el aleatorio queda
+  \textbf{acotado} entre el creciente y el decreciente.
+  \item A saturación ($N=30$) las tres configuraciones \textbf{convergen}.
+  \item La velocidad de saturación es \textbf{menor que la del agente más lento} ($90\unit{mm/s}$):
+  colapso colectivo.
+\end{itemize}
+\vfill
+\textbf{Objetivo:} reproducir estas \emph{tendencias} con un autómata celular de bajo costo.
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Modelo: Nagel--Schreckenberg con contacto}
+\begin{columns}[T]
+\begin{column}{0.55\textwidth}
+Ruta \textbf{periódica} 1D de $L$ celdas; vehículo extendido de $\ell$ celdas;
+velocidad entera $v_i\in\{0,\dots,v_{\max,i}\}$. Paso sincrónico, orden
+$R1\to R3\to R2\to R4$:
+\begin{itemize}\small
+  \item[R1] $v\leftarrow\min(v+1,v_{\max})$ (acelerar)
+  \item[R3] con prob. $p$: $v\leftarrow\max(0,v-1)$ (frenar)
+  \item[R2] proyección de contactos (sin solapar)
+  \item[R4] $x\leftarrow(x+d)\bmod L$ (mover)
+\end{itemize}
+\end{column}
+\begin{column}{0.42\textwidth}
+\footnotesize
+Frenar \emph{antes} de proyectar contactos $\Rightarrow$ nunca hay solapamiento.
+\medskip
+
+\textbf{Contacto puro} (oficial): avanza libre hasta alcanzar al líder; a contacto
+hereda su velocidad.
+\[ d_i=\min(\hat v_i,\; g_i+d_{i+1}) \]
+No-solapamiento: $d_i\le g_i+d_{i+1}$.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Dos variantes de la Regla 2}
+\begin{columns}[T]
+\begin{column}{0.5\textwidth}
+\textbf{Contacto puro (A) --- oficial}
+\begin{itemize}\small
+  \item Sin anticipación: flujo libre hasta el contacto.
+  \item Al alcanzar al líder, queda a contacto y hereda su velocidad.
+  \item Es la física del experimento (solo contacto).
+\end{itemize}
+\end{column}
+\begin{column}{0.5\textwidth}
+\textbf{Clásica salvo a distancia 0 (B) --- validación}
+\begin{itemize}\small
+  \item NaSch de libro: $v\leftarrow\min(v,g)$.
+  \item Solo para \textbf{validar} el motor contra la solución analítica.
+  \item Homogénea, $p=0$, $\ell=1$.
+\end{itemize}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Calibración a la geometría del experimento}
+\centering
+\begin{tabular}{lll}
+\toprule
+Cantidad & Símbolo & Valor \\
+\midrule
+Paso espacial & $\Delta x$ & $0{,}25\unit{mm}$ \\
+Paso temporal & $\Delta t$ & $1/24\unit{s}$ (24 fps) \\
+Cuanto de velocidad & $\Delta v=\Delta x/\Delta t$ & $6\unit{mm/s}$ \\
+Largo de vehículo & $\ell$ & $176$ celdas $=44\unit{mm}$ \\
+Largo de pista & $L$ & $5280$ celdas $=1320\unit{mm}=30\,\ell$ \\
+Velocidad máxima & $v_{\max,i}=\mathrm{round}(v^{\mathrm{libre}}_i/\Delta v)$ & $\{15,\dots,20\}$ \\
+\bottomrule
+\end{tabular}
+\vfill
+\footnotesize $L=30\,\ell$ hace que $N=30$ cierre \emph{exactamente} a contacto
+($\rho=1/44\unit{mm}$).
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Implementación del motor}
+\begin{itemize}
+  \item Motor en Java; paso sincrónico sobre un \textbf{snapshot inmutable} de huecos y
+  velocidades $\Rightarrow$ el resultado no depende del orden de iteración.
+  \item La regla de colisión devuelve $(\text{desplazamiento},\ \text{velocidad heredada})$;
+  no muta el estado.
+  \item \textbf{No-solapamiento} garantizado por construcción y validado en cada paso.
+  \item Inserción incremental \textbf{por empuje}: al agregar $5$ vehículos, los demás se
+  corren lo mínimo; permite llegar a $N=30$ (ruta llena exacta).
+  \item Determinista dado el identificador de la realización; el motor emite \textbf{solo
+  variables físicas} ($x$, $v$). El color se deriva después.
+\end{itemize}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Simulaciones y observables}
+\begin{columns}[T]
+\begin{column}{0.52\textwidth}
+\textbf{Parámetros:} $N\in\{5,\dots,30\}$, $p\in\{0;0{,}1;0{,}2;0{,}3;0{,}4\}$.
+
+\textbf{Protocolos:}
+\begin{itemize}\small
+  \item $N$ fijo ($10\,000$ pasos).
+  \item Incremental cada $180\unit{s}$ ($5\to30$), $6\times180\unit{s}$, tres órdenes.
+\end{itemize}
+\textbf{$M=30$ realizaciones} por punto.
+\end{column}
+\begin{column}{0.46\textwidth}
+\textbf{Observables (post-simulación):}
+\begin{itemize}\small
+  \item $\bar v=\frac{1}{NT}\sum v_i(t)$
+  \item error $=$ desvío \emph{entre realizaciones}
+  \item $\rho_i=1/(\text{dist. al vecino})$
+  \item PDF de $\rho$ y de $v$; diagrama fundamental.
+\end{itemize}
+Estacionario \textbf{por inspección}.
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Dinámica: baja y alta densidad ($N$ fijo)}
+\begin{columns}[c]
+\begin{column}{0.5\textwidth}\centering
+\includegraphics[width=\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}\\
+\footnotesize $N=5$ (flujo libre)
+\end{column}
+\begin{column}{0.5\textwidth}\centering
+\includegraphics[width=\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}\\
+\footnotesize $N=30$ (saturación, a contacto)
+\end{column}
+\end{columns}
+\vfill
+\centering\footnotesize Animaciones: \url{https://youtu.be/XXXX} (N=5) \quad \url{https://youtu.be/XXXX} (N=30)
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Estacionario por inspección}
+\centering
+\includegraphics[height=0.72\textheight]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}
+\\ \footnotesize El corte del transitorio se elige mirando la serie (no un \% fijo).
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Velocidad media vs $N$ (N fijo, por $p$)}
+\centering
+\includegraphics[height=0.72\textheight]{velocidad_media_vs_N_contacto_puro_sin_orden_fixed.png}
+\\ \footnotesize Casi constante a baja densidad; en $N=30$ (ruta llena, singular) el descenso depende de $p$.
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Efecto del orden de inserción (\(\approx\)Fig.~2 del artículo)}
+\centering
+\includegraphics[height=0.72\textheight]{velocidad_media_incremental_contacto_puro_p01_incremental.png}
+\\ \footnotesize Decreciente $>$ aleatorio $>$ creciente a densidad baja/media; convergen a saturación.
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Distribuciones por orden (\(\approx\)Figs.~3 y 4)}
+\begin{columns}[c]
+\begin{column}{0.5\textwidth}\centering
+\includegraphics[width=\linewidth]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}\\
+\footnotesize Densidad: pico en $1/44\unit{mm}$
+\end{column}
+\begin{column}{0.5\textwidth}\centering
+\includegraphics[width=\linewidth]{pdf_velocidad_incremental_contacto_puro_ascending_p01_incremental.png}\\
+\footnotesize Velocidad: se angosta con $N$
+\end{column}
+\end{columns}
+\vfill\centering\footnotesize Orden creciente; los otros órdenes se comparan igual.
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Diagrama fundamental por orden (\(\approx\)Fig.~5D)}
+\centering
+\includegraphics[height=0.72\textheight]{diagrama_fundamental_contacto_puro_incremental_180s_p0.1.png}
+\\ \footnotesize El orden aleatorio queda acotado entre el creciente y el decreciente.
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Validación del motor (variante clásica)}
+\begin{columns}[c]
+\begin{column}{0.52\textwidth}
+\begin{itemize}\small
+  \item Variante B, homogénea, $\ell=1$, $p=0$, reparto uniforme.
+  \item Reproduce el diagrama fundamental \textbf{triangular} analítico
+  \[ Q(\rho)=\min(\rho\,v_{\max},\,1-\rho) \]
+  a precisión de máquina ($10^{-9}$ en los tests).
+  \item Contacto puro \textbf{no} se valida contra esta curva: da flujo libre hasta el
+  contacto.
+\end{itemize}
+\end{column}
+\begin{column}{0.46\textwidth}\centering
+\includegraphics[width=\linewidth]{validacion_triangular.png}
+\end{column}
+\end{columns}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Limitaciones y sensibilidad}
+\begin{itemize}
+  \item El modelo impone no-solapamiento: \textbf{no} reproduce la cola de densidad
+  $>1/44\unit{mm}$ (solapamiento/desalineación) del experimento.
+  \item $N=30$ es \textbf{singular} (ruta llena exacta) y depende de $L=1320\unit{mm}$; el
+  experimento usa $\approx1313\unit{mm}$. La sensibilidad a $L$ solo corre para $N\le29$.
+  \item La saturación por debajo del más lento requiere $p>0$ y es un mecanismo
+  \emph{distinto} (frenado del cúmulo rígido), no el colapso físico del experimento.
+  \item Velocidad cuantizada en $\Delta v=6\unit{mm/s}$.
+\end{itemize}
+\end{frame}
+
+% ----------------------------------------------------------------------------
+\begin{frame}{Conclusiones}
+\begin{itemize}
+  \item El autómata con \textbf{contacto puro} reproduce las tendencias del diagrama
+  fundamental de VDV: velocidad casi plana y caída cerca del contacto.
+  \item El \textbf{orden de inserción} modula el diagrama; el aleatorio queda acotado
+  entre creciente y decreciente, y convergen a saturación.
+  \item Reproduce el pico de densidad en $1/44\unit{mm}$ y el angostamiento de la PDF de
+  velocidad con $N$.
+  \item La caída por debajo del más lento se obtiene en el punto singular $N=30$ con
+  $p>0$ (tendencia, no el mismo mecanismo).
+  \item La variante clásica valida el motor contra la curva triangular analítica.
+\end{itemize}
+\vfill
+\centering \small ¡Gracias! Preguntas.
+\end{frame}
+
+\end{document}
