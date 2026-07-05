@@ -1,6 +1,7 @@
 package ar.edu.itba.sds.io;
 
 import ar.edu.itba.sds.config.Config;
+import ar.edu.itba.sds.config.RunProtocol;
 import ar.edu.itba.sds.model.PeriodicTrack;
 import ar.edu.itba.sds.model.Vehicle;
 
@@ -38,13 +39,17 @@ public final class OutputWriter implements AutoCloseable {
     }
 
     private void writeHeader(Config c) {
+        // En FIXED_N no hay historia de inserción: el orden es irrelevante y no debe filtrar el
+        // default (se confundiría con el protocolo incremental ordenado). Solo INCREMENTAL_180S
+        // rotula un orden real (ascending/descending/random).
+        String order = c.protocol() == RunProtocol.FIXED_N ? "SIN_ORDEN" : c.insertionOrder().name();
         line("# modelo=Nagel-Schreckenberg-VDV regla2=" + c.collisionRule());
         line(String.format(Locale.US,
                 "# L_celdas=%d ell_celdas=%d dx_mm=%.6f dt_s=%.6f dv_mmps=%.6f",
                 c.latticeLength(), c.vehicleLength(), c.cellSizeMm(), c.timeStepS(), c.velocityQuantumMmS()));
         line(String.format(Locale.US,
                 "# N=%d p=%.6f vfree_min_mmps=%.3f vfree_max_mmps=%.3f order=%s protocol=%s realizacion_id=%d steps=%d transient_steps=%d output_every=%d",
-                c.n(), c.brakeProb(), c.freeSpeedMinMmS(), c.freeSpeedMaxMmS(), c.insertionOrder(),
+                c.n(), c.brakeProb(), c.freeSpeedMinMmS(), c.freeSpeedMaxMmS(), order,
                 c.protocol(), c.seed(), c.steps(), c.transientSteps(), c.outputEvery()));
         line("# columnas: paso id x_mm v_mmps");
     }

@@ -29,7 +29,7 @@ public final class Main {
             "n", "p", "rule", "seed", "steps", "transient", "output-every", "out",
             "order", "protocol", "L", "ell", "dx", "dt", "vfree-min", "vfree-max"
     );
-    private static final Set<String> FLAG_OPTIONS = Set.of("h", "help");
+    private static final Set<String> FLAG_OPTIONS = Set.of("h", "help", "even-spread");
     private static final Set<String> ALL_OPTIONS = new HashSet<>();
 
     static {
@@ -55,7 +55,7 @@ public final class Main {
 
             Config cfg = buildConfig(opts);
             Path out = Path.of(opts.getOrDefault("out", "../data/salida.txt"));
-            runSimulation(cfg, out, stdout);
+            runSimulation(cfg, out, opts.containsKey("even-spread"), stdout);
             return 0;
         } catch (UsageException e) {
             stderr.println(e.getMessage());
@@ -71,7 +71,7 @@ public final class Main {
         }
     }
 
-    private static void runSimulation(Config cfg, Path out, PrintStream stdout) {
+    private static void runSimulation(Config cfg, Path out, boolean evenSpread, PrintStream stdout) {
         stdout.printf("NaSch-VDV | N=%d p=%.3f regla=%s orden=%s protocolo=%s realización=%d pasos=%d%n",
                 cfg.n(), cfg.brakeProb(), cfg.collisionRule(), cfg.insertionOrder(),
                 cfg.protocol(), cfg.seed(), cfg.steps());
@@ -80,7 +80,12 @@ public final class Main {
                 cfg.trackLengthMm(), cfg.densityPerMm());
 
         NaSchEngine engine = new NaSchEngine(cfg);
-        engine.initialize();
+        if (evenSpread) {
+            stdout.println("condición inicial: reparto uniforme determinista (validación analítica p=0)");
+            engine.initializeEvenlySpread();
+        } else {
+            engine.initialize();
+        }
 
         Path tmp = tempOutputPath(out);
         try {
@@ -137,7 +142,7 @@ public final class Main {
             String a = args[i];
             if (a.startsWith("--")) a = a.substring(2);
             else if (a.startsWith("-")) a = a.substring(1);
-            else continue;
+            else throw new UsageException("argumento inesperado (¿falta un guion?): " + a);
             if (!ALL_OPTIONS.contains(a)) throw new UsageException("opción desconocida: --" + a);
             if (FLAG_OPTIONS.contains(a)) {
                 m.put(a, "true");
@@ -212,12 +217,14 @@ public final class Main {
             Opciones (con sus valores por defecto, ver Config.defaults()):
               --n <int>            cantidad de vehículos N            (10)
               --p <double>         prob. de frenado aleatorio         (0.1)
-              --rule <tipo>        CONTACTO_PURO | CLASICA_SALVO_CERO  (CLASICA_SALVO_CERO)
-              --order <tipo>       ASCENDING | DESCENDING | RANDOM    (RANDOM)
+              --rule <tipo>        CONTACTO_PURO | CLASICA_SALVO_CERO  (CONTACTO_PURO)
+              --order <tipo>       ASCENDING | DESCENDING | RANDOM    (RANDOM, solo INCREMENTAL_180S)
               --protocol <tipo>    FIXED_N | INCREMENTAL_180S         (FIXED_N)
               --seed <long>        identificador reproducible de realización (1)
               --steps <int>        pasos de simulación                (10000)
+              --transient <int>    transitorio informativo; el estacionario se decide por inspección (2000)
               --output-every <int> escribir cada k pasos              (1)
+              --even-spread        condición inicial de reparto uniforme determinista (validación analítica p=0)
               --out <path>         archivo de salida                  (../data/salida.txt)
 
               Calibración (normalmente no se tocan):
