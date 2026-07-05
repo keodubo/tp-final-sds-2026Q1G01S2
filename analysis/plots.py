@@ -13,6 +13,7 @@ from __future__ import annotations
 import matplotlib
 matplotlib.use("Agg")  # backend sin display (corridas headless)
 import matplotlib.pyplot as plt
+import numpy as np
 
 CONTACT_DENSITY = 1.0 / 44.0  # mm^-1, densidad de contacto del VDV (largo 44 mm)
 FONTSIZE = 20                 # guía 1.8: al menos 20
@@ -103,13 +104,20 @@ def plot_time_evolution(curves, outfile) -> None:
     plt.close(fig)
 
 
-def plot_fundamental_diagram(curves, outfile, legend_title: str = "caso") -> None:
+def plot_fundamental_diagram(curves, outfile, legend_title: str = "caso", max_points: int = 3000) -> None:
     """Diagrama fundamental velocidad-densidad (≈ Fig. 5). ``curves``: dict ``p/orden -> (rho, v)``.
-    Pocas curvas por figura (no todas las combinaciones juntas) para que sea legible."""
+    Pocas curvas por figura (no todas las combinaciones juntas) para que sea legible.
+
+    La curva de entrada es la media móvil (ya suavizada) y puede tener millones de puntos; se
+    submuestrea de forma pareja a ``max_points`` para ploteo, lo que es visualmente idéntico y evita
+    que el render y la ubicación automática de la leyenda se vuelvan lentísimos."""
     configure()
     fig, ax = plt.subplots(figsize=FIGSIZE)
     for key in sorted(curves):
         rho, v = curves[key]
+        if getattr(rho, "size", 0) > max_points:
+            idx = np.linspace(0, rho.size - 1, max_points).astype(int)
+            rho, v = rho[idx], v[idx]
         ax.plot(rho, v, label=_curve_label(key))
     ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto (1/44 mm)")
     ax.set_xlabel("densidad (mm$^{-1}$)")
