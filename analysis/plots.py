@@ -88,15 +88,15 @@ def plot_velocity_pdf(pdfs_by_n, outfile) -> None:
 
 def plot_time_evolution(curves, outfile) -> None:
     """Evolución temporal de la velocidad media (regla 4 de la cátedra: respaldo visual para elegir el
-    corte del estacionario por inspección). ``curves``: dict ``etiqueta -> (pasos, serie, corte)``;
-    ``corte`` puede ser None. Marca el corte sugerido con una línea vertical."""
+    corte del estacionario por inspección). ``curves``: dict ``etiqueta -> (tiempo_s, serie, corte_s)``
+    con el tiempo en segundos; ``corte_s`` puede ser None. Marca el corte sugerido con línea vertical."""
     configure()
     fig, ax = plt.subplots(figsize=FIGSIZE)
-    for label, (steps, serie, cut) in curves.items():
-        line, = ax.plot(steps, serie, label=label)
+    for label, (t_s, serie, cut) in curves.items():
+        line, = ax.plot(t_s, serie, label=label)
         if cut is not None:
             ax.axvline(cut, ls=":", lw=1.5, color=line.get_color())
-    ax.set_xlabel("tiempo (pasos)")
+    ax.set_xlabel("tiempo (s)")
     ax.set_ylabel("velocidad media (mm/s)")
     ax.legend(title="corte sugerido: línea punteada")
     fig.savefig(outfile)

@@ -10,6 +10,8 @@ acá se reconstruye todo desde esos archivos.
 """
 from __future__ import annotations
 
+import collections
+
 import numpy as np
 
 from run_io import Run
@@ -73,13 +75,19 @@ def detect_stationary(time_series, tol_frac: float = 0.05) -> int:
     if n < 4:
         return 0
     w = max(1, n // 20)
-    smooth = np.convolve(s, np.ones(w) / w, mode="same")
-    final = float(np.mean(s[max(0, n - n // 4):]))
+    # Media móvil con padding 'edge' (replica el borde). Con mode='same' de np.convolve el relleno
+    # es de ceros y arrastra los extremos hacia 0, de modo que la banda de la cola nunca se cumplía
+    # y la heurística degeneraba SIEMPRE al fallback n//2 (descarte fijo del 50%, prohibido por la
+    # cátedra). Con padding 'edge' la suavización no inventa un transitorio en los bordes.
+    pad = w // 2
+    smooth = np.convolve(np.pad(s, pad, mode="edge"), np.ones(w) / w, mode="valid")[:n]
+    final = float(np.mean(s[max(0, n - n // 4):]))     # valor de régimen: media de la cola
     tol = tol_frac * abs(final) if final != 0 else tol_frac * (float(np.std(s)) + 1e-9)
-    for t in range(n):
-        if np.all(np.abs(smooth[t:] - final) <= tol):
-            return t
-    return n // 2
+    # primer paso t a partir del cual TODA la cola queda dentro de la banda = (último fuera) + 1
+    outside = np.where(np.abs(smooth - final) > tol)[0]
+    if outside.size == 0:
+        return 0
+    return min(int(outside[-1]) + 1, n - 1)
 
 
 # --- velocidad media (≈ Fig. 2) ---
@@ -144,6 +152,59 @@ def velocity_pdf(runs, since_step: int = 0, bins: int = 100, v_range=None):
     v = np.concatenate(vs) if vs else np.array([])
     hist, edges = np.histogram(v, bins=bins, range=v_range, density=True)
     return 0.5 * (edges[:-1] + edges[1:]), hist
+
+
+# --- PDFs por N ACTIVO (para el protocolo incremental, ≈ Figs. 3 y 4 por orden) ---
+
+def _frames_by_active_n(runs, since_step: int = 0):
+    """Agrupa los cuadros del estacionario por N ACTIVO (vehículos presentes en el cuadro).
+
+    En ``INCREMENTAL_180S`` el N cambia por fase (5→30); para reproducir las Figs. 3/4 del artículo hay
+    que separar las fases y NO mezclar cuadros de distinto N en una misma curva. Devuelve
+    ``dict active_n -> (lista_de_x_mm_por_cuadro, lista_de_v_mmps_por_cuadro)``."""
+    frames: dict[int, tuple[list, list]] = collections.defaultdict(lambda: ([], []))
+    for run in _as_runs(runs):
+        for step in np.unique(run.step):
+            if step < since_step:
+                continue
+            mask = run.step == step
+            active_n = int(np.unique(run.vid[mask]).size)
+            frames[active_n][0].append(run.x_mm[mask])
+            frames[active_n][1].append(run.v_mmps[mask])
+    return frames
+
+
+def density_pdf_by_active_n(runs, since_step: int = 0, bins: int = 80, rho_range=None):
+    """PDF de densidad individual ρ_i por N activo (≈ Fig. 3 por orden). dict ``active_n -> (centros, pdf)``."""
+    rr = _as_runs(runs)
+    if not rr:
+        return {}
+    ell, track = _ell_mm(rr[0]), _track_mm(rr[0])
+    out = {}
+    for active_n, (xs, _vs) in sorted(_frames_by_active_n(rr, since_step).items()):
+        rhos = []
+        for x in xs:
+            distances = _nearest_center_distances(x, ell, track)
+            if distances.size:
+                rhos.append(1.0 / distances)
+        rho = np.concatenate(rhos) if rhos else np.array([])
+        if rho.size == 0:
+            continue
+        hist, edges = np.histogram(rho, bins=bins, range=rho_range, density=True)
+        out[active_n] = (0.5 * (edges[:-1] + edges[1:]), hist)
+    return out
+
+
+def velocity_pdf_by_active_n(runs, since_step: int = 0, bins: int = 80, v_range=None):
+    """PDF de velocidad microscópica por N activo (≈ Fig. 4 por orden). dict ``active_n -> (centros, pdf)``."""
+    out = {}
+    for active_n, (_xs, vs) in sorted(_frames_by_active_n(runs, since_step).items()):
+        v = np.concatenate(vs) if vs else np.array([])
+        if v.size == 0:
+            continue
+        hist, edges = np.histogram(v, bins=bins, range=v_range, density=True)
+        out[active_n] = (0.5 * (edges[:-1] + edges[1:]), hist)
+    return out
 
 
 # --- diagrama fundamental (≈ Fig. 5) ---

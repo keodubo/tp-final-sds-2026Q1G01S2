@@ -67,7 +67,59 @@ def test_fundamental_diagram_sin_vecino_devuelve_vacio():
     assert v.size == 0
 
 
-def test_detect_stationary_encuentra_el_corte():
+def test_detect_stationary_depende_de_los_datos_no_del_50pct():
+    # Rampa 0→100 en 40 pasos y luego 100 por 60: el codo real está ~40. La heurística debe
+    # ubicarlo cerca del codo, NO caer al descarte fijo del 50% (n//2 = 50), que la cátedra prohíbe.
     serie = np.concatenate([np.linspace(0.0, 100.0, 40), np.full(60, 100.0)])
     corte = obs.detect_stationary(serie)
-    assert 20 <= corte <= 60
+    assert 28 <= corte <= 45, f"corte {corte}: parece el fallback 50% (n//2), no el codo real"
+
+
+def test_detect_stationary_serie_ya_estacionaria_corta_temprano():
+    # Serie constante desde el inicio: el corte sugerido debe ser chico (no el 50%).
+    corte = obs.detect_stationary(np.full(100, 50.0))
+    assert corte <= 5
+
+
+def make_incremental_run(phases, dx=0.25, ell=176, lattice=5280, dt=1.0):
+    """Run sintético incremental: ``phases`` es una lista de (xs, vs) por paso; el N activo de cada
+    paso es len(xs). Los ids arrancan en 0 (como el motor al insertar por lotes)."""
+    steps, vids, xs_all, vs_all = [], [], [], []
+    for t, (x, v) in enumerate(phases):
+        x = np.asarray(x, dtype=float)
+        v = np.asarray(v, dtype=float)
+        steps.append(np.full(x.size, t, dtype=int))
+        vids.append(np.arange(x.size))
+        xs_all.append(x)
+        vs_all.append(v)
+    meta = {"N": max(len(x) for x, _ in phases), "ell_celdas": ell, "dx_mm": dx,
+            "L_celdas": lattice, "dv_mmps": 6.0, "p": 0.1, "protocol": "INCREMENTAL_180S",
+            "order": "ASCENDING", "regla2": "CONTACTO_PURO", "dt_s": dt}
+    return Run(meta=meta, step=np.concatenate(steps), vid=np.concatenate(vids),
+               x_mm=np.concatenate(xs_all), v_mmps=np.concatenate(vs_all))
+
+
+def test_velocity_pdf_by_active_n_segmenta_por_fase():
+    # ≈ Fig. 4 del artículo pero para el incremental: una curva por N activo, sin mezclar fases.
+    run = make_incremental_run([
+        ([0.0, 2000.0], [30.0, 30.0]),                      # fase N=2 a 30 mm/s
+        ([0.0, 1300.0, 2600.0, 3900.0], [60.0, 60.0, 60.0, 60.0]),  # fase N=4 a 60 mm/s
+    ])
+    pdfs = obs.velocity_pdf_by_active_n(run, since_step=0, bins=131, v_range=(0.0, 130.0))
+    assert set(pdfs) == {2, 4}
+    pico2 = pdfs[2][0][int(np.argmax(pdfs[2][1]))]
+    pico4 = pdfs[4][0][int(np.argmax(pdfs[4][1]))]
+    assert abs(pico2 - 30.0) < 1.5, pico2
+    assert abs(pico4 - 60.0) < 1.5, pico4
+
+
+def test_density_pdf_by_active_n_una_curva_por_fase():
+    # ≈ Fig. 3 del artículo para el incremental: una curva de densidad por N activo.
+    run = make_incremental_run([
+        ([0.0, 2000.0], [0.0, 0.0]),
+        ([0.0, 1300.0, 2600.0, 3900.0], [0.0, 0.0, 0.0, 0.0]),
+    ])
+    pdfs = obs.density_pdf_by_active_n(run, since_step=0, bins=100, rho_range=(0.0, 0.03))
+    assert set(pdfs) == {2, 4}
+    for _, pdf in pdfs.values():
+        assert pdf.shape == (100,)

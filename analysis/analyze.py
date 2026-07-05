@@ -137,14 +137,15 @@ def _label_key(key) -> str:
     return "_".join(str(part).lower().replace(".", "") for part in key)
 
 
-def write_manifest(runs, since_step, figdir) -> Path:
-    """Escribe un manifiesto CSV con el corte (since_step) y las **realizaciones efectivas (M)** por
-    punto (regla, orden, protocolo, p, N). En el incremental, N es el N ACTIVO real y M cuenta cuántas
-    realizaciones lo alcanzaron (la velocidad activa es monótona, así que el N máximo = N en el último
-    paso). Da trazabilidad a las figuras (corrección pedida en la auditoría)."""
+def write_manifest(runs, since_step_fixed, figdir) -> Path:
+    """Escribe un manifiesto CSV con las **realizaciones efectivas (M)** y el corte (since_step) POR
+    FILA (regla, orden, protocolo, p, N). El corte se registra por protocolo: en FIXED_N es el corte
+    por inspección (``since_step_fixed``); en INCREMENTAL_180S es 0 porque se promedia la ventana
+    completa de 180 s por fase (⟨L_i/180 s⟩ del artículo). En el incremental, N es el N ACTIVO real y M
+    cuenta cuántas realizaciones lo alcanzaron. Da trazabilidad a las figuras."""
     rows = []
     for (rule, order, p, n), rs in group_fixed_runs(runs).items():
-        rows.append(("FIXED_N", rule, order, p, n, len(rs)))
+        rows.append(("FIXED_N", rule, order, p, n, len(rs), since_step_fixed))
     inc = collections.defaultdict(list)  # (regla, orden, p) -> [N activo máximo por realización]
     for r in runs:
         if _protocol(r) != "INCREMENTAL_180S":
@@ -154,13 +155,13 @@ def write_manifest(runs, since_step, figdir) -> Path:
         inc[(_rule(r), _order(r), _p(r))].append(max_activo)
     for (rule, order, p), maxes in inc.items():
         for n in range(5, max(maxes) + 1, 5):
-            rows.append(("INCREMENTAL_180S", rule, order, p, n, sum(1 for x in maxes if x >= n)))
+            rows.append(("INCREMENTAL_180S", rule, order, p, n, sum(1 for x in maxes if x >= n), 0))
     path = Path(figdir) / "manifiesto.csv"
     with open(path, "w", newline="") as fh:
         w = csv.writer(fh)
         w.writerow(["protocolo", "regla", "orden", "p", "N", "M_realizaciones", "since_step"])
         for row in sorted(rows, key=lambda r: (r[0], r[1], r[2], float(r[3]), r[4])):
-            w.writerow([*row, since_step])
+            w.writerow(list(row))
     return path
 
 
@@ -208,8 +209,11 @@ def main() -> None:
             results_by_p[p] = (np.array(ns), np.array(mean), np.array(err))
         plots.plot_mean_speed_vs_n(results_by_p, figdir / f"velocidad_media_vs_N_{tag}.png")
 
-        # ≈ Figs. 3 y 4: PDF de densidad y velocidad por N, a un p representativo (el menor)
-        p_rep = select_representative_p(ps, args.p_representativo)
+        # ≈ Figs. 3 y 4: PDF de densidad y velocidad por N, a un p representativo. Si el p pedido no
+        # existe en ESTE grupo (regla, orden), se cae al menor p positivo del grupo (robusto ante
+        # barridos parciales) en vez de abortar todo el análisis.
+        req = args.p_representativo if (args.p_representativo in ps) else None
+        p_rep = select_representative_p(ps, req)
         dens, vels = {}, {}
         for n in ns_all:
             rs_p = by_pN.get((p_rep, n), [])
@@ -221,13 +225,15 @@ def main() -> None:
             plots.plot_density_pdf(dens, figdir / f"pdf_densidad_p{p_rep:g}_{tag}.png")
             plots.plot_velocity_pdf(vels, figdir / f"pdf_velocidad_p{p_rep:g}_{tag}.png")
 
-        # evolución temporal (regla 4 de la cátedra) + sugerencia de estacionario, en un caso representativo
+        # evolución temporal (regla 4 de la cátedra) + sugerencia de estacionario, en un caso
+        # representativo. Eje temporal en SEGUNDOS (t = paso · dt), no en pasos.
         n_rep = max(ns_all)
         rep = by_pN.get((p_rep, n_rep), next(iter(by_pN.values())))[0]
+        dt = float(rep.meta["dt_s"])
         steps, serie = obs.mean_speed_series(rep)
         cut = stationary_cut_step(steps, serie)
         plots.plot_time_evolution(
-            {f"{rule} {order} (N={n_rep}, p={p_rep:g})": (steps, serie, cut)},
+            {f"{rule} {order} (N={n_rep}, p={p_rep:g})": (steps * dt, serie, cut * dt)},
             figdir / f"evolucion_temporal_{tag}.png",
         )
 
@@ -237,11 +243,51 @@ def main() -> None:
         incremental_by_rule_p[(rule, p)][order] = values
     for (rule, p), by_order in sorted(incremental_by_rule_p.items()):
         tag = _label_key((rule, f"p{p:g}", "incremental"))
+        # ≈ Fig. 2: velocidad media vs N, una curva por orden de inserción
         plots.plot_mean_speed_vs_n(
             by_order,
             figdir / f"velocidad_media_incremental_{tag}.png",
             legend_title="orden de inserción",
         )
+
+    # Incremental: evolución temporal por orden (regla 4 / EST-2: sin esta figura no se puede elegir
+    # el estacionario por inspección) y PDFs de densidad/velocidad por N ACTIVO (≈ Figs. 3 y 4 por
+    # orden, FIG-01/02). Se usan sobre la ventana COMPLETA de 180 s por fase (replica ⟨L_i/180 s⟩ del
+    # artículo; el transitorio de empuje por fase se documenta como limitación en el informe).
+    incr_runs = collections.defaultdict(list)          # (regla, orden, p) -> corridas
+    incr_ps_by_rule = collections.defaultdict(set)
+    for r in runs:
+        if _protocol(r) == "INCREMENTAL_180S":
+            incr_runs[(_rule(r), _order(r), _p(r))].append(r)
+            incr_ps_by_rule[_rule(r)].add(_p(r))
+    orders_canon = ["ASCENDING", "DESCENDING", "RANDOM"]
+    for rule, ps in sorted(incr_ps_by_rule.items()):
+        req = args.p_representativo if (args.p_representativo in ps) else None
+        p_rep = select_representative_p(sorted(ps), req)
+        # evolución temporal: una curva por orden (una realización representativa cada una), en segundos
+        evo = {}
+        for order in orders_canon:
+            rs = incr_runs.get((rule, order, p_rep), [])
+            if not rs:
+                continue
+            dt = float(rs[0].meta["dt_s"])
+            steps, serie = obs.mean_speed_series(rs[0])
+            evo[order.lower()] = (steps * dt, serie, None)
+        if evo:
+            etag = _label_key((rule, f"p{p_rep:g}", "incremental"))
+            plots.plot_time_evolution(evo, figdir / f"evolucion_temporal_incremental_{etag}.png")
+        # PDFs por N activo: una figura por orden (los paneles A/B/C del artículo)
+        for order in orders_canon:
+            rs = incr_runs.get((rule, order, p_rep), [])
+            if not rs:
+                continue
+            otag = _label_key((rule, order, f"p{p_rep:g}", "incremental"))
+            dens = obs.density_pdf_by_active_n(rs, since_step=0, bins=args.bins, rho_range=(0.0, 0.03))
+            vels = obs.velocity_pdf_by_active_n(rs, since_step=0, bins=args.bins, v_range=(0.0, 130.0))
+            if dens:
+                plots.plot_density_pdf(dens, figdir / f"pdf_densidad_incremental_{otag}.png")
+            if vels:
+                plots.plot_velocity_pdf(vels, figdir / f"pdf_velocidad_incremental_{otag}.png")
 
     # Diagramas fundamentales: UNA figura por (regla, protocolo) con pocas curvas legibles
     # (no todas las combinaciones juntas). FIXED_N → una curva por p; INCREMENTAL → una curva por
@@ -257,17 +303,21 @@ def main() -> None:
             orders_here = sorted({k[1] for k in keys})
             ps_here = sorted({k[3] for k in keys})
             curves, suffix, legend_title = {}, "", "frenado aleatorio"
+            # Criterio de estacionario CONSISTENTE con velocidad-vs-N (EST-1): FIXED_N usa el corte por
+            # inspección (args.since_step); INCREMENTAL_180S usa la ventana completa (0), que replica
+            # ⟨L_i/180 s⟩ del artículo. Antes el FD incremental recortaba solo la fase 1 (incoherente).
+            cut = args.since_step if protocol == "FIXED_N" else 0
             if protocol == "INCREMENTAL_180S" and len(orders_here) > 1:
                 p_rep = select_representative_p(ps_here)
                 for order in orders_here:
                     rs = fd_groups.get((rule, order, protocol, p_rep), [])
                     if rs:
-                        curves[order] = obs.fundamental_diagram(rs, args.since_step, window=args.fd_window)
+                        curves[order] = obs.fundamental_diagram(rs, cut, window=args.fd_window)
                 suffix, legend_title = f"_p{p_rep:g}", "orden de inserción"
             else:
                 for p in ps_here:
                     rs = [r for k in keys if k[3] == p for r in fd_groups[k]]
-                    curves[p] = obs.fundamental_diagram(rs, args.since_step, window=args.fd_window)
+                    curves[p] = obs.fundamental_diagram(rs, cut, window=args.fd_window)
             if curves:
                 tag = _label_key((rule, protocol))
                 plots.plot_fundamental_diagram(
