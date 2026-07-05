@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """Orquesta el barrido de experimentos invocando el motor (jar de Java).
 
-Por defecto corre el NÚCLEO que pidió el profe: variar N y p con protocolo de N fijo
-(``N × p × variante × realizaciones``). Los órdenes de inserción (ascending/descending/random) y el
-protocolo incremental cada 180 s son la CAPA DE COMPARACIÓN con el artículo (Figs. 2-5); están
-disponibles de forma opcional y pendientes de confirmar el alcance con el profe (ver diseño §6/§11).
+Por defecto corre el núcleo OFICIAL: variante CONTACTO_PURO con protocolo de N fijo, variando N y p
+(``N × p × realizaciones``). Los órdenes de inserción (ascending/descending/random) y el protocolo
+incremental cada 180 s son la CAPA DE COMPARACIÓN con el artículo (Figs. 2-5); están EN ALCANCE
+(confirmados con la cátedra; ver diseño §6/§11) y son opt-in solo para no inflar el barrido por
+defecto — NO están "pendientes de confirmar". CLASICA_SALVO_CERO es solo la variante de validación
+(NaSch clásico, p=0 homogéneo); no es el modelo del experimento.
 
 Reglas de combinación (para no generar corridas sin sentido):
 - ``FIXED_N``: el orden de inserción es irrelevante (no hay historia de inserción) → no se cruza con
@@ -15,7 +17,7 @@ Reglas de combinación (para no generar corridas sin sentido):
 Una realización queda identificada por el valor técnico ``--seed`` que recibe el motor.
 
 Ejemplos:
-    python3 run_matrix.py --dry-run                          # núcleo: N×p, N fijo
+    python3 run_matrix.py --dry-run                          # núcleo oficial: CONTACTO_PURO, N×p, N fijo
     python3 run_matrix.py --protocol INCREMENTAL_180S \\
         --order ASCENDING DESCENDING RANDOM \\
         --rule CONTACTO_PURO CLASICA_SALVO_CERO --dry-run    # capa de comparación con el artículo
@@ -35,10 +37,12 @@ NOMINAL_N_INCREMENTAL = 30    # nominal: el protocolo incremental define su prop
 
 
 def build_command(jar, out_dir, *, n, p, rule, protocol, realization, steps, output_every, order=None):
+    # el tag incluye output_every para que corridas con distinta cadencia de muestreo (p. ej. el
+    # barrido con oe=10 y los heroes de animación con oe=1) no se pisen el archivo (RM-05).
     if protocol == "INCREMENTAL_180S":
-        tag = f"INC_p{p}_{rule}_{order}_r{realization}".replace(".", "")
+        tag = f"INC_p{p}_{rule}_{order}_oe{output_every}_r{realization}".replace(".", "")
     else:
-        tag = f"N{n}_p{p}_{rule}_FIXED_N_r{realization}".replace(".", "")
+        tag = f"N{n}_p{p}_{rule}_FIXED_N_oe{output_every}_r{realization}".replace(".", "")
     out_file = out_dir / f"{tag}.txt"
     cmd = [
         "java", "-jar", jar,
@@ -80,8 +84,8 @@ def main() -> None:
     ap.add_argument("--out-dir", default=DEFAULT_OUT)
     ap.add_argument("--n", type=int, nargs="+", default=[5, 10, 15, 20, 25, 30])
     ap.add_argument("--p", type=float, nargs="+", default=[0.0, 0.1, 0.2, 0.3, 0.4])
-    # núcleo: variante de validación primero (ambas siguen disponibles en la capa de comparación)
-    ap.add_argument("--rule", nargs="+", default=["CLASICA_SALVO_CERO"],
+    # núcleo OFICIAL: CONTACTO_PURO (CLASICA_SALVO_CERO es solo la variante de validación NaSch clásico)
+    ap.add_argument("--rule", nargs="+", default=["CONTACTO_PURO"],
                     choices=["CONTACTO_PURO", "CLASICA_SALVO_CERO"])
     # los órdenes solo se usan bajo INCREMENTAL_180S
     ap.add_argument("--order", nargs="+", default=["RANDOM"],
@@ -94,6 +98,9 @@ def main() -> None:
                     help="por defecto 10000 (N fijo) / 25920 (incremental)")
     ap.add_argument("--output-every", type=int, default=1)
     ap.add_argument("--dry-run", action="store_true", help="solo imprime los comandos")
+    ap.add_argument("--skip-existing", action="store_true",
+                    help="saltear corridas cuyo archivo de salida ya existe y no está vacío "
+                         "(idempotencia: permite reanudar un barrido interrumpido sin repetir trabajo)")
     args = ap.parse_args()
 
     out_dir = Path(args.out_dir)
@@ -105,13 +112,20 @@ def main() -> None:
         f"reglas={args.rule} órdenes(incremental)={args.order} realizaciones={args.realizations}"
     )
 
+    done = skipped = 0
     for job in jobs:
         cmd, out_file = build_command(args.jar, out_dir, output_every=args.output_every, **job)
         if args.dry_run:
             print(" ".join(cmd))
+        elif args.skip_existing and out_file.exists() and out_file.stat().st_size > 0:
+            skipped += 1
+            print("skip (ya existe) →", out_file)
         else:
             subprocess.run(cmd, check=True)
+            done += 1
             print("ok →", out_file)
+    if not args.dry_run:
+        print(f"listo: {done} corridas nuevas, {skipped} salteadas por --skip-existing")
 
 
 if __name__ == "__main__":
