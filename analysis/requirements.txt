@@ -1,5 +1,11 @@
-numpy>=1.26
-matplotlib>=3.8
-scipy>=1.11
-pillow>=10.0
+# Dependencias del análisis y las animaciones (Python 3.12). Las versiones del núcleo numérico y de
+# ploteo se FIJAN para reproducir los histogramas (PDFs de densidad/velocidad) y el render de las
+# figuras de forma estable entre máquinas. El motor de simulación es Java (engine/) y no depende de
+# esto: acá solo va el post-proceso.
+#
+# Uso:  python3 -m venv .venv && . .venv/bin/activate && pip install -r analysis/requirements.txt
+numpy==2.5.1
+scipy==1.18.0
+matplotlib==3.11.0
+pillow==12.3.0
 pytest>=8.0
