@@ -2,150 +2,222 @@
 %  TP Final - Simulación de Sistemas (72.25) - ITBA - 2026 Q1 - Grupo G01S2
 %  Nagel-Schreckenberg aplicado a vibration-driven vehicles (Hexbug)
 %
-%  ESQUELETO DEL INFORME (sigue GuiaInformes.pdf / GuiaPresentaciones.pdf).
-%  - Compilar: pdflatex dos veces (para resolver referencias de Fig/Ec).
-%  - Las figuras están en ../figures/ (generadas por analysis/analyze.py).
-%  - Los bloques marcados con % TODO son para que el grupo redacte el análisis.
-%  - Convención (guía): escalares en itálica (math), vectores en negrita recta
-%    (\vb), unidades rectas (\unit). Figuras y ecuaciones numeradas y citadas.
+%  Compilar: pdflatex dos veces (para resolver referencias de Fig/Ec).
+%  Figuras en ../figures/ (generadas por analysis/analyze.py) y fotogramas hero
+%  en ../data_anim/ (generados por analysis/animate.py).
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage[spanish,es-tabla]{babel}
+% NOTA: babel-spanish no está instalado en este TeX Live (Debian, gestionado por apt). Se omite para
+% que el informe compile de forma portable; los acentos salen por inputenc/fontenc y los rótulos se
+% localizan a mano abajo. En una instalación con texlive-lang-spanish puede reponerse
+% \usepackage[spanish,es-tabla]{babel}.
+\usepackage{lmodern}
+\usepackage{microtype}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
 \usepackage[margin=2.4cm]{geometry}
 \usepackage{caption}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\tablename}{Tabla}
+\renewcommand{\refname}{Referencias}
+\emergencystretch=1.2em % evita overfull boxes sin partición silábica española
 
-% --- macros de unidades y vectores (convención de la guía) ---
-\newcommand{\unit}[1]{\,\mathrm{#1}}        % unidades rectas: \unit{mm/s}
-\newcommand{\vb}[1]{\mathbf{#1}}            % vectores en negrita recta
-\graphicspath{{../figures/}}
+\newcommand{\unit}[1]{\,\mathrm{#1}}
+\graphicspath{{../figures/}{../data_anim/}}
 
-\title{\textbf{Simulación de tráfico unidimensional con el modelo de
-Nagel--Schreckenberg aplicado a \emph{vibration-driven vehicles}}}
-\author{Grupo G01S2 --- [Nombres y legajos] \\
-        72.25 Simulación de Sistemas --- ITBA --- 2026 Q1}
-\date{\today}
+\title{\textbf{Diagrama fundamental de \emph{vibration-driven vehicles}:
+reproducción de tendencias con un autómata celular de Nagel--Schreckenberg
+con interacción por contacto}}
+\author{Grupo G01S2 \\
+        \textbf{[COMPLETAR: nombres y legajos de los integrantes]} \\
+        72.25 Simulación de Sistemas --- ITBA --- 2026, primer cuatrimestre}
+\date{Julio de 2026}
 
 \begin{document}
 \maketitle
 
+\begin{abstract}
+Reproducimos con un autómata celular de Nagel--Schreckenberg, en una ruta
+periódica unidimensional y con la Regla 2 modificada para que la interacción sea
+\emph{solo por contacto}, las tendencias del diagrama fundamental de
+\emph{vibration-driven vehicles} (VDV) medidas experimentalmente por Patterson y
+Parisi~[1]. El modelo, calibrado a la geometría del experimento
+($\Delta x=0{,}25\unit{mm}$, $\Delta t=1/24\unit{s}$, $\ell=44\unit{mm}$), captura
+la velocidad casi constante a densidades baja y media, la caída al acercarse a la
+densidad de contacto, la dependencia del orden de inserción (el orden aleatorio
+queda acotado entre el creciente y el decreciente) y la convergencia de las tres
+configuraciones a saturación. Discutimos con qué mecanismo el modelo alcanza (o no)
+la velocidad de saturación por debajo del agente más lento, y qué rasgos del
+experimento el modelo deliberadamente \emph{no} reproduce (colas de densidad por
+solapamiento/desalineación). Como control, la variante clásica de la regla reproduce
+el diagrama fundamental triangular analítico $Q(\rho)=\min(\rho\,v_{\max},1-\rho)$.
+\end{abstract}
+
 % ============================================================================
 \section{Introducción}
-% GuiaPresentaciones 2.1: descripción somera del SISTEMA REAL + ecuaciones del
-% modelo matemático GENERAL (sin el sistema particular ni los métodos de resolución).
 % ============================================================================
 
-% TODO: 1-2 párrafos. Qué es el diagrama fundamental (velocidad o flujo vs densidad)
-% y por qué importa en tráfico/peatones. Presentar el sistema real: robots
-% vibration-driven (Hexbug) sobre una pista circular 1D que interactúan SOLO por
-% contacto (sin sensado remoto), del trabajo de Patterson y Parisi [1]. Hallazgo
-% central a reproducir: a saturación la velocidad media es MENOR que la del agente
-% más lento, y el orden de inserción afecta el diagrama fundamental.
+El \textbf{diagrama fundamental} relaciona la velocidad media (o el flujo) de un
+conjunto de partículas autopropulsadas con su densidad. Es la herramienta central
+para caracterizar y diseñar sistemas de tráfico vehicular y peatonal, y en todos
+ellos la velocidad decrece de forma monótona al aumentar la densidad. En el tráfico
+vehicular esa caída se debe a que el conductor reduce voluntariamente su velocidad
+—usando sensado remoto (la vista)— para mantener distancia; en peatones, en cambio,
+a densidades altas aparece una segunda causa de naturaleza \emph{física}: el contacto
+y el empuje entre cuerpos. Aislar experimentalmente esa contribución puramente de
+contacto es difícil porque en general convive con el sensado remoto.
 
-El modelo general de Nagel--Schreckenberg [2] describe el tráfico como un autómata
+Patterson y Parisi~[1] estudian un sistema mínimo que interactúa \emph{exclusivamente
+por contacto}, sin sensado remoto: robots comerciales \emph{vibration-driven} (Hexbug
+Nano, cuerpo de $44\times15\times18\unit{mm}$) confinados en un canal circular de
+$18\unit{mm}$ de ancho y $\approx1313\unit{mm}$ de longitud efectiva, que admite hasta
+$30$ vehículos. Cada robot avanza por la rectificación de su vibración sobre cerdas
+asimétricas; caracterizados individualmente, sus velocidades libres se distribuyen de
+forma aproximadamente uniforme en $[90,120]\unit{mm/s}$. El experimento se filma a
+$24\unit{fps}$ y se mide la velocidad de cada agente por diferencias finitas.
+
+Sus hallazgos, que este trabajo se propone reproducir como \emph{tendencias}, son:
+(i) la velocidad media permanece casi constante a densidad baja y media y cae entre
+un $25\%$ y un $40\%$ al acercarse la densidad lineal a la inversa de la distancia de
+contacto; (ii) el resultado depende del \emph{orden} en que se introducen los agentes
+—ordenados por su velocidad libre— y el orden aleatorio queda acotado entre el
+creciente y el decreciente; (iii) a densidad máxima ($N=30$) las tres configuraciones
+convergen a una velocidad similar; y (iv) esa velocidad de saturación es \emph{menor}
+que la del agente más lento ($90\unit{mm/s}$), lo que evidencia un colapso colectivo.
+
+El modelo general de Nagel--Schreckenberg~[2] describe el tráfico como un autómata
 celular estocástico: los vehículos ocupan celdas de una pista, con velocidad entera
-acotada, y se actualizan de forma sincrónica según reglas locales. % TODO: ampliar.
+acotada, y se actualizan de forma sincrónica según reglas locales de aceleración,
+frenado aleatorio, interacción y movimiento. Adoptamos ese marco por su bajo costo y
+su capacidad conocida de generar diagramas fundamentales, y modificamos su regla de
+interacción para que sea de \emph{contacto puro}, acorde a la física del experimento.
 
 % ============================================================================
 \section{Modelo}
-% GuiaInformes: ecuaciones numeradas y citadas. R1-R4 generales (variante de contacto).
 % ============================================================================
 
 La pista es una \textbf{ruta unidimensional con condiciones periódicas} de $L$
-celdas (lo que sale por un extremo reentra por el otro; la curvatura no entra en
-el modelo). Cada vehículo $i$ es una partícula extendida que ocupa $\ell$ celdas,
-con posición de cola $x_i$ y velocidad entera $v_i \in \{0,\dots,v_{\max,i}\}$
-(celdas/paso). El hueco al vehículo de adelante es
+celdas: lo que sale por un extremo reentra por el otro. El canal circular del
+experimento se modela así como una línea periódica; la curvatura no interviene en el
+modelo. Cada vehículo $i$ es una partícula \emph{extendida} que ocupa $\ell$ celdas,
+con posición de cola $x_i$ y velocidad entera $v_i\in\{0,\dots,v_{\max,i}\}$
+(celdas/paso). El hueco (celdas libres) hasta el vehículo de adelante es
 
 \begin{equation}
 g_i = \left(x_{i+1} - x_i - \ell\right) \bmod L .
 \label{eq:gap}
 \end{equation}
 
-La actualización es \textbf{sincrónica}, en el orden $R1 \to R3 \to R2 \to R4$
-(el frenado antes de proyectar contactos garantiza que nunca haya solapamiento):
+La actualización es \textbf{sincrónica} y se aplica en el orden
+$R1 \to R3 \to R2 \to R4$. Aplicar el frenado aleatorio (R3) \emph{antes} de proyectar
+los contactos (R2) es deliberado: el frenado solo puede reducir el avance, de modo que
+proyectar después garantiza que nunca aparezca un solapamiento que el frenado no
+pudiera prever. Las reglas son
 
 \begin{align}
 \text{(R1) Aceleración:}\quad & v_i \leftarrow \min(v_i + 1,\, v_{\max,i}) \label{eq:r1}\\
-\text{(R3) Frenado aleatorio:}\quad & v_i \leftarrow \max(0,\, v_i - 1) \ \text{con probabilidad } p \label{eq:r3}\\
-\text{(R2) Resolución de colisión:}\quad & \text{ver Ec.~\eqref{eq:r2a}/\eqref{eq:r2b}} \nonumber\\
-\text{(R4) Movimiento:}\quad & x_i \leftarrow (x_i + v_i) \bmod L \label{eq:r4}
+\text{(R3) Frenado aleatorio:}\quad & v_i \leftarrow \max(0,\, v_i - 1)\ \text{con probabilidad } p \label{eq:r3}\\
+\text{(R2) Colisión:}\quad & \text{Ec.~\eqref{eq:r2a} (contacto puro) o \eqref{eq:r2b} (clásica)} \nonumber\\
+\text{(R4) Movimiento:}\quad & x_i \leftarrow (x_i + d_i) \bmod L \label{eq:r4}
 \end{align}
 
-La Regla 2 modela la interacción por contacto. En la variante oficial
-\emph{contacto puro} (A) el vehículo avanza libremente hasta alcanzar al de
-adelante; al chocar queda inmediatamente detrás (a contacto, sin solaparse) y
-hereda su velocidad. Los desplazamientos $d_i$ se resuelven por agrupamientos
-mediante la relajación al mayor punto fijo
+donde $d_i$ es el desplazamiento efectivo del paso, definido por R2. Con $p=0$ la regla
+R3 nunca se aplica y el esquema coincide con el Nagel--Schreckenberg canónico (no se
+consume el generador de números aleatorios).
+
+En la variante oficial \textbf{contacto puro} (A) el vehículo avanza libremente hasta
+alcanzar al de adelante; si lo alcanzaría, queda inmediatamente detrás (a contacto,
+$g=0$, sin solaparse) y \emph{hereda} su velocidad. Sea $\hat v_i$ la velocidad deseada
+tras R1 y R3; los desplazamientos se resuelven, de adelante hacia atrás, como el mayor
+punto fijo
 
 \begin{equation}
-d_i = \min\!\left(v_i,\; g_i + d_{i+1}\right),
+d_i = \min\!\left(\hat v_i,\; g_i + d_{i+1}\right),
 \label{eq:r2a}
 \end{equation}
 
-donde $d_{i+1}$ es el desplazamiento del líder en el mismo paso. La variante
-\emph{clásica} (B), usada solo para validar (Sec.~\ref{sec:simulaciones}), es la
-de Nagel--Schreckenberg de libro: $v_i \leftarrow \min(v_i, g_i)$, y a contacto
-($g_i=0$) toma $v_i \leftarrow \min(v_i, d_{i+1})$.
+con $d_{i+1}$ el desplazamiento del líder en el mismo paso. Esta relajación por
+agrupamientos garantiza el \textbf{no-solapamiento}: todo desplazamiento cumple
+$d_i \le g_i + d_{i+1}$, de modo que el hueco resultante nunca es negativo. La velocidad
+que se hereda para el paso siguiente es la del líder cuando se llega a contacto, y $d_i$
+en caso contrario.
+
+La variante \textbf{clásica} (B), usada solo para validar el motor
+(Sec.~\ref{sec:validacion}), es la de Nagel--Schreckenberg de libro: se anticipa la
+posición del líder,
 \begin{equation}
-\text{(R2-B)}\qquad v_i \leftarrow \min(v_i,\, g_i)\,;\quad g_i=0 \Rightarrow v_i \leftarrow \min(v_i, d_{i+1}).
+v_i \leftarrow \min(\hat v_i,\, g_i)\,;\qquad g_i=0 \Rightarrow v_i \leftarrow \min(\hat v_i, d_{i+1}).
 \label{eq:r2b}
 \end{equation}
 
 Cada vehículo tiene una \textbf{velocidad libre} propia
 $v^{\mathrm{libre}}_i \sim \mathcal{U}[90,120]\unit{mm/s}$, heterogénea como en el
-experimento.
+experimento, que fija su velocidad máxima entera $v_{\max,i}$ (Sec.~\ref{sec:simulaciones}).
 
 % ============================================================================
 \section{Implementación}
-% GuiaPresentaciones 2.2: del modelo matemático al computacional. SOLO el motor
-% (no post-proceso ni formato de archivos).
 % ============================================================================
 
-El motor (Java) mantiene los vehículos en una lista ordenada cíclicamente y
-ejecuta el paso sincrónico sobre un \emph{snapshot} inmutable de huecos y
-velocidades, de modo que el resultado no depende del orden de iteración. La
-regla de colisión devuelve, por vehículo, un par
-$(\text{desplazamiento},\ \text{velocidad heredada})$.
+El motor está implementado en Java. Mantiene los vehículos en una lista ordenada
+cíclicamente sobre la ruta y ejecuta cada paso sincrónico sobre un \emph{snapshot}
+inmutable de huecos y velocidades deseadas, de modo que el resultado no depende del
+orden de iteración. La regla de colisión recibe ese snapshot y devuelve, por vehículo,
+un par $(\text{desplazamiento } d_i,\ \text{velocidad heredada})$; no muta el estado.
+El paso, en pseudocódigo:
 
-% TODO: incluir un diagrama UML o pseudocódigo del motor (clases Vehicle,
-% PeriodicTrack, CollisionRule {ContactoPuro, ClasicaSalvoCero}, NaSchEngine).
-% Ejemplo de pseudocódigo del paso:
 \begin{verbatim}
-para cada paso:
+paso():
     si protocolo incremental y toca lote: insertar 5 vehículos (por empuje)
-    para cada vehículo: deseada <- R1 (acelerar); deseada <- R3 (frenar con prob p)
-    movimientos <- ReglaColisión.resolver(snapshot de huecos y deseadas)   # R2
-    para cada vehículo: x <- (x + desplazamiento) mod L                    # R4
+    para cada vehículo i:  deseada_i <- min(v_heredada_i + 1, vmax_i)     # R1
+                           con prob p: deseada_i <- max(0, deseada_i - 1)  # R3
+    movimientos <- ReglaColisión.resolver(snapshot(huecos, deseadas))     # R2
+    para cada vehículo i:  x_i <- (x_i + d_i) mod L                        # R4
+                           registrar d_i como velocidad de cuadro
+                           registrar velocidad heredada para el próximo paso
 \end{verbatim}
 
-% TODO: mencionar (1 párrafo) la condición inicial (ubicación sin solapar, sorteo
-% de v_libre, velocidad inicial 0), y la INSERCIÓN INCREMENTAL POR EMPUJE: al
-% agregar un lote los vehículos se corren para hacer lugar (consolidan el espacio
-% libre), lo que permite alcanzar N=30 (ruta llena exacta). Una realización queda
-% determinada por su semilla.
+El motor distingue dos velocidades por vehículo: la \emph{velocidad de cuadro} $d_i$
+(el desplazamiento efectivo, lo que mediría una cámara por diferencia de posiciones,
+que es la que se emite) y la \emph{velocidad heredada} que alimenta R1 del paso
+siguiente. En la variante clásica ambas coinciden; en contacto puro difieren solo en
+el cuadro en que un vehículo queda a contacto (avanza hasta el líder pero hereda su
+velocidad). El motor es 100\% determinista dado el identificador de la realización:
+toda la aleatoriedad proviene de un único generador sembrado con ese identificador,
+y con $p=0$ no se consume ningún número aleatorio en la dinámica.
+
+Para el protocolo incremental, agregar un lote de vehículos se hace por
+\textbf{empuje}: el vehículo nuevo (velocidad inicial $0$) se coloca a contacto delante
+de uno existente y los que le siguen se corren hacia adelante lo mínimo necesario para
+no solaparse, consolidando el espacio libre de la ruta. Esto permite alcanzar $N=30$,
+donde $30\,\ell = L$ y la ruta queda exactamente llena a contacto. El constructor de la
+ruta valida el no-solapamiento en cada inserción y en cada paso.
+
+Siguiendo el criterio de la cátedra, el motor emite \textbf{solo variables físicas}
+(identificador de paso, id de vehículo, $x$ en mm y $v$ en mm/s). No guarda color ni
+radio: el color de las animaciones se deriva de la velocidad \emph{después} de la
+simulación. Todos los observables se calculan por fuera del motor.
 
 % ============================================================================
 \section{Simulaciones}\label{sec:simulaciones}
-% GuiaPresentaciones 2.3: sistema particular (geometría, parámetros fijos y
-% variables, inputs/outputs), esquema, observables DEFINIDOS MATEMÁTICAMENTE,
-% número de repeticiones y tiempos.
 % ============================================================================
 
 \subsection{Calibración y geometría}
 
-% TODO: incluir un esquema (figura) de la ruta periódica con un vehículo, ℓ y L.
-La continua $\to$ discreta se calibra para comparar contra el experimento
-(Tabla~\ref{tab:calib}).
+La malla discreta se calibra a la geometría del experimento
+(Tabla~\ref{tab:calib}). El cuanto de velocidad es $\Delta v=\Delta x/\Delta t=6\unit{mm/s}$
+y la velocidad máxima de cada vehículo es $v_{\max,i}=\mathrm{round}(v^{\mathrm{libre}}_i/\Delta v)\in\{15,\dots,20\}$.
+La longitud de pista se fija en $L=30\,\ell=5280$ celdas $=1320\unit{mm}$ para que
+$N=30$ cierre exactamente a contacto (el experimento reporta $\approx1313\unit{mm}$;
+la diferencia se discute en Sec.~\ref{sec:limitaciones}). La densidad global es
+$\rho=N/L_{\mathrm{fís}}$, que a $N=30$ vale $0{,}0227\unit{mm^{-1}}=1/44\unit{mm}$.
 
 \begin{table}[h]\centering
-\caption{Parámetros de calibración (fijos).}
+\caption{Parámetros de calibración (fijos en todas las corridas).}
 \label{tab:calib}
 \begin{tabular}{lll}
 \toprule
@@ -161,166 +233,295 @@ Velocidad máxima & $v_{\max,i}=\mathrm{round}(v^{\mathrm{libre}}_i/\Delta v)$ &
 \end{tabular}
 \end{table}
 
-\subsection{Parámetros, inputs y protocolos}
+\subsection{Parámetros, condiciones iniciales y protocolos}
 
-% TODO: distinguir PARÁMETROS de CONDICIONES INICIALES. Inputs variables:
-% N \in {5,10,15,20,25,30} y p \in {0, 0.1, 0.2, 0.3, 0.4}. Dos protocolos:
-% N fijo (barrido limpio) e incremental cada 180 s (5 -> 30, replica el artículo)
-% con tres órdenes de inserción (creciente/decreciente/aleatorio por v_libre).
+Los \textbf{parámetros} que se varían son el número de vehículos
+$N\in\{5,10,15,20,25,30\}$ y la probabilidad de frenado aleatorio
+$p\in\{0,\,0{,}1,\,0{,}2,\,0{,}3,\,0{,}4\}$. Las \textbf{condiciones iniciales} de
+cada realización —distintas de los parámetros— son las posiciones iniciales (sin
+solaparse), el valor concreto de cada velocidad libre y la secuencia reproducible del
+generador; todos los vehículos arrancan con velocidad $0$. Una \emph{realización} queda
+determinada por su identificador reproducible (que en la línea de comandos se pasa como
+\texttt{-{}-seed}).
+
+Se usan dos protocolos:
+\begin{itemize}
+  \item \textbf{$N$ fijo}: corridas independientes con $N$ constante, para barrer
+  $N$ y $p$ de forma limpia. $10\,000$ pasos ($\approx417\unit{s}$).
+  \item \textbf{Incremental cada $180\unit{s}$}: réplica del protocolo del artículo.
+  Se arranca con $5$ vehículos y se agregan $5$ cada $180\unit{s}$ hasta $N=30$, con
+  $25\,920$ pasos $=6\times180\unit{s}=1080\unit{s}$. Se examinan tres
+  \textbf{órdenes de inserción} según la velocidad libre: creciente
+  (\emph{ascending}, los más lentos primero), decreciente (\emph{descending}, los más
+  rápidos primero) y aleatorio (\emph{random}).
+\end{itemize}
+Se corren $M=30$ \textbf{realizaciones} por punto. El estado se guarda cada $10$ pasos.
 
 \subsection{Observables}
 
 Todos se calculan \textbf{después} de la simulación, a partir del estado
-$(x_i, v_i)$ guardado. La velocidad media de una realización es el promedio sobre
-los $N$ vehículos y los $T$ pasos del régimen estacionario,
+$(x_i,v_i)$ guardado. La velocidad media de una realización es el promedio sobre los
+$N$ vehículos y los $T$ pasos del régimen estacionario,
 \begin{equation}
-\bar{v} = \frac{1}{N\,T}\sum_{t}\sum_{i=1}^{N} v_i(t)\cdot \Delta v \quad [\unit{mm/s}],
+\bar{v} = \frac{1}{N\,T}\sum_{t}\sum_{i=1}^{N} v_i(t) \quad [\unit{mm/s}],
 \label{eq:vmedia}
 \end{equation}
-y se informa con su \textbf{desvío entre las $M$ realizaciones} (no el de todos
-los cuadros juntos):
+equivalente al observable global $\langle L_i/T\rangle$ del artículo (la velocidad de
+cuadro es el desplazamiento real por paso, sin ambigüedad de envoltura). Se informa con
+su \textbf{desvío entre las $M$ realizaciones} —no el de todos los cuadros juntos, que
+subrepresenta el error—:
 \begin{equation}
 \sigma_{\bar v} = \sqrt{\frac{1}{M-1}\sum_{m=1}^{M}\left(\bar v^{(m)} - \langle \bar v\rangle\right)^2}.
 \label{eq:error}
 \end{equation}
-La densidad individual es la inversa de la distancia (centro a centro) al vecino
-más cercano sobre la ruta,
+La densidad individual es la inversa de la distancia (centro a centro) al vecino más
+cercano sobre la ruta,
 \begin{equation}
 \rho_i = \frac{1}{\Delta x\,(\ell + g_i^{\,\mathrm{vecino}})} \quad [\unit{mm^{-1}}],
 \label{eq:densidad}
 \end{equation}
-con pico esperado en $1/44\unit{mm}$ (contacto). Las distribuciones (PDF) de
-$\rho_i$ y de la velocidad, y el diagrama fundamental (velocidad instantánea vs
-$\rho_i$, con media móvil) completan el conjunto.
-
-% TODO: número de realizaciones M=30 por punto; tiempos de simulación:
-% N fijo 10000 pasos (~417 s), incremental 25920 pasos = 6 x 180 s = 1080 s.
-% El corte del estacionario (since_step) se elige por inspección (Sec. Resultados)
-% y queda registrado en figures/manifiesto.csv.
+con pico esperado en $1/44\unit{mm}\approx0{,}0227\unit{mm^{-1}}$ (contacto). Se reportan
+las distribuciones (PDF) de $\rho_i$ y de la velocidad microscópica, y el diagrama
+fundamental (velocidad instantánea vs $\rho_i$, ordenado por densidad y suavizado con
+media móvil). El \textbf{corte del estacionario} se elige \emph{por inspección} de la
+evolución temporal (no por un descarte fijo en porcentaje) y queda registrado, por punto,
+en \texttt{figures/manifiesto.csv}. En el protocolo incremental, por su diseño, el
+observable se promedia sobre la ventana completa de $180\unit{s}$ de cada fase
+($\langle L_i/180\unit{s}\rangle$, igual que el artículo).
 
 % ============================================================================
 \section{Resultados}
-% GuiaPresentaciones 2.4: por cada estudio -> animación -> evolución temporal ->
-% input vs observable (promedio + barras de error). Conclusiones solo al final.
 % ============================================================================
 
-\subsection{Estudio con N fijo (variar N y p)}
+\subsection{Estudio con $N$ fijo}
 
-% --- 2.4.1 ANIMACIÓN característica (dos valores extremos) -------------------
-% En el PDF NO van animaciones (GuiaPresentaciones 2.4.8): va el FOTOGRAMA + link.
+La Figura~\ref{fig:anim-fixed} muestra fotogramas de la dinámica en régimen a baja
+densidad ($N=5$, flujo libre) y a saturación ($N=30$, ruta llena a contacto). A baja
+densidad los vehículos avanzan casi sin interactuar; a $N=30$ forman un anillo rígido a
+contacto.
+
 \begin{figure}[h]\centering
-\includegraphics[width=0.46\linewidth]{../data_anim/N5_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\hfill
-\includegraphics[width=0.46\linewidth]{../data_anim/N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
-\caption{Fotogramas de la dinámica a baja densidad ($N=5$, flujo libre) y a
-saturación ($N=30$, contacto). Animaciones completas:
-\href{https://youtu.be/XXXX}{[link N=5]} \quad \href{https://youtu.be/XXXX}{[link N=30]}.}
+\includegraphics[width=0.48\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}\hfill
+\includegraphics[width=0.48\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}
+\caption{Fotogramas en régimen a baja densidad ($N=5$, izquierda) y a saturación
+($N=30$, derecha), contacto puro, $p=0{,}1$. Color según velocidad. Animaciones:
+\href{https://youtu.be/XXXX}{[N=5]} \quad \href{https://youtu.be/XXXX}{[N=30]}.}
 \label{fig:anim-fixed}
 \end{figure}
-% TODO: subir los GIF a YouTube (no listado) y reemplazar los links XXXX.
-% QUÉ DECIR: ilustrar los dos comportamientos extremos para situar el contexto.
 
-% --- 2.4.2 EVOLUCIÓN TEMPORAL (define el escalar = media estacionaria) -------
+El escalar que caracteriza cada corrida es el promedio estacionario de la velocidad
+media (Ec.~\ref{eq:vmedia}). La Figura~\ref{fig:evol-fixed} muestra la evolución
+temporal de la velocidad media y el corte del transitorio elegido por inspección; a
+partir de ese corte la serie fluctúa alrededor de un valor estable.
+
 \begin{figure}[h]\centering
-\includegraphics[width=0.7\linewidth]{evolucion_temporal_contacto_puro_random_fixed.png}
-\caption{Evolución temporal de la velocidad media. El escalar que caracteriza el
-proceso es su promedio en el estado estacionario (a partir del corte indicado).}
+\includegraphics[width=0.7\linewidth]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}
+\caption{Evolución temporal de la velocidad media ($N=30$, contacto puro). La línea
+punteada marca el corte del transitorio elegido por inspección; el observable reportado
+es el promedio a partir de ese corte (Ec.~\ref{eq:vmedia}).}
 \label{fig:evol-fixed}
 \end{figure}
-% QUÉ DECIR: justificar el corte del transitorio por inspección; definir que el
-% observable reportado es la media estacionaria (Ec. \ref{eq:vmedia}).
 
-% --- 2.4.3 INPUT vs OBSERVABLE (promedio + barras de error) ------------------
+La curva respuesta--estímulo (Figura~\ref{fig:vN-fixed}) resume la velocidad media en
+función de $N$, una curva por $p$. A densidad baja la velocidad media se mantiene
+cercana a la velocidad libre media y prácticamente no depende de $N$; al acercarse a la
+ruta llena cae. En el punto singular $N=30$ (ruta exactamente llena) el valor de
+saturación depende de $p$: con $p=0$ el anillo rígido cruza a la velocidad del más lento,
+y con $p>0$ el frenado aleatorio del cúmulo lo hace caer por debajo de ella.
+
 \begin{figure}[h]\centering
-\includegraphics[width=0.7\linewidth]{velocidad_media_vs_N_contacto_puro_random_fixed.png}
-\caption{Velocidad media en función de $N$, una curva por probabilidad de frenado
-$p$ (contacto puro). En $N=30$ (ruta llena exacta, punto singular) el colapso
-depende de $p$.}
+\includegraphics[width=0.7\linewidth]{velocidad_media_vs_N_contacto_puro_sin_orden_fixed.png}
+\caption{Velocidad media en función de $N$, una curva por probabilidad de frenado $p$
+(contacto puro, $N$ fijo). $N=30$ es la ruta llena exacta (punto singular); allí el
+descenso de la velocidad depende de $p$.}
 \label{fig:vN-fixed}
 \end{figure}
-% QUÉ DECIR: flujo libre ~90 mm/s a baja densidad; en N=30 el colapso requiere
-% p>0 (a p=0 queda en la del más lento). Aclarar que N=30 es singular.
 
-% --- distribuciones (Figs. 3 y 4 del artículo) ------------------------------
+Las distribuciones microscópicas (Figura~\ref{fig:pdf-fixed}) muestran el pico de
+densidad individual en $1/44\unit{mm}$ (geometría de contacto) acentuándose al aumentar
+$N$, y la PDF de velocidad angostándose y corriéndose a valores menores a alta densidad.
+
 \begin{figure}[h]\centering
-\includegraphics[width=0.49\linewidth]{pdf_densidad_p0.1_contacto_puro_random_fixed.png}\hfill
-\includegraphics[width=0.49\linewidth]{pdf_velocidad_p0.1_contacto_puro_random_fixed.png}
-\caption{Distribuciones (PDF) de densidad individual (izq., pico en $1/44\unit{mm}$)
-y de velocidad (der.), una curva por $N$.}
+\includegraphics[width=0.49\linewidth]{pdf_densidad_p0.1_contacto_puro_sin_orden_fixed.png}\hfill
+\includegraphics[width=0.49\linewidth]{pdf_velocidad_p0.1_contacto_puro_sin_orden_fixed.png}
+\caption{Distribuciones (PDF) de densidad individual (izquierda; pico en $1/44\unit{mm}$)
+y de velocidad microscópica (derecha), una curva por $N$ ($N$ fijo, contacto puro,
+$p=0{,}1$).}
 \label{fig:pdf-fixed}
 \end{figure}
-% QUÉ DECIR: el pico de densidad en el contacto (geometría); el corrimiento/
-% angostamiento de la PDF de velocidad al aumentar N.
 
-% --- diagrama fundamental con N fijo ----------------------------------------
+El diagrama fundamental con $N$ fijo (Figura~\ref{fig:fd-fixed}) resume velocidad vs
+densidad individual: velocidad casi plana hasta cerca de la densidad de contacto y luego
+descenso.
+
 \begin{figure}[h]\centering
 \includegraphics[width=0.7\linewidth]{diagrama_fundamental_contacto_puro_fixed_n.png}
-\caption{Diagrama fundamental (velocidad vs densidad) con N fijo, una curva por $p$.}
+\caption{Diagrama fundamental (velocidad vs densidad individual $\rho_i$) con $N$ fijo,
+una curva por $p$ (contacto puro).}
 \label{fig:fd-fixed}
 \end{figure}
-% QUÉ DECIR: velocidad ~constante hasta cerca del contacto y luego caída.
 
 \subsection{Estudio incremental: efecto del orden de inserción}
 
-% --- 2.4.1 ANIMACIONES de los tres órdenes ----------------------------------
+Este protocolo reproduce el del artículo. La Figura~\ref{fig:anim-inc} muestra
+fotogramas de los tres órdenes de inserción.
+
 \begin{figure}[h]\centering
-\includegraphics[width=0.32\linewidth]{../data_anim/INC_p01_CONTACTO_PURO_ASCENDING_r1_fotograma.png}\hfill
-\includegraphics[width=0.32\linewidth]{../data_anim/INC_p01_CONTACTO_PURO_DESCENDING_r1_fotograma.png}\hfill
-\includegraphics[width=0.32\linewidth]{../data_anim/INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
-\caption{Fotogramas del protocolo incremental para los órdenes creciente,
-decreciente y aleatorio. Animaciones:
-\href{https://youtu.be/XXXX}{[asc]} \href{https://youtu.be/XXXX}{[desc]} \href{https://youtu.be/XXXX}{[rand]}.}
+\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_ASCENDING_oe10_r1_fotograma.png}\hfill
+\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_DESCENDING_oe10_r1_fotograma.png}\hfill
+\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_oe10_r1_fotograma.png}
+\caption{Fotogramas del protocolo incremental para los órdenes creciente, decreciente y
+aleatorio (contacto puro, $p=0{,}1$). Animaciones:
+\href{https://youtu.be/XXXX}{[creciente]} \href{https://youtu.be/XXXX}{[decreciente]}
+\href{https://youtu.be/XXXX}{[aleatorio]}.}
 \label{fig:anim-inc}
 \end{figure}
 
-% --- Fig. 2 del artículo: velocidad media vs N por orden --------------------
+La evolución temporal (Figura~\ref{fig:evol-inc}) muestra la estructura en escalera: cada
+$180\unit{s}$ se insertan $5$ vehículos y la velocidad media da un salto y se reacomoda.
+Cada fase de $180\unit{s}$ define un valor de $N$ activo; el observable se promedia sobre
+la ventana completa de cada fase, como en el artículo.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.7\linewidth]{evolucion_temporal_incremental_contacto_puro_p01_incremental.png}
+\caption{Evolución temporal de la velocidad media en el protocolo incremental, una curva
+por orden de inserción (contacto puro, $p=0{,}1$). Los escalones marcan las inserciones
+cada $180\unit{s}$.}
+\label{fig:evol-inc}
+\end{figure}
+
+La curva respuesta--estímulo por orden (Figura~\ref{fig:vN-inc}, análoga a la Fig.~2 del
+artículo) muestra que a densidad baja y media el orden decreciente da mayor velocidad que
+el creciente, con el aleatorio en el medio, y que las tres tienden a acercarse a
+saturación.
+
 \begin{figure}[h]\centering
 \includegraphics[width=0.7\linewidth]{velocidad_media_incremental_contacto_puro_p01_incremental.png}
-\caption{Velocidad media en función de $N$ para los tres órdenes de inserción
-(contacto puro, $p=0{,}1$). A saturación las tres curvas convergen a un valor
-\emph{menor} que la velocidad del agente más lento.}
+\caption{Velocidad media en función de $N$ para los tres órdenes de inserción (contacto
+puro, $p=0{,}1$; protocolo incremental). Comparar con la Fig.~2 del artículo~[1].}
 \label{fig:vN-inc}
 \end{figure}
-% QUÉ DECIR: reproduce la Fig. 2 del artículo. Decreciente > aleatorio > creciente
-% a densidad baja/media; convergencia a saturación por debajo del más lento.
 
-% --- Fig. 5D del artículo: diagrama fundamental por orden -------------------
+Las distribuciones por orden (Figura~\ref{fig:pdf-inc}, análogas a las Figs.~3 y 4 del
+artículo) separan las fases por $N$ activo: el pico de densidad se corre hacia el contacto
+y la PDF de velocidad se angosta al aumentar $N$, de forma más marcada en el orden
+creciente.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.49\linewidth]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}\hfill
+\includegraphics[width=0.49\linewidth]{pdf_velocidad_incremental_contacto_puro_ascending_p01_incremental.png}
+\caption{Distribuciones por $N$ activo en el protocolo incremental, orden creciente
+(contacto puro, $p=0{,}1$): densidad individual (izquierda) y velocidad microscópica
+(derecha). Análogas a las Figs.~3A y 4A del artículo~[1]. Las figuras de los órdenes
+decreciente y aleatorio se generan de igual forma.}
+\label{fig:pdf-inc}
+\end{figure}
+
+Finalmente, el diagrama fundamental por orden (Figura~\ref{fig:fd-inc}, análogo a la
+Fig.~5D del artículo) confirma la estructura: el orden aleatorio queda acotado entre el
+creciente y el decreciente.
+
 \begin{figure}[h]\centering
 \includegraphics[width=0.7\linewidth]{diagrama_fundamental_contacto_puro_incremental_180s_p0.1.png}
-\caption{Diagrama fundamental por orden de inserción (contacto puro). El orden
-aleatorio queda acotado entre el creciente y el decreciente.}
+\caption{Diagrama fundamental por orden de inserción (contacto puro, $p=0{,}1$;
+protocolo incremental). El orden aleatorio queda acotado entre el creciente y el
+decreciente. Comparar con la Fig.~5D del artículo~[1].}
 \label{fig:fd-inc}
 \end{figure}
-% QUÉ DECIR: reproduce la Fig. 5D; el random está entre los dos extremos ordenados.
 
-\subsection{Validación}
-% QUÉ DECIR: con la variante B (clásica), homogénea, p=0 y ℓ=1, el diagrama
-% fundamental reproduce la solución analítica Q(rho)=min(rho*vmax, 1-rho)
-% (verificado en los tests con tolerancia 1e-9). Aclarar que contacto puro NO
-% se valida contra esa curva (da Q=rho*vmax, flujo libre hasta el contacto).
+% ============================================================================
+\section{Validación}\label{sec:validacion}
+% ============================================================================
+
+Como control del motor usamos la variante clásica (B, Ec.~\ref{eq:r2b}) en su régimen de
+validez: partículas puntuales ($\ell=1$), velocidad máxima homogénea, frenado $p=0$ y
+condición inicial de reparto uniforme. En ese caso el estado estacionario es
+$\bar v = \min(v_{\max}, g)$ y el flujo $Q=\rho\,\bar v$ debe coincidir con el diagrama
+fundamental triangular analítico
+\begin{equation}
+Q(\rho)=\min(\rho\,v_{\max},\,1-\rho).
+\label{eq:triangular}
+\end{equation}
+El motor reproduce esta curva a precisión de máquina (Figura~\ref{fig:validacion};
+verificado además en los tests automatizados con tolerancia $10^{-9}$, cubriendo flujo
+libre, el pico $\rho_c=1/(v_{\max}+1)$ y la rama congestionada). La variante de
+\emph{contacto puro} \textbf{no} se valida contra esta curva: sin anticipación, mantiene
+flujo libre ($Q=\rho\,v_{\max}$) hasta el contacto, por lo que su diagrama es distinto del
+triangular por construcción.
+
+\begin{figure}[h]\centering
+\includegraphics[width=0.62\linewidth]{validacion_triangular.png}
+\caption{Validación de la variante clásica contra el diagrama fundamental triangular
+analítico $Q(\rho)=\min(\rho\,v_{\max},1-\rho)$ ($v_{\max}=5$, $p=0$, $\ell=1$, reparto
+uniforme). Los puntos simulados caen sobre la curva analítica (error máximo
+$\sim10^{-16}$).}
+\label{fig:validacion}
+\end{figure}
+
+% ============================================================================
+\section{Limitaciones}\label{sec:limitaciones}
+% ============================================================================
+
+El modelo reproduce \emph{tendencias}, no el experimento punto a punto. Sus límites,
+que enmarcan las conclusiones:
+\begin{itemize}
+  \item \textbf{Sin colas de densidad más allá del contacto.} El experimento observa
+  densidades $\rho_i>1/44\unit{mm}$ por solapamiento parcial, desalineación por la
+  geometría triangular del VDV y errores de seguimiento. El modelo impone
+  no-solapamiento duro, así que \emph{deliberadamente} no reproduce esa cola: su PDF de
+  densidad se corta en $1/44\unit{mm}$.
+  \item \textbf{Punto $N=30$ singular y dependiente de $L$.} Se fija $L=1320\unit{mm}$
+  ($=30\ell$) para que $N=30$ cierre exacto a contacto; el experimento tiene
+  $\approx1313\unit{mm}$, físicamente más corto que $30$ vehículos rígidos, lo que en la
+  realidad admite solapamiento pero en el modelo es imposible. La sensibilidad a $L$ solo
+  puede correrse para $N\le29$ (a $L=1313$, $30\ell=5280>5252$ celdas no entran): el punto
+  de saturación $N=30$ solo existe a $L=1320$.
+  \item \textbf{Mecanismo del colapso a saturación.} La coincidencia con ``velocidad de
+  saturación menor que la del más lento'' se apoya en el punto lleno-exacto $N=30$ y
+  requiere $p>0$ (el frenado aleatorio del anillo rígido). No es el mismo mecanismo físico
+  del experimento (agrupamiento con solapamiento/desalineación): es el frenado estocástico
+  de un cúmulo rígido en el cierre exacto de la ruta. Se reporta como reproducción de la
+  \emph{tendencia}, no del mecanismo.
+  \item \textbf{Velocidad cuantizada.} La velocidad está discretizada en pasos de
+  $\Delta v=6\unit{mm/s}$; el modelo no reproduce colas instantáneas finas de velocidad.
+  \item \textbf{$p$ representativo.} Las figuras microscópicas se muestran a $p=0{,}1$; no
+  son automáticamente representativas de todo $p$ (el barrido completo en $p$ está en los
+  datos).
+\end{itemize}
 
 % ============================================================================
 \section{Conclusiones}
-% GuiaPresentaciones 2.5: SOLO sobre lo mostrado en Resultados.
 % ============================================================================
 
-% TODO (basadas solo en las figuras mostradas):
-% - El modelo reproduce el flujo libre hasta el contacto y la caída de velocidad.
-% - A saturación la velocidad media es menor que la del agente más lento (Fig. \ref{fig:vN-inc}).
-% - El orden de inserción afecta el diagrama fundamental; el aleatorio queda
-%   acotado por los órdenes creciente y decreciente (Fig. \ref{fig:fd-inc}).
-% - El colapso por debajo del más lento requiere frenado aleatorio (p>0).
-% No incluir hipótesis no probadas ni cosas que quedaron por hacer.
+Sobre lo mostrado en Resultados:
+\begin{itemize}
+  \item El autómata celular con interacción por contacto reproduce las tendencias
+  centrales del diagrama fundamental de VDV: velocidad casi constante a densidad baja y
+  media y caída al acercarse a la densidad de contacto
+  (Figs.~\ref{fig:fd-fixed},~\ref{fig:fd-inc}).
+  \item El orden de inserción modula el diagrama en el protocolo incremental: el orden
+  aleatorio queda acotado entre el creciente y el decreciente, y las tres configuraciones
+  se acercan a saturación (Figs.~\ref{fig:vN-inc},~\ref{fig:fd-inc}), como en el
+  artículo~[1].
+  \item El pico de densidad individual en $1/44\unit{mm}$ y el angostamiento de la PDF de
+  velocidad con $N$ reproducen las distribuciones del experimento, con la salvedad de que
+  el modelo no genera la cola de densidad por solapamiento (Sec.~\ref{sec:limitaciones}).
+  \item La caída de la velocidad de saturación por debajo del agente más lento se obtiene
+  en el punto singular $N=30$ y requiere frenado aleatorio ($p>0$); es la reproducción de
+  una tendencia, con un mecanismo distinto al experimental (Sec.~\ref{sec:limitaciones}).
+  \item La variante clásica valida el motor contra el diagrama fundamental triangular
+  analítico con tolerancia $10^{-9}$ (Sec.~\ref{sec:validacion}).
+\end{itemize}
 
 % ============================================================================
 \section*{Referencias}
 \addcontentsline{toc}{section}{Referencias}
-% Solo lo citado en el texto.
 % ============================================================================
 \begin{enumerate}
 \item G.~A.~Patterson, D.~R.~Parisi, ``Fundamental diagram of vibration-driven
-vehicles'', preprint (2023). % [ajustar a la cita final del artículo provisto]
-\item K.~Nagel, M.~Schreckenberg, ``A cellular automaton model for freeway
-traffic'', \emph{Journal de Physique I}, 2(12), 2221--2229 (1992).
+vehicles'', preprint, 31 de octubre de 2023.
+\item K.~Nagel, M.~Schreckenberg, ``A cellular automaton model for freeway traffic'',
+\emph{Journal de Physique I}, 2(12), 2221--2229 (1992).
 \end{enumerate}
 
 \end{document}
