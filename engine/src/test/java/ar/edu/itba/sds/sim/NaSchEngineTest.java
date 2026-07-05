@@ -279,4 +279,41 @@ class NaSchEngineTest {
         }
         assertTrue(huboContacto, "se esperaban agrupamientos a contacto (hueco 0) con contacto puro");
     }
+
+    @Test
+    void seedsDistintosDanRealizacionesDistintas() {
+        // La reproducibilidad no basta con "mismo seed ⇒ misma corrida": seeds distintos deben dar
+        // condiciones iniciales distintas, o el motor estaría ignorando el PRNG.
+        NaSchEngine a = new NaSchEngine(calibrada(15, 0.1, CollisionRuleType.CONTACTO_PURO, 1L));
+        NaSchEngine b = new NaSchEngine(calibrada(15, 0.1, CollisionRuleType.CONTACTO_PURO, 2L));
+        a.initialize();
+        b.initialize();
+        assertNotEquals(snapshot(a.track()), snapshot(b.track()),
+                "dos realizaciones (seeds 1 y 2) deben tener condiciones iniciales distintas");
+    }
+
+    @Test
+    void contactoPuroEnRutaLlenaCruzaRigidoALaVelocidadDelMasLento() {
+        // N=30 ⇒ 30·ℓ = L: la ruta queda exactamente a contacto (todos los huecos 0). Con contacto
+        // puro y p=0, el anillo rígido hereda la velocidad del más lento y avanza uniforme a esa
+        // velocidad (verifica end-to-end el cableado de la velocidad heredada, no solo el desplazamiento).
+        Config cfg = calibrada(30, 0.0, CollisionRuleType.CONTACTO_PURO, 2026L);
+        NaSchEngine engine = new NaSchEngine(cfg);
+        engine.initialize();
+        int minVmax = Integer.MAX_VALUE;
+        for (int i = 0; i < engine.track().size(); i++) {
+            minVmax = Math.min(minVmax, engine.track().get(i).vMax());
+        }
+
+        for (int t = 0; t < 400; t++) engine.step(); // dejar converger el anillo rígido
+
+        for (int t = 0; t < 40; t++) {
+            engine.step();
+            PeriodicTrack track = engine.track();
+            for (int i = 0; i < track.size(); i++) {
+                assertEquals(minVmax, track.get(i).velocity(),
+                        "en ruta llena el anillo debe avanzar a la velocidad del más lento (paso " + t + ")");
+            }
+        }
+    }
 }
