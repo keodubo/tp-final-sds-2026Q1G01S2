@@ -87,6 +87,19 @@ class MainCliContractTest {
     // --- Bandera de validación --even-spread (RM-03/G14): reparto uniforme determinista ---
 
     @Test
+    void evenSpreadConProtocoloIncrementalFallaSinCrearSalida() {
+        Path out = tmp.resolve("incremental-even.txt");
+        Result r = run("--protocol", "INCREMENTAL_180S", "--even-spread", "--steps", "1",
+                "--out", out.toString());
+
+        assertEquals(1, r.exitCode(), "--even-spread no debe habilitar un incremental falso");
+        assertFalse(Files.exists(out));
+        assertTrue(r.err().contains("--even-spread"), r.err());
+        assertTrue(r.err().contains("INCREMENTAL_180S"), r.err());
+        assertTrue(r.err().contains("no puede combinarse"), r.err());
+    }
+
+    @Test
     void banderaEvenSpreadUbicaVehiculosConHuecosParejosDesdeCero() throws Exception {
         // N=5, L=5280, ℓ=176 ⇒ libre=4400, hueco=880, paso=1056 celdas = 264 mm. Sin offset aleatorio:
         // id k queda en x = k·264 mm, velocidad 0.
@@ -97,6 +110,24 @@ class MainCliContractTest {
         String text = Files.readString(out);
         assertTrue(text.contains("0 0 0.0000 0.0000"), "id 0 debe arrancar en x=0 (reparto uniforme)");
         assertTrue(text.contains("0 4 1056.0000 0.0000"), "id 4 en x=4·264=1056 mm");
+    }
+
+    @Test
+    void salidaIncrementalNoAdelantaElLoteEnLaFronteraEscritaAntesDelPaso() throws Exception {
+        // dt=90 ⇒ lote cada 2 pasos. La CLI registra el estado antes de ejecutar step(): el paso 2
+        // todavía representa el cierre del lote N=5; el lote N=10 aparece en la siguiente muestra.
+        Path out = tmp.resolve("incremental-boundary.txt");
+        Result r = run("--n", "10", "--L", "400", "--ell", "1", "--dx", "90", "--dt", "90",
+                "--vfree-min", "3", "--vfree-max", "6", "--p", "0",
+                "--protocol", "INCREMENTAL_180S", "--order", "ASCENDING", "--steps", "4",
+                "--output-every", "1", "--seed", "7", "--out", out.toString());
+
+        assertEquals(0, r.exitCode(), r.err());
+        String text = Files.readString(out);
+        assertEquals(5, filasDelPaso(text, 0));
+        assertEquals(5, filasDelPaso(text, 1));
+        assertEquals(5, filasDelPaso(text, 2), "la frontera escrita antes del paso conserva N=5");
+        assertEquals(10, filasDelPaso(text, 3), "el lote insertado se observa en la muestra siguiente");
     }
 
     // --- La ayuda documenta toda la superficie real de la CLI (CLI-02) ---
@@ -113,6 +144,10 @@ class MainCliContractTest {
         ByteArrayOutputStream stderr = new ByteArrayOutputStream();
         int exitCode = Main.run(args, new PrintStream(stdout), new PrintStream(stderr));
         return new Result(exitCode, stdout.toString(), stderr.toString());
+    }
+
+    private static long filasDelPaso(String text, int step) {
+        return text.lines().filter(line -> line.startsWith(step + " ")).count();
     }
 
     private record Result(int exitCode, String out, String err) { }

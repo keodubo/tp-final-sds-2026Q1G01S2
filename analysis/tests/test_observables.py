@@ -116,10 +116,12 @@ def test_velocity_pdf_by_active_n_segmenta_por_fase():
 def test_density_pdf_by_active_n_una_curva_por_fase():
     # ≈ Fig. 3 del artículo para el incremental: una curva de densidad por N activo.
     run = make_incremental_run([
-        ([0.0, 2000.0], [0.0, 0.0]),
-        ([0.0, 1300.0, 2600.0, 3900.0], [0.0, 0.0, 0.0, 0.0]),
+        ([0.0, 660.0], [0.0, 0.0]),
+        ([0.0, 330.0, 660.0, 990.0], [0.0, 0.0, 0.0, 0.0]),
     ])
     pdfs = obs.density_pdf_by_active_n(run, since_step=0, bins=100, rho_range=(0.0, 0.03))
     assert set(pdfs) == {2, 4}
-    for _, pdf in pdfs.values():
+    for centros, pdf in pdfs.values():
         assert pdf.shape == (100,)
+        assert np.all(np.isfinite(pdf))
+        assert abs(np.trapz(pdf, centros) - 1.0) < 0.05

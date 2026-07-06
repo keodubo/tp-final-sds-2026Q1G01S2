@@ -1,11 +1,12 @@
-# TP Final — Nagel-Schreckenberg aplicado a *Vibration-Driven Vehicles*
+# TP Final — Nagel-Schreckenberg aplicado a vehículos dirigidos por vibración (VDV)
 
 **72.25 Simulación de Sistemas** (ITBA, Prof. Daniel Parisi) — 2026 Q1 · Grupo **G01S2**
 
 Simulación de tráfico 1D con un autómata celular de **Nagel-Schreckenberg** (Regla 2 modificada
-por contacto) aplicado al experimento de robots *vibration-driven vehicles* (Hexbug) de
-Patterson & Parisi. El objetivo es **reproducir por simulación los observables del experimento y
-compararlos** (ver el artículo en [`extras/FD_VDV.pdf`](extras/FD_VDV.pdf)).
+por contacto) aplicado al experimento de robots Hexbug, vehículos dirigidos por vibración
+(VDV, sigla técnica usada en el artículo) de Patterson & Parisi. El objetivo es **reproducir por
+simulación los observables del experimento y compararlos** (ver el artículo en
+[`extras/FD_VDV.pdf`](extras/FD_VDV.pdf)).
 
 > 📐 El diseño completo (modelo, reglas, calibración, matriz de experimentos y plan) está en
 > **[`diseno-tp-final-vdv-nasch_v1.md`](diseno-tp-final-vdv-nasch_v1.md)**.
@@ -124,7 +125,8 @@ ya implementado en `animate.py`:
 - **Tiempo real** por defecto (24 fps si la corrida se generó con `--output-every 1`, igual que la
   cámara del experimento de 24 fps).
 - ⚠️ En el **PDF entregable NO van animaciones ni se entregan archivos de animación**: va una **imagen
-  fija** de un fotograma representativo y, **debajo, un link a YouTube** (o similar). `animate.py`
+  fija** de un fotograma representativo y, **debajo, una nota neutral de publicación** hasta tener
+  links reales a las animaciones. `animate.py`
   exporta ese fotograma (`*_fotograma.png`) junto al GIF.
 
 **Generar las animaciones** (corridas "hero" dedicadas, con `output_every=1` para que salgan suaves):
@@ -148,8 +150,8 @@ for f in sorted(glob.glob("../data_anim/*.txt")):
 PY
 ```
 
-**Para el entregable:** subí cada GIF/MP4 a YouTube (no listado) y en el informe/presentación poné el
-`*_fotograma.png` correspondiente **con el link debajo**. Las **fórmulas y ecuaciones** del informe y la
+**Para el entregable:** al publicar las animaciones, agregar los links reales debajo del
+`*_fotograma.png` correspondiente. Las **fórmulas y ecuaciones** del informe y la
 presentación van **numeradas y en LaTeX** (GuiaInformes): escalares en itálica, vectores en negrita,
 unidades sin itálica; en las **figuras**, los ejes van en palabras con unidades (no en símbolos).
 

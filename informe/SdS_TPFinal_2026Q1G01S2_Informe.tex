@@ -1,6 +1,6 @@
 % ============================================================================
 %  TP Final - Simulación de Sistemas (72.25) - ITBA - 2026 Q1 - Grupo G01S2
-%  Nagel-Schreckenberg aplicado a vibration-driven vehicles (Hexbug)
+%  Nagel-Schreckenberg aplicado a vehiculos dirigidos por vibracion (Hexbug)
 %
 %  Compilar: pdflatex dos veces (para resolver referencias de Fig/Ec).
 %  Figuras en ../figures/ (generadas por analysis/analyze.py) y fotogramas hero
@@ -30,11 +30,10 @@
 \newcommand{\unit}[1]{\,\mathrm{#1}}
 \graphicspath{{../figures/}{../data_anim/}}
 
-\title{\textbf{Diagrama fundamental de \emph{vibration-driven vehicles}:
+\title{\textbf{Diagrama fundamental de vehículos dirigidos por vibración (VDV):
 reproducción de tendencias con un autómata celular de Nagel--Schreckenberg
 con interacción por contacto}}
 \author{Grupo G01S2 \\
-        \textbf{[COMPLETAR: nombres y legajos de los integrantes]} \\
         72.25 Simulación de Sistemas --- ITBA --- 2026, primer cuatrimestre}
 \date{Julio de 2026}
 
@@ -45,7 +44,7 @@ con interacción por contacto}}
 Reproducimos con un autómata celular de Nagel--Schreckenberg, en una ruta
 periódica unidimensional y con la Regla 2 modificada para que la interacción sea
 \emph{solo por contacto}, las tendencias del diagrama fundamental de
-\emph{vibration-driven vehicles} (VDV) medidas experimentalmente por Patterson y
+vehículos dirigidos por vibración (VDV, sigla técnica del artículo) medidas experimentalmente por Patterson y
 Parisi~[1]. El modelo, calibrado a la geometría del experimento
 ($\Delta x=0{,}25\unit{mm}$, $\Delta t=1/24\unit{s}$, $\ell=44\unit{mm}$), captura
 la velocidad casi constante a densidades baja y media, la caída al acercarse a la
@@ -73,8 +72,8 @@ y el empuje entre cuerpos. Aislar experimentalmente esa contribución puramente 
 contacto es difícil porque en general convive con el sensado remoto.
 
 Patterson y Parisi~[1] estudian un sistema mínimo que interactúa \emph{exclusivamente
-por contacto}, sin sensado remoto: robots comerciales \emph{vibration-driven} (Hexbug
-Nano, cuerpo de $44\times15\times18\unit{mm}$) confinados en un canal circular de
+por contacto}, sin sensado remoto: robots comerciales Hexbug Nano (VDV, cuerpo de
+$44\times15\times18\unit{mm}$) confinados en un canal circular de
 $18\unit{mm}$ de ancho y $\approx1313\unit{mm}$ de longitud efectiva, que admite hasta
 $30$ vehículos. Cada robot avanza por la rectificación de su vibración sobre cerdas
 asimétricas; caracterizados individualmente, sus velocidades libres se distribuyen de
@@ -127,8 +126,8 @@ pudiera prever. Las reglas son
 \end{align}
 
 donde $d_i$ es el desplazamiento efectivo del paso, definido por R2. Con $p=0$ la regla
-R3 nunca se aplica y el esquema coincide con el Nagel--Schreckenberg canónico (no se
-consume el generador de números aleatorios).
+R3 nunca se aplica y el orden se reduce a $R1\to R2\to R4$; solo la variante clásica
+(B) coincide con el Nagel--Schreckenberg canónico y su diagrama triangular.
 
 En la variante oficial \textbf{contacto puro} (A) el vehículo avanza libremente hasta
 alcanzar al de adelante; si lo alcanzaría, queda inmediatamente detrás (a contacto,
@@ -187,7 +186,7 @@ que es la que se emite) y la \emph{velocidad heredada} que alimenta R1 del paso
 siguiente. En la variante clásica ambas coinciden; en contacto puro difieren solo en
 el cuadro en que un vehículo queda a contacto (avanza hasta el líder pero hereda su
 velocidad). El motor es 100\% determinista dado el identificador de la realización:
-toda la aleatoriedad proviene de un único generador sembrado con ese identificador,
+toda la aleatoriedad proviene de un único generador inicializado con ese identificador,
 y con $p=0$ no se consume ningún número aleatorio en la dinámica.
 
 Para el protocolo incremental, agregar un lote de vehículos se hace por
@@ -214,7 +213,7 @@ y la velocidad máxima de cada vehículo es $v_{\max,i}=\mathrm{round}(v^{\mathr
 La longitud de pista se fija en $L=30\,\ell=5280$ celdas $=1320\unit{mm}$ para que
 $N=30$ cierre exactamente a contacto (el experimento reporta $\approx1313\unit{mm}$;
 la diferencia se discute en Sec.~\ref{sec:limitaciones}). La densidad global es
-$\rho=N/L_{\mathrm{fís}}$, que a $N=30$ vale $0{,}0227\unit{mm^{-1}}=1/44\unit{mm}$.
+$\rho=N/L_{\mathrm{fis}}$, que a $N=30$ vale $0{,}0227\unit{mm^{-1}}=1/(44\unit{mm})$.
 
 \begin{table}[h]\centering
 \caption{Parámetros de calibración (fijos en todas las corridas).}
@@ -241,8 +240,7 @@ $p\in\{0,\,0{,}1,\,0{,}2,\,0{,}3,\,0{,}4\}$. Las \textbf{condiciones iniciales} 
 cada realización —distintas de los parámetros— son las posiciones iniciales (sin
 solaparse), el valor concreto de cada velocidad libre y la secuencia reproducible del
 generador; todos los vehículos arrancan con velocidad $0$. Una \emph{realización} queda
-determinada por su identificador reproducible (que en la línea de comandos se pasa como
-\texttt{-{}-seed}).
+determinada por su identificador reproducible.
 
 Se usan dos protocolos:
 \begin{itemize}
@@ -252,8 +250,8 @@ Se usan dos protocolos:
   Se arranca con $5$ vehículos y se agregan $5$ cada $180\unit{s}$ hasta $N=30$, con
   $25\,920$ pasos $=6\times180\unit{s}=1080\unit{s}$. Se examinan tres
   \textbf{órdenes de inserción} según la velocidad libre: creciente
-  (\emph{ascending}, los más lentos primero), decreciente (\emph{descending}, los más
-  rápidos primero) y aleatorio (\emph{random}).
+  (ASCENDING, los más lentos primero), decreciente (DESCENDING, los más
+  rápidos primero) y aleatorio (RANDOM).
 \end{itemize}
 Se corren $M=30$ \textbf{realizaciones} por punto. El estado se guarda cada $10$ pasos.
 
@@ -280,7 +278,7 @@ cercano sobre la ruta,
 \rho_i = \frac{1}{\Delta x\,(\ell + g_i^{\,\mathrm{vecino}})} \quad [\unit{mm^{-1}}],
 \label{eq:densidad}
 \end{equation}
-con pico esperado en $1/44\unit{mm}\approx0{,}0227\unit{mm^{-1}}$ (contacto). Se reportan
+con pico esperado en $1/(44\unit{mm})\approx0{,}0227\unit{mm^{-1}}$ (contacto). Se reportan
 las distribuciones (PDF) de $\rho_i$ y de la velocidad microscópica, y el diagrama
 fundamental (velocidad instantánea vs $\rho_i$, ordenado por densidad y suavizado con
 media móvil). El \textbf{corte del estacionario} se elige \emph{por inspección} de la
@@ -301,11 +299,11 @@ densidad los vehículos avanzan casi sin interactuar; a $N=30$ forman un anillo 
 contacto.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.48\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}\hfill
-\includegraphics[width=0.48\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}
+\includegraphics[width=0.48\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\hfill
+\includegraphics[width=0.48\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
 \caption{Fotogramas en régimen a baja densidad ($N=5$, izquierda) y a saturación
-($N=30$, derecha), contacto puro, $p=0{,}1$. Color según velocidad. Animaciones:
-\href{https://youtu.be/XXXX}{[N=5]} \quad \href{https://youtu.be/XXXX}{[N=30]}.}
+($N=30$, derecha), contacto puro, $p=0{,}1$. Color según velocidad. Links a animaciones
+al publicar.}
 \label{fig:anim-fixed}
 \end{figure}
 
@@ -315,7 +313,7 @@ temporal de la velocidad media y el corte del transitorio elegido por inspecció
 partir de ese corte la serie fluctúa alrededor de un valor estable.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.7\linewidth]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}
+\includegraphics[width=0.7\linewidth]{evolucion_temporal_contacto_puro_random_fixed.png}
 \caption{Evolución temporal de la velocidad media ($N=30$, contacto puro). La línea
 punteada marca el corte del transitorio elegido por inspección; el observable reportado
 es el promedio a partir de ese corte (Ec.~\ref{eq:vmedia}).}
@@ -330,7 +328,7 @@ saturación depende de $p$: con $p=0$ el anillo rígido cruza a la velocidad del
 y con $p>0$ el frenado aleatorio del cúmulo lo hace caer por debajo de ella.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.7\linewidth]{velocidad_media_vs_N_contacto_puro_sin_orden_fixed.png}
+\includegraphics[width=0.7\linewidth]{velocidad_media_vs_N_contacto_puro_random_fixed.png}
 \caption{Velocidad media en función de $N$, una curva por probabilidad de frenado $p$
 (contacto puro, $N$ fijo). $N=30$ es la ruta llena exacta (punto singular); allí el
 descenso de la velocidad depende de $p$.}
@@ -338,13 +336,13 @@ descenso de la velocidad depende de $p$.}
 \end{figure}
 
 Las distribuciones microscópicas (Figura~\ref{fig:pdf-fixed}) muestran el pico de
-densidad individual en $1/44\unit{mm}$ (geometría de contacto) acentuándose al aumentar
+densidad individual en $1/(44\unit{mm})$ (geometría de contacto) acentuándose al aumentar
 $N$, y la PDF de velocidad angostándose y corriéndose a valores menores a alta densidad.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.49\linewidth]{pdf_densidad_p0.1_contacto_puro_sin_orden_fixed.png}\hfill
-\includegraphics[width=0.49\linewidth]{pdf_velocidad_p0.1_contacto_puro_sin_orden_fixed.png}
-\caption{Distribuciones (PDF) de densidad individual (izquierda; pico en $1/44\unit{mm}$)
+\includegraphics[width=0.49\linewidth]{pdf_densidad_p0.1_contacto_puro_random_fixed.png}\hfill
+\includegraphics[width=0.49\linewidth]{pdf_velocidad_p0.1_contacto_puro_random_fixed.png}
+\caption{Distribuciones (PDF) de densidad individual (izquierda; pico en $1/(44\unit{mm})$)
 y de velocidad microscópica (derecha), una curva por $N$ ($N$ fijo, contacto puro,
 $p=0{,}1$).}
 \label{fig:pdf-fixed}
@@ -367,13 +365,11 @@ Este protocolo reproduce el del artículo. La Figura~\ref{fig:anim-inc} muestra
 fotogramas de los tres órdenes de inserción.
 
 \begin{figure}[h]\centering
-\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_ASCENDING_oe10_r1_fotograma.png}\hfill
-\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_DESCENDING_oe10_r1_fotograma.png}\hfill
-\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_oe10_r1_fotograma.png}
+\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_ASCENDING_r1_fotograma.png}\hfill
+\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_DESCENDING_r1_fotograma.png}\hfill
+\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
 \caption{Fotogramas del protocolo incremental para los órdenes creciente, decreciente y
-aleatorio (contacto puro, $p=0{,}1$). Animaciones:
-\href{https://youtu.be/XXXX}{[creciente]} \href{https://youtu.be/XXXX}{[decreciente]}
-\href{https://youtu.be/XXXX}{[aleatorio]}.}
+aleatorio (contacto puro, $p=0{,}1$). Links a animaciones al publicar.}
 \label{fig:anim-inc}
 \end{figure}
 
@@ -466,10 +462,10 @@ El modelo reproduce \emph{tendencias}, no el experimento punto a punto. Sus lím
 que enmarcan las conclusiones:
 \begin{itemize}
   \item \textbf{Sin colas de densidad más allá del contacto.} El experimento observa
-  densidades $\rho_i>1/44\unit{mm}$ por solapamiento parcial, desalineación por la
+  densidades $\rho_i>1/(44\unit{mm})$ por solapamiento parcial, desalineación por la
   geometría triangular del VDV y errores de seguimiento. El modelo impone
   no-solapamiento duro, así que \emph{deliberadamente} no reproduce esa cola: su PDF de
-  densidad se corta en $1/44\unit{mm}$.
+  densidad se corta en $1/(44\unit{mm})$.
   \item \textbf{Punto $N=30$ singular y dependiente de $L$.} Se fija $L=1320\unit{mm}$
   ($=30\ell$) para que $N=30$ cierre exacto a contacto; el experimento tiene
   $\approx1313\unit{mm}$, físicamente más corto que $30$ vehículos rígidos, lo que en la
@@ -503,7 +499,7 @@ Sobre lo mostrado en Resultados:
   aleatorio queda acotado entre el creciente y el decreciente, y las tres configuraciones
   se acercan a saturación (Figs.~\ref{fig:vN-inc},~\ref{fig:fd-inc}), como en el
   artículo~[1].
-  \item El pico de densidad individual en $1/44\unit{mm}$ y el angostamiento de la PDF de
+  \item El pico de densidad individual en $1/(44\unit{mm})$ y el angostamiento de la PDF de
   velocidad con $N$ reproducen las distribuciones del experimento, con la salvedad de que
   el modelo no genera la cola de densidad por solapamiento (Sec.~\ref{sec:limitaciones}).
   \item La caída de la velocidad de saturación por debajo del agente más lento se obtiene

@@ -1,8 +1,8 @@
-# Diseño TP Final SdS — Nagel-Schreckenberg aplicado a *Vibration-Driven Vehicles*
+# Diseño TP Final SdS — Nagel-Schreckenberg aplicado a vehículos dirigidos por vibración (VDV)
 
 **Materia:** 72.25 Simulación de Sistemas (ITBA, Prof. Daniel Parisi) — 2026 Q1
-**Grupo:** G01S2 · **Modalidad:** grupal · **Stack:** Java/Maven (motor) + Python (análisis y animación)
-**Fecha:** 2026-06-28 · **Versión:** v1 (spec de diseño + esqueleto inicial auditado)
+**Grupo:** G01S2 · **Modalidad:** grupal · **Pila técnica:** Java/Maven (motor) + Python (análisis y animación)
+**Fecha:** 2026-06-28 · **Versión:** v1 (diseño + esqueleto inicial auditado)
 
 > **Estado:** documento de diseño para revisión interna del grupo y contrato del esqueleto inicial.
 > Doble propósito: (1) base de la sección *Modelo / Simulaciones* del informe, y (2) material para
@@ -15,7 +15,8 @@
 El profesor aceptó el modelo de **Nagel-Schreckenberg (NaSch)** pero propuso un escenario concreto
 contra el cual validar: el experimento de **G. Patterson & D. Parisi, *"Fundamental diagram of
 vibration-driven vehicles"*** (preprint, 2023; `extras/FD_VDV.pdf`). Allí se estudian robots Hexbug
-Nano (*vibration-driven vehicles*, VDV) confinados a una **pista circular 1D**.
+Nano, vehículos dirigidos por vibración (VDV, sigla técnica del artículo), confinados a una
+**pista circular 1D**.
 
 **Objetivo del TP:** reproducir por simulación ese sistema con una variante de NaSch (con la Regla 2
 modificada por el profesor) y **comparar los observables de la simulación contra los del experimento**,
@@ -46,10 +47,10 @@ conocido**.
    configuraciones convergen a N=30. Hallazgo clave: a saturación la velocidad media es **menor que la
    del VDV más lento** (colapso por agrupamientos).
 2. **PDF de densidades** (Fig. 3): densidad individual `ρ_i = 1/d_i`, con `d_i` = distancia al vecino
-   más cercano sobre la pista. Pico en **ρ ≈ 0.023 1/mm = 1/44 mm** (distancia de contacto).
-3. **PDF de velocidades** (Fig. 4): velocidad microscópica por VDV y por frame. Se **angosta y se
+   más cercano sobre la pista. Pico en **ρ ≈ 0.023 mm^{-1} = 1/(44 mm)** (distancia de contacto).
+3. **PDF de velocidades** (Fig. 4): velocidad microscópica por VDV y por cuadro. Se **angosta y se
    corre a velocidades menores** al aumentar N.
-4. **Diagrama fundamental** velocidad-densidad (Fig. 5): velocidad ~constante hasta `ρ ≈ 0.02 1/mm`
+4. **Diagrama fundamental** velocidad-densidad (Fig. 5): velocidad ~constante hasta `ρ ≈ 0.02 mm^{-1}`
    (~11 % por encima del tamaño del vehículo) y luego cae. Reducción máxima 25–40 %.
 
 **Mecanismo físico** (y por qué el profe modificó la R2): los VDV **no anticipan** — van a su velocidad
@@ -125,7 +126,7 @@ reproducir las Figs. 2 y 4 y para el estudio de órdenes creciente/decreciente/a
 ## 4. Calibración continuo → malla discreta
 
 La idea es elegir el paso espacial y temporal para que **una corrida sea directamente comparable con el
-experimento** (ejes en mm/s y 1/mm) y las velocidades libres 90–120 mm/s caigan en enteros con buena
+experimento** (ejes en mm/s y mm^{-1}) y las velocidades libres 90–120 mm/s caigan en enteros con buena
 resolución.
 
 | Cantidad | Símbolo | Valor | Origen |
@@ -137,7 +138,7 @@ resolución.
 | Largo de pista | `L` | 1320 mm = **5280 celdas** | `30·ℓ` (cierre exacto a N=30) |
 | Velocidad libre | `v_free,i` | `U[90,120]` mm/s | artículo (30 VDV uniformes) |
 | Velocidad máx. (malla) | `v_max,i = round(v_free,i/Δv)` | **{15,…,20}** celdas/paso | derivado (6 clases) |
-| Densidad global | `ρ = N/L_phys` | hasta **0.0227 1/mm** | derivado (N=30 → contacto) |
+| Densidad global | `ρ = N/L_phys` | hasta **0.0227 mm^{-1}** | derivado (N=30 → contacto) |
 | Prob. de frenado | `p` | barrido (§6) | parámetro |
 
 **Notas de calibración:**
@@ -176,8 +177,8 @@ resolución.
 | Velocidad media vs **p** | `p ∈ {0, 0.1, 0.2, 0.3, 0.4}` | varios N |
 | Validación determinista | `p = 0` | homogéneo (§8) |
 
-- **Variante de R2:** validar primero **B** (clásica salvo 0); luego comparar **A** (contacto puro). El
-  *default* del esqueleto es B por orden de implementación; la **primaria experimental** es A (ver Q1/§3.2).
+- **Variante de R2:** la configuración por defecto actual es **A (contacto puro)**, la primaria
+  experimental. La **B** (clásica salvo 0) queda solo como validación del NaSch canónico (ver Q1/§3.2).
 - **Realizaciones:** arrancar con M=30 por combinación y aumentar si la velocidad media no estabiliza
   su error relativo. Reportar M, desvío entre realizaciones y criterio usado; no ocultar M como detalle
   de código.
@@ -218,8 +219,8 @@ resolución.
 1. **Velocidad media global vs N** (≈ Fig. 2): por vehículo `v̄_i = (celdas avanzadas / pasos)·Δv`
    [mm/s], promediada sobre `i` y sobre realizaciones. Error: **desvío correcto entre realizaciones**
    (no promedio-de-promedios subrepresentado — corrección de Parisi en TP2).
-2. **PDF de densidades** (≈ Fig. 3): `ρ_i = 1 / (Δx·(ℓ + g_i^{vecino más cercano}))` [1/mm], sobre todos
-   los vehículos y todos los pasos del estacionario. Esperado: pico en `1/44 mm`.
+2. **PDF de densidades** (≈ Fig. 3): `ρ_i = 1 / (Δx·(ℓ + g_i^{vecino más cercano}))` [mm^{-1}], sobre todos
+   los vehículos y todos los pasos del estacionario. Esperado: pico en `1/(44 mm) = 0.0227 mm^{-1}`.
 3. **PDF de velocidades** (≈ Fig. 4): `v_i(t)·Δv` [mm/s] sobre todos los vehículos y pasos del
    estacionario; un panel por N (curvas de colores en **una sola figura**, Parisi).
 4. **Diagrama fundamental** (≈ Fig. 5): velocidad instantánea vs. densidad local `ρ_i`, con media móvil.
@@ -259,10 +260,10 @@ PeriodicTrack      L, ℓ; gaps periódicos; vecino más cercano
 CollisionContext   snapshots inmutables para R2
 CollisionRule      «interface { resolve(CollisionContext) }»
   ├ ContactoPuro   (variante A, primaria experimental)
-  └ ClasicaSalvoCero (variante B; default inicial para validar NaSch clásico)
+  └ ClasicaSalvoCero (variante B; validación del NaSch clásico)
 NaSchEngine        paso síncrono: R1 → R3(rng) → R2(rule) → R4
 RandomBrake        PRNG reproducible por realización
-Config             parámetros (L, ℓ, Δx, dt, N, p, rango v_free, rule, order, protocol, seed, pasos)
+Config             parámetros (L, ℓ, Δx, dt, N, p, rango v_free, rule, order, protocol, realización, pasos)
 OutputWriter       escribe estado físico por paso (id, x_mm, v_mmps)
 Main / CLI         corre UNA simulación dada una config
 ```
@@ -323,7 +324,8 @@ tp-final-sds-2026Q1G01S2/
 2. **Interacción R2/R3 y `v_líder`:** orden **R1 → R3 → R2 → R4**; la proyección de contactos al final
    garantiza no-solapamiento (el frenado solo reduce el avance). El seguidor, al colisionar, hereda la
    velocidad del líder. *(Decisión tomada por el grupo, coherente y verificada; conviene mencionarla en
-   la defensa por si el profe prefiere otra convención — a p=0 es idéntica al NaSch canónico.)*
+   la defensa por si el profe prefiere otra convención: a p=0 el orden se reduce a R1→R2→R4,
+   pero solo la variante B coincide con el NaSch canónico.)*
 3. **Alcance de la comparación:** comparar **lo más posible** (cuantitativo donde el modelo lo permita),
    declarando la limitación de la cola instantánea (§4) en la Discusión.
 4. **Órdenes de inserción + protocolo incremental:** **en alcance** (implementados; ver §6).
@@ -362,7 +364,7 @@ invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad)
 - Observables **post-simulación**, nunca dentro del motor. · Salida solo con **variables físicas** (sin
   color/radio). · Implementación = del modelo matemático al cómputo (no tipos de archivo). · Resultados:
   animación → evolución temporal → curva respuesta-estímulo, por parámetro; conclusiones al final. ·
-  Estacionario **por inspección** (≠ sincronizado). · **"Realizaciones"**, no "seeds". · Cifras
+  Estacionario **por inspección** (≠ sincronizado). · **"Realizaciones"**, no identificadores técnicos. · Cifras
   significativas acordes al error; **desvío bien calculado**. · Una figura con curvas de colores;
   texto de figuras grande; log donde ayude. · Español sin anglicismos. · Nombrar el método (autómata
   celular / dirigido por paso temporal), no "el TP X". · Distinguir **parámetros de condiciones iniciales**.

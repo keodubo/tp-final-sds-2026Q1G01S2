@@ -26,9 +26,9 @@
 
 \newcommand{\unit}[1]{\,\mathrm{#1}}
 
-\title[Diagrama fundamental de VDV]{Diagrama fundamental de \emph{vibration-driven vehicles}}
+\title[Diagrama fundamental de VDV]{Diagrama fundamental de vehículos dirigidos por vibración (VDV)}
 \subtitle{Reproducción de tendencias con un autómata celular de Nagel--Schreckenberg con contacto}
-\author[Grupo G01S2]{Grupo G01S2 \\ \footnotesize [COMPLETAR: nombres y legajos]}
+\author[Grupo G01S2]{Grupo G01S2}
 \institute[ITBA]{72.25 Simulación de Sistemas --- ITBA}
 \date{2026, primer cuatrimestre}
 
@@ -37,7 +37,7 @@
 \begin{frame}[plain]\titlepage\end{frame}
 
 % ----------------------------------------------------------------------------
-\begin{frame}{El sistema real: \emph{vibration-driven vehicles}}
+\begin{frame}{El sistema real: VDV}
 \begin{columns}[T]
 \begin{column}{0.58\textwidth}
 \begin{itemize}
@@ -62,7 +62,7 @@ sin la reducción voluntaria de velocidad del tráfico convencional.
 \begin{frame}{Lo que mide el experimento (Patterson \& Parisi, 2023)}
 \begin{itemize}
   \item Velocidad media casi \textbf{constante} a densidad baja y media.
-  \item \textbf{Caída del $25$--$40\%$} al acercarse a la densidad de contacto ($1/44\unit{mm}$).
+  \item \textbf{Caída del $25$--$40\%$} al acercarse a la densidad de contacto ($1/(44\unit{mm})$).
   \item El \textbf{orden de inserción} (por velocidad libre) importa: el aleatorio queda
   \textbf{acotado} entre el creciente y el decreciente.
   \item A saturación ($N=30$) las tres configuraciones \textbf{convergen}.
@@ -139,7 +139,7 @@ Velocidad máxima & $v_{\max,i}=\mathrm{round}(v^{\mathrm{libre}}_i/\Delta v)$ &
 \end{tabular}
 \vfill
 \footnotesize $L=30\,\ell$ hace que $N=30$ cierre \emph{exactamente} a contacto
-($\rho=1/44\unit{mm}$).
+($\rho=1/(44\unit{mm})=0{,}0227\unit{mm^{-1}}$).
 \end{frame}
 
 % ----------------------------------------------------------------------------
@@ -187,29 +187,29 @@ Estacionario \textbf{por inspección}.
 \begin{frame}{Dinámica: baja y alta densidad ($N$ fijo)}
 \begin{columns}[c]
 \begin{column}{0.5\textwidth}\centering
-\includegraphics[width=\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}\\
+\includegraphics[width=\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\\
 \footnotesize $N=5$ (flujo libre)
 \end{column}
 \begin{column}{0.5\textwidth}\centering
-\includegraphics[width=\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_oe1_r1_fotograma.png}\\
+\includegraphics[width=\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\\
 \footnotesize $N=30$ (saturación, a contacto)
 \end{column}
 \end{columns}
 \vfill
-\centering\footnotesize Animaciones: \url{https://youtu.be/XXXX} (N=5) \quad \url{https://youtu.be/XXXX} (N=30)
+\centering\footnotesize Links a animaciones al publicar.
 \end{frame}
 
 % ----------------------------------------------------------------------------
 \begin{frame}{Estacionario por inspección}
 \centering
-\includegraphics[height=0.72\textheight]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}
+\includegraphics[height=0.72\textheight]{evolucion_temporal_contacto_puro_random_fixed.png}
 \\ \footnotesize El corte del transitorio se elige mirando la serie (no un \% fijo).
 \end{frame}
 
 % ----------------------------------------------------------------------------
 \begin{frame}{Velocidad media vs $N$ (N fijo, por $p$)}
 \centering
-\includegraphics[height=0.72\textheight]{velocidad_media_vs_N_contacto_puro_sin_orden_fixed.png}
+\includegraphics[height=0.72\textheight]{velocidad_media_vs_N_contacto_puro_random_fixed.png}
 \\ \footnotesize Casi constante a baja densidad; en $N=30$ (ruta llena, singular) el descenso depende de $p$.
 \end{frame}
 
@@ -225,7 +225,7 @@ Estacionario \textbf{por inspección}.
 \begin{columns}[c]
 \begin{column}{0.5\textwidth}\centering
 \includegraphics[width=\linewidth]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}\\
-\footnotesize Densidad: pico en $1/44\unit{mm}$
+\footnotesize Densidad: pico en $1/(44\unit{mm})$
 \end{column}
 \begin{column}{0.5\textwidth}\centering
 \includegraphics[width=\linewidth]{pdf_velocidad_incremental_contacto_puro_ascending_p01_incremental.png}\\
@@ -265,7 +265,7 @@ Estacionario \textbf{por inspección}.
 \begin{frame}{Limitaciones y sensibilidad}
 \begin{itemize}
   \item El modelo impone no-solapamiento: \textbf{no} reproduce la cola de densidad
-  $>1/44\unit{mm}$ (solapamiento/desalineación) del experimento.
+  $>1/(44\unit{mm})$ (solapamiento/desalineación) del experimento.
   \item $N=30$ es \textbf{singular} (ruta llena exacta) y depende de $L=1320\unit{mm}$; el
   experimento usa $\approx1313\unit{mm}$. La sensibilidad a $L$ solo corre para $N\le29$.
   \item La saturación por debajo del más lento requiere $p>0$ y es un mecanismo
@@ -281,7 +281,7 @@ Estacionario \textbf{por inspección}.
   fundamental de VDV: velocidad casi plana y caída cerca del contacto.
   \item El \textbf{orden de inserción} modula el diagrama; el aleatorio queda acotado
   entre creciente y decreciente, y convergen a saturación.
-  \item Reproduce el pico de densidad en $1/44\unit{mm}$ y el angostamiento de la PDF de
+  \item Reproduce el pico de densidad en $1/(44\unit{mm})$ y el angostamiento de la PDF de
   velocidad con $N$.
   \item La caída por debajo del más lento se obtiene en el punto singular $N=30$ con
   $p>0$ (tendencia, no el mismo mecanismo).

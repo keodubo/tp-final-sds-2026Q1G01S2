@@ -36,6 +36,8 @@ def _rule(run) -> str:
 
 
 def _order(run) -> str:
+    if _protocol(run) == "FIXED_N":
+        return "SIN_ORDEN"
     return str(run.meta.get("order", "SIN_ORDEN"))
 
 
@@ -51,8 +53,39 @@ def _n_nominal(run) -> int:
     return int(run.meta["N"])
 
 
+def _realizacion_id(run):
+    for key in ("realizacion_id", "realization_seed", "seed"):
+        if key in run.meta:
+            return run.meta[key]
+    return None
+
+
+def _output_every(run) -> int:
+    return int(run.meta.get("output_every", 1))
+
+
+def _logical_run_key(run):
+    return (_protocol(run), _rule(run), _order(run), _p(run), _n_nominal(run),
+            _realizacion_id(run), _output_every(run))
+
+
+def ensure_no_duplicate_runs(runs) -> None:
+    """Falla si dos archivos representan la misma realización lógica.
+
+    El nombre del archivo no forma parte del experimento. Si una corrida se copió o renombró, contarla
+    dos veces inflaría M y achicaría artificialmente el desvío entre realizaciones.
+    """
+    seen = set()
+    for run in runs:
+        key = _logical_run_key(run)
+        if key in seen:
+            raise ValueError(f"corrida duplicada para clave logica {key}")
+        seen.add(key)
+
+
 def group_fixed_runs(runs):
     """Agrupa corridas de N fijo sin mezclar variante, orden ni p."""
+    ensure_no_duplicate_runs(runs)
     groups = collections.defaultdict(list)
     for run in runs:
         if _protocol(run) != "FIXED_N":
@@ -63,6 +96,7 @@ def group_fixed_runs(runs):
 
 def group_fundamental_runs(runs):
     """Agrupa datos para diagrama fundamental sin mezclar variante, orden, protocolo ni p."""
+    ensure_no_duplicate_runs(runs)
     groups = collections.defaultdict(list)
     for run in runs:
         groups[(_rule(run), _order(run), _protocol(run), _p(run))].append(run)
@@ -106,6 +140,7 @@ def incremental_speed_by_order(runs):
     se usa el N realmente activo en cada paso registrado, lo que además vuelve robusta la frontera de
     inserción si la salida está desplazada una muestra.
     """
+    ensure_no_duplicate_runs(runs)
     means_by_key_and_n = collections.defaultdict(lambda: collections.defaultdict(list))
     for run in runs:
         if _protocol(run) != "INCREMENTAL_180S":
@@ -210,10 +245,9 @@ def main() -> None:
         plots.plot_mean_speed_vs_n(results_by_p, figdir / f"velocidad_media_vs_N_{tag}.png")
 
         # ≈ Figs. 3 y 4: PDF de densidad y velocidad por N, a un p representativo. Si el p pedido no
-        # existe en ESTE grupo (regla, orden), se cae al menor p positivo del grupo (robusto ante
-        # barridos parciales) en vez de abortar todo el análisis.
-        req = args.p_representativo if (args.p_representativo in ps) else None
-        p_rep = select_representative_p(ps, req)
+        # existe en ESTE grupo (regla, orden), se aborta: cambiar de p silenciosamente genera figuras
+        # engañosas.
+        p_rep = select_representative_p(ps, args.p_representativo)
         dens, vels = {}, {}
         for n in ns_all:
             rs_p = by_pN.get((p_rep, n), [])
@@ -227,8 +261,9 @@ def main() -> None:
 
         # evolución temporal (regla 4 de la cátedra) + sugerencia de estacionario, en un caso
         # representativo. Eje temporal en SEGUNDOS (t = paso · dt), no en pasos.
-        n_rep = max(ns_all)
-        rep = by_pN.get((p_rep, n_rep), next(iter(by_pN.values())))[0]
+        ns_rep = sorted(n for (p, n) in by_pN if p == p_rep)
+        n_rep = max(ns_rep)
+        rep = by_pN[(p_rep, n_rep)][0]
         dt = float(rep.meta["dt_s"])
         steps, serie = obs.mean_speed_series(rep)
         cut = stationary_cut_step(steps, serie)
@@ -262,8 +297,7 @@ def main() -> None:
             incr_ps_by_rule[_rule(r)].add(_p(r))
     orders_canon = ["ASCENDING", "DESCENDING", "RANDOM"]
     for rule, ps in sorted(incr_ps_by_rule.items()):
-        req = args.p_representativo if (args.p_representativo in ps) else None
-        p_rep = select_representative_p(sorted(ps), req)
+        p_rep = select_representative_p(sorted(ps), args.p_representativo)
         # evolución temporal: una curva por orden (una realización representativa cada una), en segundos
         evo = {}
         for order in orders_canon:
@@ -308,7 +342,7 @@ def main() -> None:
             # ⟨L_i/180 s⟩ del artículo. Antes el FD incremental recortaba solo la fase 1 (incoherente).
             cut = args.since_step if protocol == "FIXED_N" else 0
             if protocol == "INCREMENTAL_180S" and len(orders_here) > 1:
-                p_rep = select_representative_p(ps_here)
+                p_rep = select_representative_p(ps_here, args.p_representativo)
                 for order in orders_here:
                     rs = fd_groups.get((rule, order, protocol, p_rep), [])
                     if rs:

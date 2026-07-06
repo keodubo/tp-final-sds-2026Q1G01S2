@@ -54,8 +54,10 @@ public final class Main {
             }
 
             Config cfg = buildConfig(opts);
+            boolean evenSpread = opts.containsKey("even-spread");
+            validateCliContract(cfg, evenSpread);
             Path out = Path.of(opts.getOrDefault("out", "../data/salida.txt"));
-            runSimulation(cfg, out, opts.containsKey("even-spread"), stdout);
+            runSimulation(cfg, out, evenSpread, stdout);
             return 0;
         } catch (UsageException e) {
             stderr.println(e.getMessage());
@@ -68,6 +70,12 @@ public final class Main {
             stderr.println("[esqueleto] motor aún no implementado: " + e.getMessage());
             stderr.println("Ver hitos en diseno-tp-final-vdv-nasch_v1.md");
             return 2;
+        }
+    }
+
+    private static void validateCliContract(Config cfg, boolean evenSpread) {
+        if (evenSpread && cfg.protocol() == RunProtocol.INCREMENTAL_180S) {
+            throw new UsageException("--even-spread no puede combinarse con --protocol INCREMENTAL_180S");
         }
     }
 

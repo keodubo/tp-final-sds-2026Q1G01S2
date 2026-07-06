@@ -89,14 +89,15 @@ ventana completa por fase. Registrado por punto en `figures/manifiesto.csv`.
 
 - **Fig. 2** (velocidad vs N por orden): reproducida — decreciente > aleatorio > creciente a densidad
   baja/media, convergencia a saturación (`velocidad_media_incremental_*`).
-- **Figs. 3/4** (PDF densidad/velocidad por orden): reproducidas por N activo — pico en 1/44 mm,
+- **Figs. 3/4** (PDF densidad/velocidad por orden): reproducidas por N activo — pico en
+  `1/(44 mm) = 0.0227 mm^-1`,
   angostamiento con N (`pdf_densidad_incremental_*`, `pdf_velocidad_incremental_*`).
 - **Fig. 5D** (FD por orden): reproducida — aleatorio acotado entre creciente y decreciente.
 - **Validación variante B**: diagrama triangular `Q(ρ)=min(ρ·vmax,1−ρ)` a precisión de máquina
   (`validacion_triangular.png`) + test JUnit a 1e-9.
 
 **No sobreclaim (documentado en Limitaciones del informe):** el modelo no reproduce la cola de densidad
->1/44 mm (solapamiento/desalineación); N=30 es singular y depende de L=1320 vs ~1313 del paper; la caída
+por encima de `1/(44 mm)` (solapamiento/desalineación); N=30 es singular y depende de L=1320 vs ~1313 del paper; la caída
 por debajo del más lento requiere p>0 y su mecanismo (frenado del cúmulo rígido) difiere del experimento.
 
 ## 6. Verificación final
@@ -116,20 +117,21 @@ por debajo del más lento requiere p>0 y su mecanismo (frenado del cúmulo rígi
 **Chequeo anti-sobreclaim (verificado figura por figura contra el texto):**
 - vel-vs-N incremental: descendente > aleatorio > creciente a densidad baja/media; las tres
   convergen a ≈81 mm/s en N=30 (< 90 mm/s, el más lento), a p=0,1. ✔ coincide con el texto.
-- FD incremental: el aleatorio queda acotado entre creciente y descendente; caída en 1/44 mm. ✔
+- FD incremental: el aleatorio queda acotado entre creciente y descendente; caída cerca de
+  `1/(44 mm)`. ✔
 - vel-vs-N FIXED: casi plana hasta N=25; en N=30 el colapso depende de p (p=0 → ≈90 = el más
   lento; p≥0,2 → colapso fuerte). ✔ coincide con el texto (colapso requiere p>0).
 - Evolución temporal: estacionario alcanzado a ≈20 s; el corte por inspección (since_step=2000
   pasos ≈ 83 s) es conservador. ✔
-- PDF de densidad: pico en 1/44 mm que se acentúa con N; sin cola por encima del contacto
+- PDF de densidad: pico en `1/(44 mm)` que se acentúa con N; sin cola por encima del contacto
   (limitación documentada). ✔
 
 ## 7. Bloqueantes externos (solo el humano)
 
-1. **Nombres y legajos** del grupo G01S2 (portada del informe y diapositiva de título). Placeholder
-   `[COMPLETAR: nombres y legajos]` en ambos `.tex` (decisión del usuario: completar antes de entregar).
-2. **5 links de YouTube** para las animaciones hero (N=5, N=30 y 3 órdenes incrementales). Hoy
-   `youtu.be/XXXX`; el usuario sube los GIF/MP4 (generados) y pega los links.
+1. **Nombres y legajos** del grupo G01S2. En ausencia de datos personales, informe y presentación
+   deben mostrar solo `Grupo G01S2`.
+2. **Links de publicación** para las animaciones hero (N=5, N=30 y 3 órdenes incrementales).
+   Hasta publicarlas, informe y presentación deben mantener una nota neutral de publicación, sin URLs ficticias.
 
 ## 8. Reproducir desde cero
 
