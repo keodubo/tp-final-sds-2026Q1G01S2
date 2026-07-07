@@ -64,7 +64,62 @@ mvn -DskipTests package                                                    # jar
 ```
 
 ## Agentes lanzados
-(pendiente — fase obligatoria de 6 auditores tras cerrar baseline y generar entregables)
+
+### Ronda 1 — 6 auditores read-only (workflow, 738K tokens, ~15 min)
+Personalidades: físico-Parisi, motor-paranoico, estadística-escéptica, editor-académico,
+release-reproducibilidad, jurado-adversarial. Reejecutaron cálculos sobre los 1350 datos reales
+(velocidades por N/p, checker de solapamiento por frame = 0, error ddof=1 entre realizaciones).
+
+**28 hallazgos: 1 P0, 3 P1, 7 P2, 17 P3.** Backlog deduplicado:
+
+| # | Sev | Dominio | Hallazgo | Fix |
+|---|---|---|---|---|
+| 1 | P0 | repro | Informe PDF no versionado (README/.gitignore prometen que sí) | commitear PDFs finales |
+| 2 | P1 | docs | Figs 8-11 flotan tras Conclusiones/Referencias (floats `[h]`) | `float` + `[H]`/FloatBarrier + clearpage |
+| 3 | P1 | docs | "velocidad ≈ libre media (105)" pero datos → gobierna el más lento (~90-95) | reformular + mecanismo de agrupamiento |
+| 4 | P2 | repro | `generar_entrega.sh` no activa venv | activar `.venv` si existe + nota README |
+| 5 | P2 | analysis | Etiquetas de figuras en inglés (enums) | mapear a español en analyze/animate/plots + regenerar |
+| 6 | P2 | analysis | Línea punteada = sugerencia detect_stationary (~420), no el corte 2000 usado | dibujar en since_step + regenerar |
+| 7 | P2 | analysis | `output_every` en clave de dedup pero no en agrupamiento (doble conteo latente) | sacar oe de `_logical_run_key` |
+| 8 | P2 | docs | p≥0.3 congela a ~0 (gridlock) no declarado | cuantificar en texto/caption |
+| 9 | P2 | docs | "reproducen las distribuciones" sobreafirma | → "tendencia de angostamiento" + limitación |
+| 10 | P3 | docs | Conteos de tests 39→57, 13→32 (README+diseño) | actualizar o genérico |
+| 11 | P3 | analysis | `velocity_pdf` sin guarda de vacío (NaN) | agregar guarda como density_pdf |
+| 12 | P3 | engine | Guard muerto `g<0` en PeriodicTrack.isConsistent | eliminar/comentar |
+| 13 | P3 | analysis | Leyenda "contacto (1/44 mm)" (lee como mm) | → "1/(44 mm)" en plots + regenerar |
+| 14 | P3 | docs | "snapshot" anglicismo | → "instantánea inmutable" |
+| 15 | P3 | docs | "Links a animaciones al publicar" (relleno) | redacción neutral cerrada |
+| 16 | P3 | docs | Fotogramas hero ilegibles (0.32/0.48 linewidth) | 1 por fila ~0.9 |
+| 17 | P3 | docs | write-before-step no documentado en informe | agregar frase en Implementación |
+| 18 | P3 | docs | "por punto" sobre-vende trazabilidad del corte | redacción "corte único por inspección" |
+| 19 | P3 | docs | README "barrido recomendado" incluye B sobre grilla calibrada | aclarar B = solo validación |
+| 20 | P3 | docs | README receta de animación genera nombres `_oe` | alinear con el script |
+| 21 | P3 | docs | Estimaciones tiempo/disco inconsistentes (2700 vs 1350) | recalibrar |
+
+Dominios disjuntos → correctores en paralelo: **analysis** (5,6,7,11,13), **docs-informe/pres**
+(2,3,8,9,14,15,16,17,18), **docs-README/diseño** (10,19,20,21), **repro** (4), **engine** (12).
+Regeneración de figuras + recompilación de PDFs + commits: centralizados por el controlador tras los correctores.
+
+### Ronda 1 — 5 correctores por dominio (workflow, 259K tokens, ~6 min) — TODOS los P1/P2/P3 aplicados
+- **analysis**: `_ETIQUETAS_ES` en analyze.py/animate.py (texto visible en español, nombres de archivo
+  intactos); línea de estacionario dibujada en `since_step` (no la sugerencia); `output_every` fuera de
+  `_logical_run_key`; guarda de vacío en `velocity_pdf`; leyenda `1/(44 mm)` en plots.py. +2 tests → **34 pytest**.
+- **entregables**: `\usepackage{float}` + `[H]` + `\clearpage` antes de Referencias (ninguna figura tras
+  Conclusiones); **P1 física**: meseta a baja densidad = velocidad del **más lento** (~90-95, no la libre 105)
+  con mecanismo de agrupamiento; gridlock p≥0.3 cuantificado; "distribuciones"→"tendencia"; snapshot→instantánea;
+  links neutrales; fotogramas 0.9 apilados; write-before-step documentado; "por punto"→corte único.
+- **docs**: README barrido OFICIAL = CONTACTO_PURO (B solo validación); conteos genéricos; tiempos coherentes
+  (1350 ~0.9 GB / 2700 ~1.7 GB); receta hero canónica = script. diseño: hitos actualizados, nota snapshot v1.
+- **repro**: `generar_entrega.sh` activa `.venv` si existe.
+- **engine**: eliminado guard muerto `g<0` en `PeriodicTrack.isConsistent` (Javadoc actualizado). **57 tests** verdes.
+
+**Centralizado por el controlador tras correctores:**
+- Regenerado analyze.py + validacion.py + 5 fotogramas hero con etiquetas en español.
+- Quitados enums (ASCENDING/DESCENDING/RANDOM) de la prosa del informe (consistencia español).
+- Recompilados ambos PDFs: **informe 14 págs, presentación 17 págs**, exit 0.
+- **Verificación:** Java 57 ✓ · pytest 34 ✓ · pdflatex ×2 ambos ✓ · anti-placeholders PDFs LIMPIO ✓ · `git diff --check` limpio.
+
+Estado P0: pendiente el acto de commitear los PDFs finales (se hace en los commits de esta ronda).
 
 ## Criterios de cierre (del handoff)
 - Sin P0/P1 abiertos; P2/P3 con decisión explícita.
