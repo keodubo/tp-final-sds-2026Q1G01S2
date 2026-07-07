@@ -17,6 +17,14 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
+# Activa el venv de analysis/ si el README lo creó; si no existe, usa el python3
+# global (que debe traer numpy/matplotlib/scipy). Las llamadas a python3 de abajo
+# quedan igual: los subshells heredan el PATH/VIRTUAL_ENV ya activados.
+if [ -f analysis/.venv/bin/activate ]; then
+    # shellcheck disable=SC1091
+    source analysis/.venv/bin/activate
+fi
+
 RULES="${RULES:-CONTACTO_PURO}"          # oficial por defecto; la triangular la hace validacion.py
 REALIZATIONS="${REALIZATIONS:-30}"
 SINCE_STEP="${SINCE_STEP:-2000}"         # corte del estacionario (FIXED_N), elegido por inspección

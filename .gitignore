@@ -29,6 +29,7 @@ data_anim/
 # === Documentos de trabajo no versionados ===
 promptmaestro.md
 .fable-tmp/
+scratch_audit/
 
 # LaTeX (intermedios; los PDFs finales de informe y presentación SÍ se versionan como entregable)
 *.aux
