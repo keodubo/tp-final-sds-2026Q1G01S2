@@ -212,3 +212,31 @@ sin residuos MKS/tilde ✓. **Commits:** `c037ee6`, `0f8de62`.
   SHA256SUMS -c OK · anti-placeholders LIMPIO · git diff --check limpio.**
 - **21 commits** sobre `4fde54b`, **sin pushear** (esperando OK del grupo). El editor-académico se corrió
   aparte como confirmación editorial final.
+
+### Editor académico (corrido aparte, texto plano) — confirmación editorial final
+Leyó ambos PDF completos. **"No hay nada de nivel P0/P1/P2; solo detalles cosméticos P3; ninguno obliga
+a corrección para aprobar."** Confirmó: estructura de Resultados correcta, Conclusiones solo al final,
+ninguna figura tras Referencias, "realizaciones" sin "seed", coherencia texto↔figura, sin placeholders.
+
+P3 corregidos: cita cruzada 3A/4A unificada; "La CLI" → "la herramienta de línea de comandos";
+"24 fps" → "24 cuadros/s". Commit `45878b5`.
+
+### P3 aceptados con decisión explícita (no bloqueantes; handoff permite cerrar con P3 decididos)
+- **Separador decimal**: prosa usa coma (0,1), las figuras de matplotlib usan punto (0.1). Convención de
+  la herramienta, ampliamente tolerada; corregirlo exige configurar locale + regenerar las 19 figuras.
+  DECISIÓN: aceptado; queda como pulido OPCIONAL para el grupo.
+- **Media página en blanco (pág. 8 del informe)**: efecto de `[H]` (Fig. 6 no entra y flota). DECISIÓN:
+  aceptado; ajustar floats arriesga reintroducir "figuras tras Referencias" (el P1 ya cerrado). Bajo impacto.
+- **Recuadros de info pequeños en la diapo 9**: redundantes con los rótulos N=5/N=30; los bloques de color
+  se leen. Aceptado.
+- **"PDF"/"preprint"**: abreviaturas/términos estándar; aceptados.
+
+### BLOQUEANTE EXTERNO (solo el grupo)
+- **Nombres y legajos en la carátula**: informe/presentación muestran solo "Grupo G01S2". El grupo debe
+  agregar nombres+legajos (o confirmar que la cátedra acepta entrega anonimizada). Links de animaciones a
+  YouTube igual: agregarlos al publicar (hoy los captions son honestos y neutrales).
+
+## CIERRE FINAL
+Loop CONVERGIDO. Ronda 4 + editor: **0 P0/P1/P2**. P3 corregidos o aceptados con decisión. 23 commits
+sobre `4fde54b`, **sin pushear**. Verificación final: Java 60 · pytest 37 · ambos PDF compilan (14/17 págs)
+· SHA256SUMS -c OK · anti-placeholders LIMPIO · git diff --check limpio.
