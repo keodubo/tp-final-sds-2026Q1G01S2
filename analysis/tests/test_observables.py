@@ -4,6 +4,10 @@ import numpy as np
 import observables as obs
 from run_io import Run
 
+# np.trapz fue renombrado a np.trapezoid en NumPy 2.0 (y removido del namespace principal en 2.x);
+# usar el disponible para que el test corra igual con NumPy 1.26 o 2.x.
+_trapezoid = getattr(np, "trapezoid", None) or getattr(np, "trapz")
+
 
 def make_run(x_mm, v_mmps, n, ell=176, dx=0.25, lattice=5280):
     """Construye un Run sintético. x_mm/v_mmps: 2D (pasos, n) o 1D (un paso)."""
@@ -124,4 +128,4 @@ def test_density_pdf_by_active_n_una_curva_por_fase():
     for centros, pdf in pdfs.values():
         assert pdf.shape == (100,)
         assert np.all(np.isfinite(pdf))
-        assert abs(np.trapz(pdf, centros) - 1.0) < 0.05
+        assert abs(_trapezoid(pdf, centros) - 1.0) < 0.05
