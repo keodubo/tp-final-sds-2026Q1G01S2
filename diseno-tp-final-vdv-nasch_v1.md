@@ -340,6 +340,10 @@ invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad)
 
 ## 12. Plan de trabajo por etapas
 
+> **Nota:** este documento es el **snapshot de diseño v1** (2026-06-28). El **estado vigente del
+> proyecto** (barrido oficial corrido, PDFs finales versionados) vive en la sección *Estado del
+> proyecto* del `README.md`; la tabla de hitos de abajo se dejó alineada a ese estado.
+
 | Hito | Entregable | Estado |
 |---|---|---|
 | 0 | **Este spec** revisado por el grupo | ✅ completado |
@@ -347,15 +351,17 @@ invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad)
 | 2 | Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD) | ✅ completado |
 | 3 | **Validación p=0** contra el diagrama fundamental analítico | ✅ completado |
 | 4 | Variante A (contacto puro) + resolución de agrupamientos + tests | ✅ completado |
-| 5 | Matriz (N, p, variante, orden, protocolo) + observables Python | ✅ motor+observables listos; **falta correr** las simulaciones |
-| 6 | Figuras + animaciones + comparación con el artículo | ✅ código listo; comparación final tras correr barridos y elegir estacionario |
-| 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente |
-| 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | pendiente (tras correr) |
+| 5 | Matriz (N, p, variante, orden, protocolo) + observables Python | ✅ completado (barrido oficial corrido: 1350 corridas CONTACTO_PURO) |
+| 6 | Figuras + animaciones + comparación con el artículo | ✅ completado (figuras + animación; estacionario elegido por inspección, `--since-step 2000`) |
+| 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente (extensión opcional) |
+| 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | ✅ completado (PDFs finales versionados, regenerables con `scripts/generar_entrega.sh`) |
 
-> **Estado:** el **motor y el análisis están implementados y verificados** (39 tests Java + 13 pytest en
-> verde; 0 solapamientos; reproducibilidad; flujo corrible que genera figuras del núcleo, incremental
-> por orden, diagrama fundamental separado por metadatos y animación).
-> Falta **correr** el barrido (lo hace el grupo) y, con esos resultados, escribir informe y presentación.
+> **Estado (snapshot v1):** el **motor y el análisis están implementados y verificados** (suite JUnit +
+> pytest en verde; 0 solapamientos; reproducibilidad; flujo corrible que genera figuras del núcleo,
+> incremental por orden, diagrama fundamental separado por metadatos y animación).
+> El **barrido oficial ya se corrió** (1350 corridas CONTACTO_PURO) y el informe y la presentación
+> finales están versionados (regenerables con `scripts/generar_entrega.sh`). El estado al día está en el
+> `README.md`.
 
 ---
 
