@@ -167,7 +167,8 @@ for f in sorted(glob.glob("../data_anim/*.txt")):
     base = os.path.basename(f)[:-4]              # sin .txt
     clean = re.sub(r"_oe\d+", "", base)          # quita _oe1 / _oe10 para empatar los nombres de los .tex
     out_gif = os.path.join("../data_anim", clean + ".gif")
-    gif, png = animate.animate(f, outfile=out_gif)   # GIF (tiempo real) + <clean>_fotograma.png
+    still = 6480 if base.startswith("INC") else None   # incrementales: fotograma en la fase N=10 (se distingue el orden)
+    gif, png = animate.animate(f, outfile=out_gif, still_step=still)   # GIF (tiempo real) + <clean>_fotograma.png
     print("animación:", gif, "| fotograma:", png)
 PY
 ```

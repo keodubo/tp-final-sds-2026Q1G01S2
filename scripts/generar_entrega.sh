@@ -38,8 +38,8 @@ done
 if [ "$preflight_ok" -eq 0 ]; then
     echo "  -> Necesitás JDK 21 + Maven (java, mvn) y pdflatex con beamer instalados y en PATH." >&2
 fi
-if ! python3 -c "import numpy, matplotlib, scipy" >/dev/null 2>&1; then
-    echo "  FALTA: python3 no puede importar numpy/matplotlib/scipy." >&2
+if ! python3 -c "import numpy, matplotlib, scipy, PIL" >/dev/null 2>&1; then
+    echo "  FALTA: python3 no puede importar numpy/matplotlib/scipy/pillow." >&2
     echo "  -> Creá el venv e instalá las dependencias, por ejemplo:" >&2
     echo "       python3 -m venv analysis/.venv && source analysis/.venv/bin/activate" >&2
     echo "       pip install -r analysis/requirements.txt" >&2
@@ -50,7 +50,11 @@ if [ "$preflight_ok" -ne 1 ]; then
     echo "Preflight FALLÓ: instalá lo que falta y volvé a correr (no se ejecutó el pipeline)." >&2
     exit 1
 fi
-echo "  OK: java, mvn, pdflatex y python3 (numpy/matplotlib/scipy) disponibles."
+# Nota: las figuras se generaron con las versiones fijadas en analysis/requirements.txt. Para una
+# reproducción idéntica, usá analysis/.venv (esas versiones); otras versiones pueden variar detalles
+# menores de render sin cambiar los resultados.
+echo "  OK: java, mvn, pdflatex y python3 (numpy/matplotlib/scipy/pillow) disponibles."
+python3 -c "import numpy,scipy,matplotlib; print('  versiones:', 'numpy',numpy.__version__,'scipy',scipy.__version__,'matplotlib',matplotlib.__version__)" 2>/dev/null || true
 
 RULES="${RULES:-CONTACTO_PURO}"          # oficial por defecto; la triangular la hace validacion.py
 REALIZATIONS="${REALIZATIONS:-30}"
@@ -87,6 +91,8 @@ python3 analysis/run_matrix.py --jar "$JAR" --out-dir data_anim --rule CONTACTO_
     --p 0.1 --realizations 1 --output-every 10 --skip-existing
 # animate.py deriva el nombre del fotograma del archivo de entrada; run_matrix.py incluye "_oeN" en
 # el tag, pero los .tex referencian el nombre SIN "_oe". Se pasa un outfile explícito que lo elimina.
+# Para los 3 hero INCREMENTAL el fotograma se toma en la fase N=10 (still_step≈6480), donde el orden
+# de inserción se distingue: sin esto los tres saldrían idénticos en la ruta llena final (N=30).
 ( cd analysis && python3 - <<'PY'
 import glob, os, re, sys
 sys.path.insert(0, ".")
@@ -95,8 +101,9 @@ for f in sorted(glob.glob("../data_anim/*.txt")):
     base = os.path.basename(f)[:-4]                 # sin .txt
     clean = re.sub(r"_oe\d+", "", base)             # quita _oe1 / _oe10 para empatar los .tex
     out_gif = os.path.join("../data_anim", clean + ".gif")
-    gif, png = animate.animate(f, outfile=out_gif)  # GIF + <clean>_fotograma.png
-    print("hero:", os.path.basename(png))
+    still = 6480 if base.startswith("INC") else None   # fase N=10 para los incrementales
+    gif, png = animate.animate(f, outfile=out_gif, still_step=still)  # GIF + <clean>_fotograma.png
+    print("hero:", os.path.basename(png), "" if still is None else "(fase N=10)")
 PY
 )
 
@@ -106,6 +113,14 @@ echo "== [6/6] Compilar informe y presentación (pdflatex x2) =="
 ( cd presentacion && pdflatex -interaction=nonstopmode -halt-on-error SdS_TPFinal_2026Q1G01S2_Presentacion.tex >/dev/null \
                   && pdflatex -interaction=nonstopmode -halt-on-error SdS_TPFinal_2026Q1G01S2_Presentacion.tex >/dev/null )
 
+# Los PDFs recién compilados difieren byte-a-byte de los versionados (pdfTeX embebe fecha/ID no
+# deterministas), así que se recalcula SHA256SUMS para que el árbol regenerado sea autoconsistente.
+echo "== Recalcular SHA256SUMS de los binarios versionados =="
+sha256sum informe/SdS_TPFinal_2026Q1G01S2_Informe.pdf \
+          presentacion/SdS_TPFinal_2026Q1G01S2_Presentacion.pdf \
+          extras/FD_VDV.pdf > SHA256SUMS
+
 echo "== LISTO =="
 echo "  informe/SdS_TPFinal_2026Q1G01S2_Informe.pdf"
 echo "  presentacion/SdS_TPFinal_2026Q1G01S2_Presentacion.pdf"
+echo "  SHA256SUMS (recalculado)"
