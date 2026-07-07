@@ -18,6 +18,7 @@
 \usepackage{microtype}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
+\usepackage{float}
 \usepackage{booktabs}
 \usepackage[hidelinks]{hyperref}
 \usepackage[margin=2.4cm]{geometry}
@@ -163,9 +164,9 @@ experimento, que fija su velocidad máxima entera $v_{\max,i}$ (Sec.~\ref{sec:si
 % ============================================================================
 
 El motor está implementado en Java. Mantiene los vehículos en una lista ordenada
-cíclicamente sobre la ruta y ejecuta cada paso sincrónico sobre un \emph{snapshot}
-inmutable de huecos y velocidades deseadas, de modo que el resultado no depende del
-orden de iteración. La regla de colisión recibe ese snapshot y devuelve, por vehículo,
+cíclicamente sobre la ruta y ejecuta cada paso sincrónico sobre una \emph{instantánea
+inmutable} de huecos y velocidades deseadas, de modo que el resultado no depende del
+orden de iteración. La regla de colisión recibe esa instantánea y devuelve, por vehículo,
 un par $(\text{desplazamiento } d_i,\ \text{velocidad heredada})$; no muta el estado.
 El paso, en pseudocódigo:
 
@@ -194,7 +195,10 @@ Para el protocolo incremental, agregar un lote de vehículos se hace por
 de uno existente y los que le siguen se corren hacia adelante lo mínimo necesario para
 no solaparse, consolidando el espacio libre de la ruta. Esto permite alcanzar $N=30$,
 donde $30\,\ell = L$ y la ruta queda exactamente llena a contacto. El constructor de la
-ruta valida el no-solapamiento en cada inserción y en cada paso.
+ruta valida el no-solapamiento en cada inserción y en cada paso. La CLI registra el estado
+\emph{antes} de ejecutar cada paso, por lo que un lote insertado en el paso $k$ se observa
+a partir de la muestra $k+1$; las fases del protocolo incremental quedan definidas por el
+$N$ activo real de cada cuadro.
 
 Siguiendo el criterio de la cátedra, el motor emite \textbf{solo variables físicas}
 (identificador de paso, id de vehículo, $x$ en mm y $v$ en mm/s). No guarda color ni
@@ -250,8 +254,7 @@ Se usan dos protocolos:
   Se arranca con $5$ vehículos y se agregan $5$ cada $180\unit{s}$ hasta $N=30$, con
   $25\,920$ pasos $=6\times180\unit{s}=1080\unit{s}$. Se examinan tres
   \textbf{órdenes de inserción} según la velocidad libre: creciente
-  (ASCENDING, los más lentos primero), decreciente (DESCENDING, los más
-  rápidos primero) y aleatorio (RANDOM).
+  (los más lentos primero), decreciente (los más rápidos primero) y aleatorio.
 \end{itemize}
 Se corren $M=30$ \textbf{realizaciones} por punto. El estado se guarda cada $10$ pasos.
 
@@ -281,9 +284,10 @@ cercano sobre la ruta,
 con pico esperado en $1/(44\unit{mm})\approx0{,}0227\unit{mm^{-1}}$ (contacto). Se reportan
 las distribuciones (PDF) de $\rho_i$ y de la velocidad microscópica, y el diagrama
 fundamental (velocidad instantánea vs $\rho_i$, ordenado por densidad y suavizado con
-media móvil). El \textbf{corte del estacionario} se elige \emph{por inspección} de la
-evolución temporal (no por un descarte fijo en porcentaje) y queda registrado, por punto,
-en \texttt{figures/manifiesto.csv}. En el protocolo incremental, por su diseño, el
+media móvil). El \textbf{corte del estacionario} es un único valor global elegido
+\emph{por inspección} de la evolución temporal (no un descarte fijo en porcentaje),
+aplicado de forma uniforme a todos los $(N,p)$ y registrado en
+\texttt{figures/manifiesto.csv}. En el protocolo incremental, por su diseño, el
 observable se promedia sobre la ventana completa de $180\unit{s}$ de cada fase
 ($\langle L_i/180\unit{s}\rangle$, igual que el artículo).
 
@@ -298,12 +302,12 @@ densidad ($N=5$, flujo libre) y a saturación ($N=30$, ruta llena a contacto). A
 densidad los vehículos avanzan casi sin interactuar; a $N=30$ forman un anillo rígido a
 contacto.
 
-\begin{figure}[h]\centering
-\includegraphics[width=0.48\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\hfill
-\includegraphics[width=0.48\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
-\caption{Fotogramas en régimen a baja densidad ($N=5$, izquierda) y a saturación
-($N=30$, derecha), contacto puro, $p=0{,}1$. Color según velocidad. Links a animaciones
-al publicar.}
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\\[4pt]
+\includegraphics[width=0.9\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
+\caption{Fotogramas en régimen a baja densidad ($N=5$, arriba) y a saturación
+($N=30$, abajo), contacto puro, $p=0{,}1$. Color según velocidad. Animaciones
+disponibles en el repositorio del grupo.}
 \label{fig:anim-fixed}
 \end{figure}
 
@@ -312,7 +316,7 @@ media (Ec.~\ref{eq:vmedia}). La Figura~\ref{fig:evol-fixed} muestra la evolució
 temporal de la velocidad media y el corte del transitorio elegido por inspección; a
 partir de ese corte la serie fluctúa alrededor de un valor estable.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.7\linewidth]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}
 \caption{Evolución temporal de la velocidad media ($N=30$, contacto puro). La línea
 punteada marca el corte del transitorio elegido por inspección; el observable reportado
@@ -322,12 +326,25 @@ es el promedio a partir de ese corte (Ec.~\ref{eq:vmedia}).}
 
 La curva respuesta--estímulo (Figura~\ref{fig:vN-fixed}) resume la velocidad media en
 función de $N$, una curva por $p$. A densidad baja la velocidad media se mantiene
-cercana a la velocidad libre media y prácticamente no depende de $N$; al acercarse a la
-ruta llena cae. En el punto singular $N=30$ (ruta exactamente llena) el valor de
-saturación depende de $p$: con $p=0$ el anillo rígido cruza a la velocidad del más lento,
-y con $p>0$ el frenado aleatorio del cúmulo lo hace caer por debajo de ella.
+cercana a la velocidad del agente más lento presente ($\approx90$--$95\unit{mm/s}$, un
+$\sim10\%$ por debajo de la media libre poblacional de $105\unit{mm/s}$) y depende poco
+de $N$: en la pista periódica de un solo carril, sin adelantamiento y con contacto puro,
+el sistema se agrupa a contacto detrás del más lento a cualquier densidad, de modo que la
+velocidad queda fijada por el mínimo de los $N$ sorteos de $v_{\max}$. La caída suave de
+$\bar v(N)$ proviene de ese agrupamiento: al crecer $N$ es más probable muestrear un
+agente aún más lento y el cúmulo lo sigue; es el mismo mecanismo que satura en $N=30$. Al
+acercarse a la ruta llena la velocidad cae. En el punto singular $N=30$ (ruta exactamente
+llena) el valor de saturación depende de $p$: con $p=0$ el anillo rígido cruza a la
+velocidad del más lento, y con $p>0$ el frenado aleatorio del cúmulo lo hace caer por
+debajo de ella. Ese frenado es abrupto en el anillo lleno exacto: a $p=0{,}2$ satura en
+$\approx44{,}5\unit{mm/s}$, pero a $p\ge0{,}3$ el sistema se congela casi por completo
+($\bar v\approx0{,}45\unit{mm/s}$ a $p=0{,}3$ y $0{,}16\unit{mm/s}$ a $p=0{,}4$), por el
+``trinquete'' de que los $30$ vehículos deben no frenar en el mismo paso para avanzar
+($(1-p)^{30}\approx0$). Ese congelamiento no corresponde a ningún régimen del experimento
+—que satura en $\approx70\unit{mm/s}$ y nunca se congela—; el punto físicamente comparable
+es $p=0{,}1$.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.7\linewidth]{velocidad_media_vs_N_contacto_puro_sin_orden_fixed.png}
 \caption{Velocidad media en función de $N$, una curva por probabilidad de frenado $p$
 (contacto puro, $N$ fijo). $N=30$ es la ruta llena exacta (punto singular); allí el
@@ -339,7 +356,7 @@ Las distribuciones microscópicas (Figura~\ref{fig:pdf-fixed}) muestran el pico 
 densidad individual en $1/(44\unit{mm})$ (geometría de contacto) acentuándose al aumentar
 $N$, y la PDF de velocidad angostándose y corriéndose a valores menores a alta densidad.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.49\linewidth]{pdf_densidad_p0.1_contacto_puro_sin_orden_fixed.png}\hfill
 \includegraphics[width=0.49\linewidth]{pdf_velocidad_p0.1_contacto_puro_sin_orden_fixed.png}
 \caption{Distribuciones (PDF) de densidad individual (izquierda; pico en $1/(44\unit{mm})$)
@@ -352,7 +369,7 @@ El diagrama fundamental con $N$ fijo (Figura~\ref{fig:fd-fixed}) resume velocida
 densidad individual: velocidad casi plana hasta cerca de la densidad de contacto y luego
 descenso.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.7\linewidth]{diagrama_fundamental_contacto_puro_fixed_n.png}
 \caption{Diagrama fundamental (velocidad vs densidad individual $\rho_i$) con $N$ fijo,
 una curva por $p$ (contacto puro).}
@@ -364,12 +381,13 @@ una curva por $p$ (contacto puro).}
 Este protocolo reproduce el del artículo. La Figura~\ref{fig:anim-inc} muestra
 fotogramas de los tres órdenes de inserción.
 
-\begin{figure}[h]\centering
-\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_ASCENDING_r1_fotograma.png}\hfill
-\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_DESCENDING_r1_fotograma.png}\hfill
-\includegraphics[width=0.32\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
-\caption{Fotogramas del protocolo incremental para los órdenes creciente, decreciente y
-aleatorio (contacto puro, $p=0{,}1$). Links a animaciones al publicar.}
+\begin{figure}[H]\centering
+\includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_ASCENDING_r1_fotograma.png}\\[3pt]
+\includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_DESCENDING_r1_fotograma.png}\\[3pt]
+\includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
+\caption{Fotogramas del protocolo incremental para los órdenes creciente (arriba),
+decreciente (medio) y aleatorio (abajo) (contacto puro, $p=0{,}1$). Animaciones
+disponibles en el repositorio del grupo.}
 \label{fig:anim-inc}
 \end{figure}
 
@@ -378,7 +396,7 @@ $180\unit{s}$ se insertan $5$ vehículos y la velocidad media da un salto y se r
 Cada fase de $180\unit{s}$ define un valor de $N$ activo; el observable se promedia sobre
 la ventana completa de cada fase, como en el artículo.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.7\linewidth]{evolucion_temporal_incremental_contacto_puro_p01_incremental.png}
 \caption{Evolución temporal de la velocidad media en el protocolo incremental, una curva
 por orden de inserción (contacto puro, $p=0{,}1$). Los escalones marcan las inserciones
@@ -391,7 +409,7 @@ artículo) muestra que a densidad baja y media el orden decreciente da mayor vel
 el creciente, con el aleatorio en el medio, y que las tres tienden a acercarse a
 saturación.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.7\linewidth]{velocidad_media_incremental_contacto_puro_p01_incremental.png}
 \caption{Velocidad media en función de $N$ para los tres órdenes de inserción (contacto
 puro, $p=0{,}1$; protocolo incremental). Comparar con la Fig.~2 del artículo~[1].}
@@ -403,7 +421,7 @@ artículo) separan las fases por $N$ activo: el pico de densidad se corre hacia 
 y la PDF de velocidad se angosta al aumentar $N$, de forma más marcada en el orden
 creciente.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.49\linewidth]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}\hfill
 \includegraphics[width=0.49\linewidth]{pdf_velocidad_incremental_contacto_puro_ascending_p01_incremental.png}
 \caption{Distribuciones por $N$ activo en el protocolo incremental, orden creciente
@@ -417,7 +435,7 @@ Finalmente, el diagrama fundamental por orden (Figura~\ref{fig:fd-inc}, análogo
 Fig.~5D del artículo) confirma la estructura: el orden aleatorio queda acotado entre el
 creciente y el decreciente.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.7\linewidth]{diagrama_fundamental_contacto_puro_incremental_180s_p0.1.png}
 \caption{Diagrama fundamental por orden de inserción (contacto puro, $p=0{,}1$;
 protocolo incremental). El orden aleatorio queda acotado entre el creciente y el
@@ -445,7 +463,7 @@ libre, el pico $\rho_c=1/(v_{\max}+1)$ y la rama congestionada). La variante de
 flujo libre ($Q=\rho\,v_{\max}$) hasta el contacto, por lo que su diagrama es distinto del
 triangular por construcción.
 
-\begin{figure}[h]\centering
+\begin{figure}[H]\centering
 \includegraphics[width=0.62\linewidth]{validacion_triangular.png}
 \caption{Validación de la variante clásica contra el diagrama fundamental triangular
 analítico $Q(\rho)=\min(\rho\,v_{\max},1-\rho)$ ($v_{\max}=5$, $p=0$, $\ell=1$, reparto
@@ -480,6 +498,12 @@ que enmarcan las conclusiones:
   \emph{tendencia}, no del mecanismo.
   \item \textbf{Velocidad cuantizada.} La velocidad está discretizada en pasos de
   $\Delta v=6\unit{mm/s}$; el modelo no reproduce colas instantáneas finas de velocidad.
+  \item \textbf{Forma de la PDF de velocidad.} El modelo reproduce la tendencia de
+  angostamiento y corrimiento con $N$, pero no la forma: su PDF son deltas cuantizadas
+  ($\Delta v=6\unit{mm/s}$) con pico en $\approx90\unit{mm/s}$, mientras el experimento
+  tiene una distribución suave con pico en $\approx65\unit{mm/s}$ y cola hasta
+  $\approx300\unit{mm/s}$. Al agruparse detrás del más lento, el modelo no puebla
+  velocidades por debajo de la del agente más lento presente.
   \item \textbf{$p$ representativo.} Las figuras microscópicas se muestran a $p=0{,}1$; no
   son automáticamente representativas de todo $p$ (el barrido completo en $p$ está en los
   datos).
@@ -500,8 +524,9 @@ Sobre lo mostrado en Resultados:
   se acercan a saturación (Figs.~\ref{fig:vN-inc},~\ref{fig:fd-inc}), como en el
   artículo~[1].
   \item El pico de densidad individual en $1/(44\unit{mm})$ y el angostamiento de la PDF de
-  velocidad con $N$ reproducen las distribuciones del experimento, con la salvedad de que
-  el modelo no genera la cola de densidad por solapamiento (Sec.~\ref{sec:limitaciones}).
+  velocidad con $N$ reproducen la \emph{tendencia} de angostamiento y corrimiento con $N$,
+  con la salvedad de que el modelo no genera la cola de densidad por solapamiento ni la
+  forma detallada de la PDF (Sec.~\ref{sec:limitaciones}).
   \item La caída de la velocidad de saturación por debajo del agente más lento se obtiene
   en el punto singular $N=30$ y requiere frenado aleatorio ($p>0$); es la reproducción de
   una tendencia, con un mecanismo distinto al experimental (Sec.~\ref{sec:limitaciones}).
@@ -509,6 +534,7 @@ Sobre lo mostrado en Resultados:
   analítico con tolerancia $10^{-9}$ (Sec.~\ref{sec:validacion}).
 \end{itemize}
 
+\clearpage
 % ============================================================================
 \section*{Referencias}
 \addcontentsline{toc}{section}{Referencias}
