@@ -14,6 +14,7 @@ import matplotlib
 matplotlib.use("Agg")  # backend sin display (corridas headless)
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.ticker import MaxNLocator
 
 CONTACT_DENSITY = 1.0 / 44.0  # mm^-1, densidad de contacto del VDV (largo 44 mm)
 FONTSIZE = 20                 # guía 1.8: al menos 20
@@ -122,6 +123,10 @@ def plot_fundamental_diagram(curves, outfile, legend_title: str = "caso", max_po
     ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto: 1/(44 mm)")
     ax.set_xlabel("densidad (mm$^{-1}$)")
     ax.set_ylabel("velocidad (mm/s)")
-    ax.legend(title=legend_title)
+    # Pocos ticks en el eje de densidad: si no, las etiquetas (varios decimales pequeños) se solapan.
+    ax.xaxis.set_major_locator(MaxNLocator(nbins=5))
+    # La leyenda va abajo a la izquierda: en el diagrama fundamental la velocidad decrece con la densidad,
+    # así que esa esquina (baja densidad + baja velocidad) queda vacía y no tapa la curva superior.
+    ax.legend(title=legend_title, loc="lower left")
     fig.savefig(outfile)
     plt.close(fig)

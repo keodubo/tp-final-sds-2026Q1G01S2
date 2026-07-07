@@ -60,10 +60,6 @@ def _realizacion_id(run):
     return None
 
 
-def _output_every(run) -> int:
-    return int(run.meta.get("output_every", 1))
-
-
 # Traducción de los enums internos del motor a texto legible en español para las etiquetas VISIBLES
 # de las figuras (títulos, leyendas, curvas). NO se usa para nombres de archivo ni claves de
 # agrupamiento: esos siguen con los enums en minúscula (los .tex del informe los referencian así).
@@ -289,11 +285,12 @@ def main() -> None:
         rep = by_pN[(p_rep, n_rep)][0]
         dt = float(rep.meta["dt_s"])
         steps, serie = obs.mean_speed_series(rep)
-        # La línea punteada marca el corte del estacionario REALMENTE usado para el observable
-        # (args.since_step, el mismo que se registra en manifiesto.csv), no la sugerencia de
-        # detect_stationary/stationary_cut_step (que se conservan para el manifiesto y otros usos).
-        # Así figura y epígrafe ("promedio a partir de ese corte") quedan consistentes. Para FIXED_N
-        # el orden es SIN_ORDEN y no se muestra.
+        # La línea punteada marca el corte del estacionario REALMENTE usado para el observable:
+        # args.since_step, elegido por inspección de esta misma figura y registrado en manifiesto.csv.
+        # detect_stationary/stationary_cut_step siguen definidas y testeadas, pero YA NO tienen call-site
+        # en este pipeline (no alimentan ni el corte dibujado ni el manifiesto). Así figura y epígrafe
+        # ("promedio a partir de ese corte") quedan consistentes. Para FIXED_N el orden es SIN_ORDEN y no
+        # se muestra.
         plots.plot_time_evolution(
             {f"{_es_label(rule)} (N={n_rep}, p={p_rep:g})": (steps * dt, serie, args.since_step * dt)},
             figdir / f"evolucion_temporal_{tag}.png",

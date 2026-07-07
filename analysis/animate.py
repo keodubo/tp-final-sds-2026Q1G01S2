@@ -15,8 +15,8 @@ Cumple las guías de la cátedra:
   (último fotograma registrado, o el primero en/después de ``since_step``), no en el transitorio.
 
 Las funciones puras (``real_time_fps``, ``color_scale_max``, ``config_lines``, ``still_frame_index``,
-``active_count``, ``wrap_positions``) no tienen efectos secundarios y están cubiertas por tests de
-comportamiento en ``tests/test_animate.py``.
+``nearest_frame_index``, ``active_count``, ``wrap_positions``) no tienen efectos secundarios y están
+cubiertas por tests de comportamiento en ``tests/test_animate.py``.
 """
 from __future__ import annotations
 
@@ -112,6 +112,21 @@ def still_frame_index(steps, since_step: int = 0) -> int:
     return int(steps.size - 1)
 
 
+def nearest_frame_index(steps, target_step: int) -> int:
+    """Índice del fotograma cuyo paso está **más cerca** de ``target_step``.
+
+    A diferencia de ``still_frame_index`` (que toma el último fotograma en/después del corte, típicamente
+    el último cuadro), esto permite fijar el fotograma en una **fase intermedia** de la evolución —por
+    ejemplo la densidad media del protocolo incremental, donde el orden de inserción todavía se distingue—
+    en lugar del cuadro final lleno. Si ``target_step`` es menor que todos los pasos devuelve ``0``; si es
+    mayor que todos, el último; entre dos pasos, elige el más cercano (ante empate, el de menor índice).
+    """
+    steps = np.asarray(steps)
+    if steps.size == 0:
+        return 0
+    return int(np.argmin(np.abs(steps - target_step)))
+
+
 def active_count(x_mm) -> int:
     """Cantidad de vehículos presentes en un fotograma (útil para el protocolo incremental)."""
     return int(np.asarray(x_mm).size)
@@ -141,11 +156,17 @@ def _panel_text(meta: dict, n_active: int, t_s: float) -> str:
 # --------------------------------------------------------------------------------------------------
 # Punto de entrada.
 # --------------------------------------------------------------------------------------------------
-def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step=0):
+def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step=0, still_step=None):
     """Renderiza la realización en ``path``: un GIF (animación) y un fotograma fijo (PNG estacionario).
 
     ``fps=None`` reproduce en tiempo real según la cadencia de muestreo. ``since_step`` fija desde qué
     paso se considera estacionario para el fotograma fijo (por defecto 0 ⇒ último fotograma).
+
+    ``still_step`` (opcional) fuerza el fotograma fijo al cuadro de la animación **más cercano** a ese
+    paso, en vez del último. Sirve para elegir una fase de densidad media (p. ej. N=10 en el incremental)
+    donde el orden de inserción se distingue, evitando tres fotogramas idénticos en el cuadro final lleno.
+    Si es ``None`` se conserva el comportamiento por defecto (``still_frame_index(anim_steps, since_step)``).
+
     Devuelve ``(ruta_gif, ruta_png)``. Si hay ffmpeg exporta además un MP4 al lado (sin fallar si no).
     """
     run = load_run(path)
@@ -242,7 +263,11 @@ def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step
 
         still_path = None
         if still:
-            draw(still_frame_index(anim_steps, since_step))  # fotograma estacionario
+            if still_step is not None:
+                frame_idx = nearest_frame_index(anim_steps, still_step)  # fase elegida (no el último)
+            else:
+                frame_idx = still_frame_index(anim_steps, since_step)  # estacionario por defecto
+            draw(frame_idx)  # fotograma fijo
             still_path = str(Path(out).with_suffix("")) + "_fotograma.png"
             fig.savefig(still_path, dpi=150, bbox_inches="tight")
         plt.close(fig)

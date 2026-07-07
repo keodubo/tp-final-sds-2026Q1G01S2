@@ -73,6 +73,24 @@ def test_still_frame_index_devuelve_el_ultimo_si_ninguno_califica():
     assert idx == steps.size - 1
 
 
+def test_nearest_frame_index_elige_el_paso_mas_cercano_entre_dos():
+    steps = np.array([0, 10, 20, 30])
+    # target=12 está entre 10 y 20 pero más cerca de 10 (índice 1).
+    assert animate.nearest_frame_index(steps, 12) == 1
+    # target=18 está más cerca de 20 (índice 2).
+    assert animate.nearest_frame_index(steps, 18) == 2
+
+
+def test_nearest_frame_index_target_menor_que_todos_devuelve_cero():
+    steps = np.array([5, 10, 20])
+    assert animate.nearest_frame_index(steps, -3) == 0
+
+
+def test_nearest_frame_index_target_mayor_que_todos_devuelve_el_ultimo():
+    steps = np.array([5, 10, 20])
+    assert animate.nearest_frame_index(steps, 999) == steps.size - 1
+
+
 def test_active_count_cuenta_los_vehiculos_del_fotograma():
     assert animate.active_count(np.array([1.0, 2.0, 3.0])) == 3
     assert animate.active_count(np.array([])) == 0
