@@ -28,7 +28,7 @@
 
 \title[Diagrama fundamental de VDV]{Diagrama fundamental de vehículos dirigidos por vibración (VDV)}
 \subtitle{Reproducción de tendencias con un autómata celular de Nagel--Schreckenberg con contacto}
-\author[Grupo G01S2]{Grupo G01S2}
+\author[Grupo G01S2]{Nicolás V. Arias (Leg.~62272) \and Keoni L. Dubovitsky (Leg.~62815) \and Ian F. Tognetti (Leg.~61215)}
 \institute[ITBA]{72.25 Simulación de Sistemas --- ITBA}
 \date{2026, primer cuatrimestre}
 
@@ -45,7 +45,7 @@
   rectificada por cerdas asimétricas los hace avanzar.
   \item Confinados en un canal \textbf{circular} de $\approx1313\unit{mm}$: sistema
   \textbf{unidimensional}. Hasta $30$ vehículos.
-  \item Interactúan \textbf{solo por contacto}: sin sensado remoto (no ``ven'' al de
+  \item Interactúan \textbf{solo por contacto}: sin percepción remota (no ``ven'' al de
   adelante).
   \item Velocidades libres $\sim\mathcal{U}[90,120]\unit{mm/s}$, heterogéneas.
 \end{itemize}
@@ -176,7 +176,7 @@ Velocidad máxima & $v_{\max,i}=\mathrm{round}(v^{\mathrm{libre}}_i/\Delta v)$ &
   \item $\bar v=\frac{1}{NT}\sum v_i(t)$
   \item error $=$ desvío \emph{entre realizaciones}
   \item $\rho_i=1/(\text{dist. al vecino})$
-  \item PDF de $\rho$ y de $v$; diagrama fundamental.
+  \item Distribuciones de $\rho$ y de $v$; diagrama fundamental.
 \end{itemize}
 Estacionario \textbf{por inspección}.
 \end{column}
@@ -232,7 +232,7 @@ Estacionario \textbf{por inspección}.
 \footnotesize Velocidad: casi independiente de $N$ (el más lento ya está desde $N=5$)
 \end{column}
 \end{columns}
-\vfill\centering\footnotesize Orden creciente (mostrado); en el decreciente la PDF de velocidad se corre hacia abajo al crecer $N$.
+\vfill\centering\footnotesize Orden creciente (mostrado); en el decreciente la distribución de velocidad se corre hacia abajo al crecer $N$.
 \end{frame}
 
 % ----------------------------------------------------------------------------
@@ -281,7 +281,7 @@ Estacionario \textbf{por inspección}.
   fundamental de VDV: velocidad casi plana y caída cerca del contacto.
   \item El \textbf{orden de inserción} modula el diagrama; el aleatorio queda acotado
   entre creciente y decreciente, y convergen a saturación.
-  \item Reproduce el pico de densidad en $1/(44\unit{mm})$ y el angostamiento de la PDF de
+  \item Reproduce el pico de densidad en $1/(44\unit{mm})$ y el angostamiento de la distribución de
   velocidad con $N$.
   \item La caída por debajo del más lento se obtiene en el punto singular $N=30$ con
   $p>0$ (tendencia, no el mismo mecanismo).

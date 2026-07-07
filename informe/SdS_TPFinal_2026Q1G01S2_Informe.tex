@@ -34,8 +34,9 @@
 \title{\textbf{Diagrama fundamental de vehículos dirigidos por vibración (VDV):
 reproducción de tendencias con un autómata celular de Nagel--Schreckenberg
 con interacción por contacto}}
-\author{Grupo G01S2 \\
-        72.25 Simulación de Sistemas --- ITBA --- 2026, primer cuatrimestre}
+\author{Nicolás Valentín Arias (Leg.~62272), Keoni Lucas Dubovitsky (Leg.~62815),\\
+        Ian Franco Tognetti (Leg.~61215) \\[3pt]
+        Grupo G01S2 --- 72.25 Simulación de Sistemas --- ITBA --- 2026, primer cuatrimestre}
 \date{Julio de 2026}
 
 \begin{document}
@@ -67,13 +68,13 @@ conjunto de partículas autopropulsadas con su densidad. Es la herramienta centr
 para caracterizar y diseñar sistemas de tráfico vehicular y peatonal, y en todos
 ellos la velocidad decrece de forma monótona al aumentar la densidad. En el tráfico
 vehicular esa caída se debe a que el conductor reduce voluntariamente su velocidad
-—usando sensado remoto (la vista)— para mantener distancia; en peatones, en cambio,
+—usando percepción remota (la vista)— para mantener distancia; en peatones, en cambio,
 a densidades altas aparece una segunda causa de naturaleza \emph{física}: el contacto
 y el empuje entre cuerpos. Aislar experimentalmente esa contribución puramente de
-contacto es difícil porque en general convive con el sensado remoto.
+contacto es difícil porque en general convive con el percepción remota.
 
 Patterson y Parisi~[1] estudian un sistema mínimo que interactúa \emph{exclusivamente
-por contacto}, sin sensado remoto: robots comerciales Hexbug Nano (VDV, cuerpo de
+por contacto}, sin percepción remota: robots comerciales Hexbug Nano (VDV, cuerpo de
 $44\times15\times18\unit{mm}$) confinados en un canal circular de
 $18\unit{mm}$ de ancho y $\approx1313\unit{mm}$ de longitud efectiva, que admite hasta
 $30$ vehículos. Cada robot avanza por la rectificación de su vibración sobre cerdas
@@ -284,7 +285,7 @@ cercano sobre la ruta,
 \label{eq:densidad}
 \end{equation}
 con pico esperado en $1/(44\unit{mm})\approx0{,}0227\unit{mm^{-1}}$ (contacto). Se reportan
-las distribuciones (PDF) de $\rho_i$ y de la velocidad microscópica, y el diagrama
+las distribuciones (funciones de densidad de probabilidad) de $\rho_i$ y de la velocidad microscópica, y el diagrama
 fundamental (velocidad instantánea vs $\rho_i$, ordenado por densidad y suavizado con
 media móvil). El \textbf{corte del estacionario} es un único valor global elegido
 \emph{por inspección} de la evolución temporal (no un descarte fijo en porcentaje),
@@ -358,12 +359,12 @@ descenso de la velocidad depende de $p$.}
 
 Las distribuciones microscópicas (Figura~\ref{fig:pdf-fixed}) muestran el pico de
 densidad individual en $1/(44\unit{mm})$ (geometría de contacto) acentuándose al aumentar
-$N$, y la PDF de velocidad angostándose y corriéndose a valores menores a alta densidad.
+$N$, y la distribución de velocidad angostándose y corriéndose a valores menores a alta densidad.
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.49\linewidth]{pdf_densidad_p0.1_contacto_puro_sin_orden_fixed.png}\hfill
 \includegraphics[width=0.49\linewidth]{pdf_velocidad_p0.1_contacto_puro_sin_orden_fixed.png}
-\caption{Distribuciones (PDF) de densidad individual (izquierda; pico en $1/(44\unit{mm})$)
+\caption{Distribuciones de densidad individual (izquierda; pico en $1/(44\unit{mm})$)
 y de velocidad microscópica (derecha), una curva por $N$ ($N$ fijo, contacto puro,
 $p=0{,}1$).}
 \label{fig:pdf-fixed}
@@ -422,7 +423,7 @@ puro, $p=0{,}1$; protocolo incremental). Comparar con la Fig.~2 del artículo~[1
 
 Las distribuciones por orden (Figura~\ref{fig:pdf-inc}, análogas a las Figs.~3A y 4A del
 artículo) separan las fases por $N$ activo: el pico de densidad se corre hacia el contacto
-al aumentar $N$. En el orden creciente (el mostrado) la PDF de velocidad es casi
+al aumentar $N$. En el orden creciente (el mostrado) la distribución de velocidad es casi
 \emph{independiente} de $N$: el agente más lento está presente desde $N=5$, de modo que la
 distribución queda anclada en velocidades bajas ($\approx90\unit{mm/s}$). El corrimiento
 marcado con $N$ aparece en cambio en el orden decreciente, que parte de velocidades altas
@@ -490,7 +491,7 @@ que enmarcan las conclusiones:
   \item \textbf{Sin colas de densidad más allá del contacto.} El experimento observa
   densidades $\rho_i>1/(44\unit{mm})$ por solapamiento parcial, desalineación por la
   geometría triangular del VDV y errores de seguimiento. El modelo impone
-  no-solapamiento duro, así que \emph{deliberadamente} no reproduce esa cola: su PDF de
+  no-solapamiento duro, así que \emph{deliberadamente} no reproduce esa cola: su distribución de
   densidad se corta en $1/(44\unit{mm})$.
   \item \textbf{Punto $N=30$ singular y dependiente de $L$.} Se fija $L=1320\unit{mm}$
   ($=30\ell$) para que $N=30$ cierre exacto a contacto; el experimento tiene
@@ -506,8 +507,8 @@ que enmarcan las conclusiones:
   \emph{tendencia}, no del mecanismo.
   \item \textbf{Velocidad cuantizada.} La velocidad está discretizada en pasos de
   $\Delta v=6\unit{mm/s}$; el modelo no reproduce colas instantáneas finas de velocidad.
-  \item \textbf{Forma de la PDF de velocidad.} El modelo reproduce la tendencia de
-  angostamiento y corrimiento con $N$, pero no la forma: su PDF son deltas cuantizadas
+  \item \textbf{Forma de la distribución de velocidad.} El modelo reproduce la tendencia de
+  angostamiento y corrimiento con $N$, pero no la forma: su distribución es un conjunto de deltas cuantizadas
   ($\Delta v=6\unit{mm/s}$) con la moda entre $\approx84$ y $90\unit{mm/s}$ (la velocidad
   del cúmulo bloqueado por el más lento, en saturación un cuanto por debajo de su velocidad
   libre), mientras el experimento tiene una distribución suave con pico en
@@ -534,10 +535,10 @@ Sobre lo mostrado en Resultados:
   aleatorio queda acotado entre el creciente y el decreciente, y las tres configuraciones
   se acercan a saturación (Figs.~\ref{fig:vN-inc},~\ref{fig:fd-inc}), como en el
   artículo~[1].
-  \item El pico de densidad individual en $1/(44\unit{mm})$ y el angostamiento de la PDF de
-  velocidad con $N$ reproducen la \emph{tendencia} de angostamiento y corrimiento con $N$,
-  con la salvedad de que el modelo no genera la cola de densidad por solapamiento ni la
-  forma detallada de la PDF (Sec.~\ref{sec:limitaciones}).
+  \item El pico de densidad individual en $1/(44\unit{mm})$ y el angostamiento de la
+  distribución de velocidad con $N$ reproducen la \emph{tendencia} de angostamiento y
+  corrimiento con $N$, con la salvedad de que el modelo no genera la cola de densidad por
+  solapamiento ni la forma detallada de la distribución (Sec.~\ref{sec:limitaciones}).
   \item La caída de la velocidad de saturación por debajo del agente más lento se obtiene
   en el punto singular $N=30$ y requiere frenado aleatorio ($p>0$); es la reproducción de
   una tendencia, con un mecanismo distinto al experimental (Sec.~\ref{sec:limitaciones}).
@@ -552,7 +553,7 @@ Sobre lo mostrado en Resultados:
 % ============================================================================
 \begin{enumerate}
 \item G.~A.~Patterson, D.~R.~Parisi, ``Fundamental diagram of vibration-driven
-vehicles'', preprint, 31 de octubre de 2023.
+vehicles'', prepublicación, 31 de octubre de 2023.
 \item K.~Nagel, M.~Schreckenberg, ``A cellular automaton model for freeway traffic'',
 \emph{Journal de Physique I}, 2(12), 2221--2229 (1992).
 \end{enumerate}
