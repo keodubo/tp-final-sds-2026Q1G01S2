@@ -189,3 +189,26 @@ anti-placeholders PDFs LIMPIO ✓ · `git diff --check` limpio ✓.
 **Verificación ronda 3:** PDFs recompilan (14/17 págs) ✓ · SHA -c OK ✓ · anti-placeholders LIMPIO ✓ ·
 still_step del script correcto (INC→6480) ✓ · pytest 37 / mvn 60 (sin cambios de código de prod) ✓.
 **Commits:** `9cc87d9` (entregables), `6b0ea7e` (repro).
+
+### Ronda 4 — auditoría de CIERRE (5/6 auditores; editor con error recurrente del tool → corrido aparte)
+**6 hallazgos: 0 P0, 0 P1, 0 P2, 6 P3.** Físico-Parisi: "sin P0/P1, sin P2, sin regresiones — convergencia
+confirmada" (recomputó las saturaciones contra datos; todas coinciden). Motor: fuzz + 60 tests + SHA -c OK.
+Estadística: todos los checks estadísticos OK. **CONVERGENCIA: no quedan P0/P1/P2.**
+Los 6 P3 (todos corregidos):
+- preflight no chequeaba beamer.cls → agregado (kpsewhich).
+- README ruta `docs/Guias...` inexistente → aclarado que es guía externa de la cátedra.
+- informe: "constructor valida no-solapamiento en cada paso" → preciso (constructor en init/inserción;
+  pasos ordinarios por construcción de R2).
+- "MKS" residual en docstrings de plots.py/animate.py → "SI (mm, mm/s)".
+- diseño: nombre de presentación con tilde → sin tilde; duración 20 min → ~10-15 min (consistente).
+
+**Verificación ronda 4:** informe recompila (14 págs) ✓ · SHA -c OK ✓ · pytest 37 ✓ · script bash -n ✓ ·
+sin residuos MKS/tilde ✓. **Commits:** `c037ee6`, `0f8de62`.
+
+## CIERRE DEL LOOP
+- **4 rondas de auditoría (6 lentes) + 2 rondas de correctores por dominio.** Ronda 4: **0 P0/P1/P2**;
+  todos los P3 corregidos. Criterio de parada del handoff CUMPLIDO.
+- Verificación final: **Java 60 tests · Python 37 pytest · informe 14 págs + presentación 17 págs compilan ·
+  SHA256SUMS -c OK · anti-placeholders LIMPIO · git diff --check limpio.**
+- **21 commits** sobre `4fde54b`, **sin pushear** (esperando OK del grupo). El editor-académico se corrió
+  aparte como confirmación editorial final.
