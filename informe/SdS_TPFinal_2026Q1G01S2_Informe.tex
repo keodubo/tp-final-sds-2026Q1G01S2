@@ -175,7 +175,7 @@ paso():
     si protocolo incremental y toca lote: insertar 5 vehículos (por empuje)
     para cada vehículo i:  deseada_i <- min(v_heredada_i + 1, vmax_i)     # R1
                            con prob p: deseada_i <- max(0, deseada_i - 1)  # R3
-    movimientos <- ReglaColisión.resolver(snapshot(huecos, deseadas))     # R2
+    movimientos <- ReglaColisión.resolver(instantanea(huecos, deseadas))  # R2
     para cada vehículo i:  x_i <- (x_i + d_i) mod L                        # R4
                            registrar d_i como velocidad de cuadro
                            registrar velocidad heredada para el próximo paso
@@ -306,8 +306,8 @@ contacto.
 \includegraphics[width=0.9\linewidth]{N5_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}\\[4pt]
 \includegraphics[width=0.9\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
 \caption{Fotogramas en régimen a baja densidad ($N=5$, arriba) y a saturación
-($N=30$, abajo), contacto puro, $p=0{,}1$. Color según velocidad. Animaciones
-disponibles en el repositorio del grupo.}
+($N=30$, abajo), contacto puro, $p=0{,}1$. Color según velocidad. Se muestra un fotograma
+representativo; la animación completa se regenera con \texttt{scripts/generar\_entrega.sh}.}
 \label{fig:anim-fixed}
 \end{figure}
 
@@ -329,18 +329,20 @@ función de $N$, una curva por $p$. A densidad baja la velocidad media se mantie
 cercana a la velocidad del agente más lento presente ($\approx90$--$95\unit{mm/s}$, un
 $\sim10\%$ por debajo de la media libre poblacional de $105\unit{mm/s}$) y depende poco
 de $N$: en la pista periódica de un solo carril, sin adelantamiento y con contacto puro,
-el sistema se agrupa a contacto detrás del más lento a cualquier densidad, de modo que la
-velocidad queda fijada por el mínimo de los $N$ sorteos de $v_{\max}$. La caída suave de
+a densidad baja los vehículos corren mayormente libres pero son alcanzados y retenidos una y
+otra vez por el más lento —el agrupamiento a contacto no es permanente—, de modo que la
+velocidad \emph{media} queda anclada a la del mínimo de los $N$ sorteos de $v_{\max}$. La caída suave de
 $\bar v(N)$ proviene de ese agrupamiento: al crecer $N$ es más probable muestrear un
 agente aún más lento y el cúmulo lo sigue; es el mismo mecanismo que satura en $N=30$. Al
 acercarse a la ruta llena la velocidad cae. En el punto singular $N=30$ (ruta exactamente
 llena) el valor de saturación depende de $p$: con $p=0$ el anillo rígido cruza a la
 velocidad del más lento, y con $p>0$ el frenado aleatorio del cúmulo lo hace caer por
 debajo de ella. Ese frenado es abrupto en el anillo lleno exacto: a $p=0{,}2$ satura en
-$\approx44{,}5\unit{mm/s}$, pero a $p\ge0{,}3$ el sistema se congela casi por completo
-($\bar v\approx0{,}45\unit{mm/s}$ a $p=0{,}3$ y $0{,}16\unit{mm/s}$ a $p=0{,}4$), por el
-``trinquete'' de que los $30$ vehículos deben no frenar en el mismo paso para avanzar
-($(1-p)^{30}\approx0$). Ese congelamiento no corresponde a ningún régimen del experimento
+$\approx45\pm14\unit{mm/s}$ (dispersión entre realizaciones), pero a $p\ge0{,}3$ el sistema
+entra en un régimen \textbf{congelado} ($v\approx0$): la mayoría de las realizaciones quedan
+detenidas y la mediana es $\approx0\unit{mm/s}$ (la media puntual, $\approx0{,}5\unit{mm/s}$ a
+$p=0{,}3$, no es un valor típico), por el ``trinquete'' de que los $30$ vehículos deben no
+frenar en el mismo paso para avanzar ($(1-p)^{30}\approx0$). Ese congelamiento no corresponde a ningún régimen del experimento
 —que satura en $\approx70\unit{mm/s}$ y nunca se congela—; el punto físicamente comparable
 es $p=0{,}1$.
 
@@ -386,8 +388,8 @@ fotogramas de los tres órdenes de inserción.
 \includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_DESCENDING_r1_fotograma.png}\\[3pt]
 \includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
 \caption{Fotogramas del protocolo incremental para los órdenes creciente (arriba),
-decreciente (medio) y aleatorio (abajo) (contacto puro, $p=0{,}1$). Animaciones
-disponibles en el repositorio del grupo.}
+decreciente (medio) y aleatorio (abajo) (contacto puro, $p=0{,}1$). Se muestra un fotograma
+representativo; la animación completa se regenera con \texttt{scripts/generar\_entrega.sh}.}
 \label{fig:anim-inc}
 \end{figure}
 
