@@ -55,6 +55,11 @@ def _es(value) -> str:
     return _ETIQUETAS_ES.get(str(value), str(value))
 
 
+def _coma(value) -> str:
+    """Coma decimal (convención en español) en el valor mostrado en el panel/título."""
+    return str(value).replace(".", ",")
+
+
 # --------------------------------------------------------------------------------------------------
 # Funciones puras (sin efectos secundarios) — cubiertas por tests de comportamiento.
 # --------------------------------------------------------------------------------------------------
@@ -89,7 +94,7 @@ def config_lines(meta: dict) -> list[str]:
     order_txt = "no aplica" if order in (None, "", "SIN_ORDEN") else _es(order)
     return [
         f"N = {meta.get('N')}",
-        f"p = {meta.get('p')}",
+        f"p = {_coma(meta.get('p'))}",
         f"regla = {_es(meta.get('regla2'))}",
         f"protocolo = {_es(meta.get('protocol'))}",
         f"orden = {order_txt}",
@@ -149,7 +154,7 @@ def wrap_positions(base: float, ell: float, track: float) -> list[float]:
 # Composición del panel (usa las puras; no es pura porque mezcla estado dinámico del fotograma).
 # --------------------------------------------------------------------------------------------------
 def _panel_text(meta: dict, n_active: int, t_s: float) -> str:
-    dinamico = [f"t = {t_s:.1f} s", f"activos = {n_active}"]
+    dinamico = [f"t = {_coma(format(t_s, '.1f'))} s", f"activos = {n_active}"]
     return "\n".join(dinamico + config_lines(meta))
 
 
@@ -243,7 +248,7 @@ def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step
                                            edgecolor="0.25", lw=0.4, zorder=3))
 
             t_s = float(anim_steps[i]) * dt
-            ax.set_title(f"t = {t_s:5.1f} s", fontsize=FONTSIZE - 2)
+            ax.set_title(f"t = {_coma(format(t_s, '.1f'))} s", fontsize=FONTSIZE - 2)
             panel.set_text(_panel_text(meta, active_count(x), t_s))
             return []
 

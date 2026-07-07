@@ -79,6 +79,7 @@ def main() -> None:
     ax.set_xlabel(r"densidad $\rho$ (veh/celda)")
     ax.set_ylabel(r"flujo $Q=\rho\,\bar v$ (veh/paso)")
     ax.legend(title=f"$v_{{max}}={VMAX}$, $p=0$, reparto uniforme")
+    plots._coma_ejes(ax)  # coma decimal en los rótulos de los ejes (convención en español)
     figdir = Path(args.figures_dir)
     figdir.mkdir(parents=True, exist_ok=True)
     outfile = figdir / "validacion_triangular.png"

@@ -14,11 +14,28 @@ import matplotlib
 matplotlib.use("Agg")  # backend sin display (corridas headless)
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.ticker import MaxNLocator
+from matplotlib.ticker import FuncFormatter, MaxNLocator
 
 CONTACT_DENSITY = 1.0 / 44.0  # mm^-1, densidad de contacto del VDV (largo 44 mm)
 FONTSIZE = 20                 # guía 1.8: al menos 20
 FIGSIZE = (9, 6)
+
+
+def _coma(x) -> str:
+    """Número con coma decimal (convención en español), sin decimales ni notación científica de más."""
+    return f"{x:g}".replace(".", ",")
+
+
+# Rótulos de eje con coma decimal, para que las figuras usen la misma convención que el texto del
+# informe (no hay locale español en este TeX Live/Python; se formatea a mano).
+_COMA_FMT = FuncFormatter(lambda x, _pos: _coma(x))
+
+
+def _coma_ejes(ax, y: bool = True) -> None:
+    """Aplica coma decimal a los rótulos de los ejes (x siempre; y salvo que sea logarítmico)."""
+    ax.xaxis.set_major_formatter(_COMA_FMT)
+    if y:
+        ax.yaxis.set_major_formatter(_COMA_FMT)
 
 
 def configure(base_fontsize: int = FONTSIZE) -> None:
@@ -37,7 +54,7 @@ def configure(base_fontsize: int = FONTSIZE) -> None:
 
 def _curve_label(key) -> str:
     if isinstance(key, (int, float)):
-        return f"p = {key:g}"
+        return f"p = {_coma(key)}"
     return str(key)
 
 
@@ -54,6 +71,7 @@ def plot_mean_speed_vs_n(results_by_p, outfile, legend_title: str = "frenado ale
     ax.set_xlabel("número de vehículos")
     ax.set_ylabel("velocidad media (mm/s)")
     ax.legend(title=legend_title)
+    _coma_ejes(ax)
     fig.savefig(outfile)
     plt.close(fig)
 
@@ -70,6 +88,7 @@ def plot_density_pdf(pdfs_by_n, outfile) -> None:
     ax.set_ylabel("densidad de probabilidad")
     ax.set_yscale("log")  # 2.4.7: varios órdenes de magnitud
     ax.legend()
+    _coma_ejes(ax, y=False)  # el eje y es logarítmico: dejar el formateador de potencias
     fig.savefig(outfile)
     plt.close(fig)
 
@@ -84,6 +103,7 @@ def plot_velocity_pdf(pdfs_by_n, outfile) -> None:
     ax.set_xlabel("velocidad (mm/s)")
     ax.set_ylabel("densidad de probabilidad")
     ax.legend()
+    _coma_ejes(ax)
     fig.savefig(outfile)
     plt.close(fig)
 
@@ -101,6 +121,7 @@ def plot_time_evolution(curves, outfile) -> None:
     ax.set_xlabel("tiempo (s)")
     ax.set_ylabel("velocidad media (mm/s)")
     ax.legend(title="corte sugerido: línea punteada")
+    _coma_ejes(ax)
     fig.savefig(outfile)
     plt.close(fig)
 
@@ -128,5 +149,6 @@ def plot_fundamental_diagram(curves, outfile, legend_title: str = "caso", max_po
     # La leyenda va abajo a la izquierda: en el diagrama fundamental la velocidad decrece con la densidad,
     # así que esa esquina (baja densidad + baja velocidad) queda vacía y no tapa la curva superior.
     ax.legend(title=legend_title, loc="lower left")
+    _coma_ejes(ax)
     fig.savefig(outfile)
     plt.close(fig)
