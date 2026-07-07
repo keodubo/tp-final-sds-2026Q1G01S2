@@ -64,7 +64,7 @@ def plot_density_pdf(pdfs_by_n, outfile) -> None:
     for n in sorted(pdfs_by_n):
         centros, pdf = pdfs_by_n[n]
         ax.plot(centros, pdf, label=f"N = {n}")
-    ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto (1/44 mm)")
+    ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto: 1/(44 mm)")
     ax.set_xlabel("densidad (mm$^{-1}$)")
     ax.set_ylabel("densidad de probabilidad")
     ax.set_yscale("log")  # 2.4.7: varios órdenes de magnitud
@@ -119,7 +119,7 @@ def plot_fundamental_diagram(curves, outfile, legend_title: str = "caso", max_po
             idx = np.linspace(0, rho.size - 1, max_points).astype(int)
             rho, v = rho[idx], v[idx]
         ax.plot(rho, v, label=_curve_label(key))
-    ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto (1/44 mm)")
+    ax.axvline(CONTACT_DENSITY, ls="--", color="grey", lw=1.5, label="contacto: 1/(44 mm)")
     ax.set_xlabel("densidad (mm$^{-1}$)")
     ax.set_ylabel("velocidad (mm/s)")
     ax.legend(title=legend_title)

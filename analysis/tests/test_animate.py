@@ -33,11 +33,14 @@ def test_config_lines_incluye_realizacion_y_no_dice_seed_ni_semilla():
         {"N": 15, "p": 0.1, "regla2": "CONTACTO_PURO", "protocol": "FIXED_N",
          "order": "SIN_ORDEN", "realizacion_id": 7}
     )
-    texto = "\n".join(lineas).lower()
+    texto = "\n".join(lineas)
     assert any("realización" in linea for linea in lineas)
-    assert "7" in "\n".join(lineas)
-    assert "seed" not in texto
-    assert "semilla" not in texto
+    assert "7" in texto
+    assert "seed" not in texto.lower()
+    assert "semilla" not in texto.lower()
+    # La regla se muestra en español ("contacto puro"), no el enum interno "CONTACTO_PURO".
+    assert any("contacto puro" in linea for linea in lineas)
+    assert "CONTACTO_PURO" not in texto
 
 
 def test_config_lines_orden_no_aplica_para_fixed_n():
@@ -47,7 +50,9 @@ def test_config_lines_orden_no_aplica_para_fixed_n():
 
 def test_config_lines_muestra_orden_real_en_incremental():
     lineas = animate.config_lines({"order": "ASCENDING"})
-    assert any("ASCENDING" in linea for linea in lineas)
+    # El panel muestra el orden en español ("creciente"), no el enum interno "ASCENDING".
+    assert any("creciente" in linea for linea in lineas)
+    assert not any("ASCENDING" in linea for linea in lineas)
 
 
 def test_still_frame_index_elige_fotograma_estacionario():

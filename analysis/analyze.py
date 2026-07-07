@@ -64,9 +64,32 @@ def _output_every(run) -> int:
     return int(run.meta.get("output_every", 1))
 
 
+# Traducción de los enums internos del motor a texto legible en español para las etiquetas VISIBLES
+# de las figuras (títulos, leyendas, curvas). NO se usa para nombres de archivo ni claves de
+# agrupamiento: esos siguen con los enums en minúscula (los .tex del informe los referencian así).
+_ETIQUETAS_ES = {
+    "CONTACTO_PURO": "contacto puro",
+    "CLASICA_SALVO_CERO": "clásica",
+    "FIXED_N": "N fijo",
+    "INCREMENTAL_180S": "incremental",
+    "ASCENDING": "creciente",
+    "DESCENDING": "decreciente",
+    "RANDOM": "aleatorio",
+}
+
+
+def _es_label(value) -> str:
+    """Mapea un enum interno a su etiqueta en español para el texto visible de las figuras."""
+    return _ETIQUETAS_ES.get(str(value), str(value))
+
+
 def _logical_run_key(run):
+    # La cadencia de muestreo (output_every) NO es parte de la identidad física de una realización:
+    # muestrear la misma corrida a dos cadencias sigue siendo la MISMA realización (mismo protocolo,
+    # regla, orden, p, N, realizacion_id). Incluir output_every dejaría pasar ese duplicado y lo
+    # promediaría dos veces, inflando M y achicando el desvío entre realizaciones.
     return (_protocol(run), _rule(run), _order(run), _p(run), _n_nominal(run),
-            _realizacion_id(run), _output_every(run))
+            _realizacion_id(run))
 
 
 def ensure_no_duplicate_runs(runs) -> None:
@@ -266,16 +289,20 @@ def main() -> None:
         rep = by_pN[(p_rep, n_rep)][0]
         dt = float(rep.meta["dt_s"])
         steps, serie = obs.mean_speed_series(rep)
-        cut = stationary_cut_step(steps, serie)
+        # La línea punteada marca el corte del estacionario REALMENTE usado para el observable
+        # (args.since_step, el mismo que se registra en manifiesto.csv), no la sugerencia de
+        # detect_stationary/stationary_cut_step (que se conservan para el manifiesto y otros usos).
+        # Así figura y epígrafe ("promedio a partir de ese corte") quedan consistentes. Para FIXED_N
+        # el orden es SIN_ORDEN y no se muestra.
         plots.plot_time_evolution(
-            {f"{rule} {order} (N={n_rep}, p={p_rep:g})": (steps * dt, serie, cut * dt)},
+            {f"{_es_label(rule)} (N={n_rep}, p={p_rep:g})": (steps * dt, serie, args.since_step * dt)},
             figdir / f"evolucion_temporal_{tag}.png",
         )
 
     incremental_summary = incremental_speed_by_order(runs)
     incremental_by_rule_p = collections.defaultdict(dict)
     for (rule, order, p), values in incremental_summary.items():
-        incremental_by_rule_p[(rule, p)][order] = values
+        incremental_by_rule_p[(rule, p)][_es_label(order)] = values
     for (rule, p), by_order in sorted(incremental_by_rule_p.items()):
         tag = _label_key((rule, f"p{p:g}", "incremental"))
         # ≈ Fig. 2: velocidad media vs N, una curva por orden de inserción
@@ -306,7 +333,7 @@ def main() -> None:
                 continue
             dt = float(rs[0].meta["dt_s"])
             steps, serie = obs.mean_speed_series(rs[0])
-            evo[order.lower()] = (steps * dt, serie, None)
+            evo[_es_label(order)] = (steps * dt, serie, None)
         if evo:
             etag = _label_key((rule, f"p{p_rep:g}", "incremental"))
             plots.plot_time_evolution(evo, figdir / f"evolucion_temporal_incremental_{etag}.png")
@@ -346,7 +373,7 @@ def main() -> None:
                 for order in orders_here:
                     rs = fd_groups.get((rule, order, protocol, p_rep), [])
                     if rs:
-                        curves[order] = obs.fundamental_diagram(rs, cut, window=args.fd_window)
+                        curves[_es_label(order)] = obs.fundamental_diagram(rs, cut, window=args.fd_window)
                 suffix, legend_title = f"_p{p_rep:g}", "orden de inserción"
             else:
                 for p in ps_here:

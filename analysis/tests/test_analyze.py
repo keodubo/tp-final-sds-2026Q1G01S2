@@ -70,6 +70,18 @@ def test_fixed_groups_rechazan_corridas_duplicadas_por_clave_logica():
         analyze.group_fixed_runs([original, renamed_copy])
 
 
+def test_dedup_marca_misma_realizacion_con_distinto_output_every_como_duplicada():
+    # La cadencia de muestreo (output_every) no es parte de la identidad física de la realización:
+    # la misma corrida muestreada a dos cadencias es UN duplicado, no dos realizaciones. Debe fallar
+    # el guard, no promediarse dos veces (lo que inflaría M y achicaría el desvío entre realizaciones).
+    original = make_run(protocol="FIXED_N", order="RANDOM", n=10, p=0.1, realizacion_id=9, output_every=1)
+    remuestreo = make_run(protocol="FIXED_N", order="RANDOM", n=10, p=0.1, realizacion_id=9,
+                          output_every=50)
+
+    with pytest.raises(ValueError, match="duplicada"):
+        analyze.group_fixed_runs([original, remuestreo])
+
+
 def test_incremental_speed_groups_windows_by_actual_vehicle_count_and_order():
     # dt=60 s => cada ventana de 180 s contiene 3 pasos registrados.
     run_a = make_run(

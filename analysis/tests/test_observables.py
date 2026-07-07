@@ -1,4 +1,6 @@
 """Tests blackbox (solo comportamiento observable) de los observables, sobre datos sintéticos."""
+import warnings
+
 import numpy as np
 
 import observables as obs
@@ -60,6 +62,18 @@ def test_density_pdf_sin_vecino_devuelve_nan():
 
     assert centros.shape == (3,)
     assert np.all(np.isnan(pdf))
+
+
+def test_pdfs_vacias_devuelven_nan_de_forma_uniforme_sin_advertencia():
+    # velocity_pdf debe manejar la entrada vacía IGUAL que density_pdf: centros del rango + vector de
+    # NaN, sin llamar a np.histogram (que con density=True y arreglo vacío emite RuntimeWarning y NaNs).
+    run = make_run(np.zeros((1, 1)), np.zeros((1, 1)), n=1)
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")  # cualquier RuntimeWarning haría fallar el test
+        centros_v, pdf_v = obs.velocity_pdf(run, since_step=999, bins=4, v_range=(0.0, 130.0))
+        centros_d, pdf_d = obs.density_pdf(run, since_step=999, bins=4, rho_range=(0.0, 0.03))
+    assert centros_v.shape == (4,) and np.all(np.isnan(pdf_v))
+    assert centros_d.shape == (4,) and np.all(np.isnan(pdf_d))
 
 
 def test_fundamental_diagram_sin_vecino_devuelve_vacio():

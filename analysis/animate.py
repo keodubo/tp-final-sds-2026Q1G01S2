@@ -37,6 +37,23 @@ from run_io import load_run
 FONTSIZE = 20
 DEFAULT_VMAX_MMPS = 120.0  # respaldo si la cabecera no trae vfree_max_mmps
 
+# Traducción de los enums internos del motor a texto legible en español para el panel VISIBLE de la
+# animación. No afecta nombres de archivo ni claves internas.
+_ETIQUETAS_ES = {
+    "CONTACTO_PURO": "contacto puro",
+    "CLASICA_SALVO_CERO": "clásica",
+    "FIXED_N": "N fijo",
+    "INCREMENTAL_180S": "incremental",
+    "ASCENDING": "creciente",
+    "DESCENDING": "decreciente",
+    "RANDOM": "aleatorio",
+}
+
+
+def _es(value) -> str:
+    """Traduce un enum interno del motor a su etiqueta en español para el panel visible."""
+    return _ETIQUETAS_ES.get(str(value), str(value))
+
 
 # --------------------------------------------------------------------------------------------------
 # Funciones puras (sin efectos secundarios) — cubiertas por tests de comportamiento.
@@ -69,12 +86,12 @@ def config_lines(meta: dict) -> list[str]:
     Para ``FIXED_N`` el orden no aplica (la cabecera trae ``order=SIN_ORDEN``).
     """
     order = meta.get("order")
-    order_txt = "no aplica" if order in (None, "", "SIN_ORDEN") else str(order)
+    order_txt = "no aplica" if order in (None, "", "SIN_ORDEN") else _es(order)
     return [
         f"N = {meta.get('N')}",
         f"p = {meta.get('p')}",
-        f"regla = {meta.get('regla2')}",
-        f"protocolo = {meta.get('protocol')}",
+        f"regla = {_es(meta.get('regla2'))}",
+        f"protocolo = {_es(meta.get('protocol'))}",
         f"orden = {order_txt}",
         f"realización = {meta.get('realizacion_id')}",
     ]

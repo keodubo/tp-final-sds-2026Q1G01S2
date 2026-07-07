@@ -150,6 +150,15 @@ def velocity_pdf(runs, since_step: int = 0, bins: int = 100, v_range=None):
     Devuelve (centros, pdf)."""
     vs = [run.v_mmps[run.step >= since_step] for run in _as_runs(runs)]
     v = np.concatenate(vs) if vs else np.array([])
+    if v.size == 0:
+        # Misma guarda que density_pdf: con arreglo vacío, np.histogram(..., density=True) devuelve
+        # un vector todo-NaN y emite RuntimeWarning. Se devuelven los centros del rango y NaN sin
+        # llamar a histogram, para un manejo de vacío uniforme entre ambas PDFs.
+        if v_range is None:
+            edges = np.linspace(0.0, 1.0, bins + 1)
+        else:
+            edges = np.linspace(v_range[0], v_range[1], bins + 1)
+        return 0.5 * (edges[:-1] + edges[1:]), np.full(bins, np.nan)
     hist, edges = np.histogram(v, bins=bins, range=v_range, density=True)
     return 0.5 * (edges[:-1] + edges[1:]), hist
 
