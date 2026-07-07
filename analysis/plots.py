@@ -1,5 +1,5 @@
 """Figuras del informe/presentación. Siguen las guías de formato de la cátedra:
-- ejes con leyendas en PALABRAS y unidades MKS entre paréntesis (GuiaPresentaciones 1.8);
+- ejes con leyendas en PALABRAS y unidades SI (mm, mm/s) entre paréntesis (GuiaPresentaciones 1.8);
 - tamaño de fuente grande (≥ 20) similar al del texto de la diapositiva (1.8);
 - datos promedio marcados con símbolo y barra de error; las rectas solo como guía para el ojo (2.4.6);
 - escala logarítmica cuando los datos abarcan varios órdenes de magnitud (2.4.7);

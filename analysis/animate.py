@@ -7,8 +7,8 @@ rectángulo de largo ``ℓ`` coloreado por su **velocidad**, derivada post-simul
 escribe variables físicas ``id, x, v``; nunca color).
 
 Cumple las guías de la cátedra:
-- ejes rotulados en palabras con unidad MKS y fuente grande; barra de color anclada a un **máximo
-  físico fijo** (``vfree_max_mmps``) para que el color signifique lo mismo en todas las figuras;
+- ejes rotulados en palabras con unidad SI (mm, mm/s) y fuente grande; barra de color anclada a un
+  **máximo físico fijo** (``vfree_max_mmps``) para que el color signifique lo mismo en todas las figuras;
 - panel compacto de parámetros **al costado**, en su propio recuadro con margen: N (activos y nominal),
   p, regla, protocolo, orden, **realización** (nunca "seed"/"semilla") y tiempo en segundos;
 - el fotograma fijo (PNG que va al PDF, donde no van animaciones) se toma en el **estado estacionario**

@@ -312,7 +312,7 @@ tp-final-sds-2026Q1G01S2/
 ```
 
 - **Nombres de entregables:** `SdS_TPFinal_2026Q1G01S2_Informe.pdf`,
-  `SdS_TPFinal_2026Q1G01S2_Presentación.pdf`.
+  `SdS_TPFinal_2026Q1G01S2_Presentacion.pdf`.
 - **Código de grupo:** `G01S2` (confirmado). Nota: los TP2–TP5 previos se entregaron como `G01CS2`;
   para este TP se usa `G01S2`.
 
@@ -354,7 +354,7 @@ invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad)
 | 5 | Matriz (N, p, variante, orden, protocolo) + observables Python | ✅ completado (barrido oficial corrido: 1350 corridas CONTACTO_PURO) |
 | 6 | Figuras + animaciones + comparación con el artículo | ✅ completado (figuras + animación; estacionario elegido por inspección, `--since-step 2000`) |
 | 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente (extensión opcional) |
-| 8 | Informe (GuiaInformes) + presentación (20 min) con links a animaciones | ✅ completado (PDFs finales versionados, regenerables con `scripts/generar_entrega.sh`) |
+| 8 | Informe (GuiaInformes) + presentación (~10-15 min) con links a animaciones | ✅ completado (PDFs finales versionados, regenerables con `scripts/generar_entrega.sh`) |
 
 > **Estado (snapshot v1):** el **motor y el análisis están implementados y verificados** (suite JUnit +
 > pytest en verde; 0 solapamientos; reproducibilidad; flujo corrible que genera figuras del núcleo,

@@ -35,8 +35,15 @@ for cmd in java mvn pdflatex; do
         preflight_ok=0
     fi
 done
+# La presentación usa \documentclass{beamer}: chequear la clase, no solo el binario pdflatex.
+if command -v kpsewhich >/dev/null 2>&1; then
+    if ! kpsewhich beamer.cls >/dev/null 2>&1; then
+        echo "  FALTA: la clase LaTeX 'beamer' (paquete beamer de TeX Live)." >&2
+        preflight_ok=0
+    fi
+fi
 if [ "$preflight_ok" -eq 0 ]; then
-    echo "  -> Necesitás JDK 21 + Maven (java, mvn) y pdflatex con beamer instalados y en PATH." >&2
+    echo "  -> Necesitás JDK 21 + Maven (java, mvn) y pdflatex con la clase beamer instalados y en PATH." >&2
 fi
 if ! python3 -c "import numpy, matplotlib, scipy, PIL" >/dev/null 2>&1; then
     echo "  FALTA: python3 no puede importar numpy/matplotlib/scipy/pillow." >&2

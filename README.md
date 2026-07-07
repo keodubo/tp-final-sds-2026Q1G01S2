@@ -125,7 +125,7 @@ python3 -c "import animate; animate.animate('../data/<archivo>.txt')"
 
 ## 🎬 Animaciones (siguen las guías de formato)
 
-Estándar de la cátedra (`docs/Guias de Formato/GuiaPresentaciones.pdf`, puntos 2.4.1, 2.4.8 y 1.7–1.9),
+Estándar de la cátedra (guía externa *GuiaPresentaciones* de la materia, no versionada en este repo; puntos 2.4.1, 2.4.8 y 1.7–1.9),
 ya implementado en `animate.py`:
 
 - Una **animación característica por parámetro estudiado**, idealmente con **dos valores extremos** para
