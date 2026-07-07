@@ -195,7 +195,9 @@ Para el protocolo incremental, agregar un lote de vehículos se hace por
 de uno existente y los que le siguen se corren hacia adelante lo mínimo necesario para
 no solaparse, consolidando el espacio libre de la ruta. Esto permite alcanzar $N=30$,
 donde $30\,\ell = L$ y la ruta queda exactamente llena a contacto. El constructor de la
-ruta valida el no-solapamiento en cada inserción y en cada paso. La CLI registra el estado
+ruta valida el no-solapamiento al armar la condición inicial y en cada inserción; en los
+pasos ordinarios el no-solapamiento queda garantizado por construcción de la Regla 2
+(Ec.~\eqref{eq:r2a}, $d_i \le g_i + d_{i+1}$). La CLI registra el estado
 \emph{antes} de ejecutar cada paso, por lo que un lote insertado en el paso $k$ se observa
 a partir de la muestra $k+1$; las fases del protocolo incremental quedan definidas por el
 $N$ activo real de cada cuadro.
