@@ -161,6 +161,27 @@ unidades sin itálica; en las **figuras**, los ejes van en palabras con unidades
 
 ---
 
+## 📦 Reproducir la entrega desde un clon limpio
+
+Los directorios `data/`, `figures/` y `data_anim/` **no se versionan** (son grandes y regenerables;
+ver [`.gitignore`](.gitignore)). Los **PDFs finales** (`informe/*.pdf`, `presentacion/*.pdf`) **sí se
+versionan**: son el entregable y se pueden abrir sin compilar nada. Para regenerar todo —datos,
+figuras, fotogramas hero y ambos PDFs— desde cero, con un solo comando:
+
+```bash
+scripts/generar_entrega.sh          # variante oficial CONTACTO_PURO (~8–12 min, ~0,9 GB en disco)
+```
+
+El script construye el motor, corre el barrido (1350 corridas: 900 N-fijo + 450 incremental, 30
+realizaciones), calcula las figuras (`analyze.py --since-step 2000 --p-representativo 0.1`), la
+validación triangular (`validacion.py`), los fotogramas hero (`animate.py`, nombres alineados a los
+`.tex`) y compila informe y presentación (`pdflatex` ×2). Requiere JDK 21, Maven, Python 3.12 con
+`analysis/requirements.txt` y `pdflatex` con `beamer`. El corte del estacionario (`--since-step 2000`)
+quedó elegido por inspección de la evolución temporal y registrado por punto en
+`figures/manifiesto.csv`.
+
+---
+
 ## Estado del proyecto
 
 Ver la tabla de **hitos** al final del documento de diseño. Resumen:
@@ -170,6 +191,6 @@ Ver la tabla de **hitos** al final del documento de diseño. Resumen:
 - [x] Hito 2 — Motor NaSch (R1–R4, variante B) con tests de invariantes (TDD)
 - [x] Hito 3 — Validación `p=0` (variante B) contra el diagrama fundamental analítico
 - [x] Hito 4 — Variante A (contacto puro) + resolución de agrupamientos
-- [x] Hito 5 — Matriz + observables Python (**falta correr** el barrido)
-- [x] Hito 6 — Código de figuras + animación (la comparación final requiere correr el barrido y elegir estacionario)
-- [ ] Hitos 7–8 — sensibilidades, informe y presentación (tras correr las simulaciones)
+- [x] Hito 5 — Matriz + observables Python (barrido corrido: 1350 corridas CONTACTO_PURO)
+- [x] Hito 6 — Figuras + animación generadas; estacionario elegido por inspección (`--since-step 2000`)
+- [x] Hitos 7–8 — informe y presentación finales (PDFs versionados; regenerables con `scripts/generar_entrega.sh`)

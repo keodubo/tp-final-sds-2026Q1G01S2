@@ -30,10 +30,12 @@ data_anim/
 promptmaestro.md
 .fable-tmp/
 
-# LaTeX (intermedios)
+# LaTeX (intermedios; los PDFs finales de informe y presentación SÍ se versionan como entregable)
 *.aux
 *.log
 *.out
 *.toc
 *.synctex.gz
-informe/*.pdf
+*.nav
+*.snm
+*.vrb
