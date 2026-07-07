@@ -420,8 +420,12 @@ puro, $p=0{,}1$; protocolo incremental). Comparar con la Fig.~2 del artículo~[1
 
 Las distribuciones por orden (Figura~\ref{fig:pdf-inc}, análogas a las Figs.~3 y 4 del
 artículo) separan las fases por $N$ activo: el pico de densidad se corre hacia el contacto
-y la PDF de velocidad se angosta al aumentar $N$, de forma más marcada en el orden
-creciente.
+al aumentar $N$. En el orden creciente (el mostrado) la PDF de velocidad es casi
+\emph{independiente} de $N$: el agente más lento está presente desde $N=5$, de modo que la
+distribución queda anclada en velocidades bajas ($\approx90\unit{mm/s}$). El corrimiento
+marcado con $N$ aparece en cambio en el orden decreciente, que parte de velocidades altas
+($\approx116\unit{mm/s}$ a $N=5$) y se desplaza hacia abajo al ir agregándose los agentes
+más lentos (hasta $\approx81\unit{mm/s}$ a $N=30$).
 
 \begin{figure}[H]\centering
 \includegraphics[width=0.49\linewidth]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}\hfill
@@ -502,10 +506,13 @@ que enmarcan las conclusiones:
   $\Delta v=6\unit{mm/s}$; el modelo no reproduce colas instantáneas finas de velocidad.
   \item \textbf{Forma de la PDF de velocidad.} El modelo reproduce la tendencia de
   angostamiento y corrimiento con $N$, pero no la forma: su PDF son deltas cuantizadas
-  ($\Delta v=6\unit{mm/s}$) con pico en $\approx90\unit{mm/s}$, mientras el experimento
-  tiene una distribución suave con pico en $\approx65\unit{mm/s}$ y cola hasta
-  $\approx300\unit{mm/s}$. Al agruparse detrás del más lento, el modelo no puebla
-  velocidades por debajo de la del agente más lento presente.
+  ($\Delta v=6\unit{mm/s}$) con la moda entre $\approx84$ y $90\unit{mm/s}$ (la velocidad
+  del cúmulo bloqueado por el más lento, en saturación un cuanto por debajo de su velocidad
+  libre), mientras el experimento tiene una distribución suave con pico en
+  $\approx65\unit{mm/s}$ y cola hasta $\approx300\unit{mm/s}$. Al agruparse rígidamente
+  detrás del más lento, la velocidad microscópica del modelo queda concentrada cerca de la
+  del cúmulo y \emph{no} reproduce la población ancha de baja velocidad
+  ($\approx30$--$65\unit{mm/s}$) que muestra el experimento.
   \item \textbf{$p$ representativo.} Las figuras microscópicas se muestran a $p=0{,}1$; no
   son automáticamente representativas de todo $p$ (el barrido completo en $p$ está en los
   datos).
