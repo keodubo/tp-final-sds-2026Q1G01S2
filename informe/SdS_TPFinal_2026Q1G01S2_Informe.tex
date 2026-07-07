@@ -79,7 +79,7 @@ $18\unit{mm}$ de ancho y $\approx1313\unit{mm}$ de longitud efectiva, que admite
 $30$ vehículos. Cada robot avanza por la rectificación de su vibración sobre cerdas
 asimétricas; caracterizados individualmente, sus velocidades libres se distribuyen de
 forma aproximadamente uniforme en $[90,120]\unit{mm/s}$. El experimento se filma a
-$24\unit{fps}$ y se mide la velocidad de cada agente por diferencias finitas.
+$24$ cuadros/s y se mide la velocidad de cada agente por diferencias finitas.
 
 Sus hallazgos, que este trabajo se propone reproducir como \emph{tendencias}, son:
 (i) la velocidad media permanece casi constante a densidad baja y media y cae entre
@@ -197,7 +197,7 @@ no solaparse, consolidando el espacio libre de la ruta. Esto permite alcanzar $N
 donde $30\,\ell = L$ y la ruta queda exactamente llena a contacto. El constructor de la
 ruta valida el no-solapamiento al armar la condición inicial y en cada inserción; en los
 pasos ordinarios el no-solapamiento queda garantizado por construcción de la Regla 2
-(Ec.~\eqref{eq:r2a}, $d_i \le g_i + d_{i+1}$). La CLI registra el estado
+(Ec.~\eqref{eq:r2a}, $d_i \le g_i + d_{i+1}$). La herramienta de línea de comandos registra el estado
 \emph{antes} de ejecutar cada paso, por lo que un lote insertado en el paso $k$ se observa
 a partir de la muestra $k+1$; las fases del protocolo incremental quedan definidas por el
 $N$ activo real de cada cuadro.
@@ -420,7 +420,7 @@ puro, $p=0{,}1$; protocolo incremental). Comparar con la Fig.~2 del artículo~[1
 \label{fig:vN-inc}
 \end{figure}
 
-Las distribuciones por orden (Figura~\ref{fig:pdf-inc}, análogas a las Figs.~3 y 4 del
+Las distribuciones por orden (Figura~\ref{fig:pdf-inc}, análogas a las Figs.~3A y 4A del
 artículo) separan las fases por $N$ activo: el pico de densidad se corre hacia el contacto
 al aumentar $N$. En el orden creciente (el mostrado) la PDF de velocidad es casi
 \emph{independiente} de $N$: el agente más lento está presente desde $N=5$, de modo que la
