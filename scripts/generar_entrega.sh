@@ -6,7 +6,7 @@
 # evaluador que clone el repo reconstruye todo con este único script.
 #
 # Uso:
-#   scripts/generar_entrega.sh                 # sweep CONTACTO_PURO (oficial), ~8-12 min, ~0.8 GB
+#   scripts/generar_entrega.sh                 # sweep CONTACTO_PURO (oficial), ~8-12 min, ~0,85 GB
 #   RULES="CONTACTO_PURO CLASICA_SALVO_CERO" scripts/generar_entrega.sh   # barrido completo (~2700)
 #
 # Requisitos: JDK 21 (JAVA_HOME o java en PATH), Maven, Python 3.12 con
@@ -24,6 +24,33 @@ if [ -f analysis/.venv/bin/activate ]; then
     # shellcheck disable=SC1091
     source analysis/.venv/bin/activate
 fi
+
+# --- PREFLIGHT: verifica el entorno y falla rápido, ANTES del build y del barrido
+# (evita descubrir recién a los ~10 min, dentro de analyze.py, que falta una dependencia).
+echo "== [0/6] Preflight: verificando entorno =="
+preflight_ok=1
+for cmd in java mvn pdflatex; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "  FALTA en PATH: '$cmd'" >&2
+        preflight_ok=0
+    fi
+done
+if [ "$preflight_ok" -eq 0 ]; then
+    echo "  -> Necesitás JDK 21 + Maven (java, mvn) y pdflatex con beamer instalados y en PATH." >&2
+fi
+if ! python3 -c "import numpy, matplotlib, scipy" >/dev/null 2>&1; then
+    echo "  FALTA: python3 no puede importar numpy/matplotlib/scipy." >&2
+    echo "  -> Creá el venv e instalá las dependencias, por ejemplo:" >&2
+    echo "       python3 -m venv analysis/.venv && source analysis/.venv/bin/activate" >&2
+    echo "       pip install -r analysis/requirements.txt" >&2
+    echo "     (o instalá analysis/requirements.txt en tu python3 del sistema)." >&2
+    preflight_ok=0
+fi
+if [ "$preflight_ok" -ne 1 ]; then
+    echo "Preflight FALLÓ: instalá lo que falta y volvé a correr (no se ejecutó el pipeline)." >&2
+    exit 1
+fi
+echo "  OK: java, mvn, pdflatex y python3 (numpy/matplotlib/scipy) disponibles."
 
 RULES="${RULES:-CONTACTO_PURO}"          # oficial por defecto; la triangular la hace validacion.py
 REALIZATIONS="${REALIZATIONS:-30}"

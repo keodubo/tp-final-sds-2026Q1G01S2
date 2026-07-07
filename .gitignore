@@ -30,6 +30,7 @@ data_anim/
 promptmaestro.md
 .fable-tmp/
 scratch_audit/
+.impeccable/
 
 # LaTeX (intermedios; los PDFs finales de informe y presentación SÍ se versionan como entregable)
 *.aux

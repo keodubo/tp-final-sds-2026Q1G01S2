@@ -63,7 +63,7 @@ Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre 
 
 ## Convenciones del repo
 
-- Entregables: `SdS_TPFinal_2026Q1G01S2_Informe.pdf`, `SdS_TPFinal_2026Q1G01S2_Presentación.pdf`.
+- Entregables: `SdS_TPFinal_2026Q1G01S2_Informe.pdf`, `SdS_TPFinal_2026Q1G01S2_Presentacion.pdf`.
 - Documentos de trabajo: `YYYY-MM-DD_tema_vN.md`.
 - Una **realización** = condiciones iniciales concretas + velocidades libres concretas + secuencia
   reproducible del PRNG. En CLI puede seguir existiendo `--seed` como identificador técnico.

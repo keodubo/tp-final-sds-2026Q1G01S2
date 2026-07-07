@@ -76,7 +76,7 @@ python3 -m pytest tests -q                 # tests de comportamiento de los obse
 
 El barrido **oficial** usa **solo la variante A (CONTACTO_PURO)**: ambos protocolos (N fijo +
 incremental), los 3 órdenes de inserción, `N ∈ {5,10,15,20,25,30}`, `p ∈ {0, 0.1, 0.2, 0.3, 0.4}` y
-30 realizaciones. Son **1350 corridas** (~8–12 min, ~0,9 GB en disco gracias a `--output-every 10`).
+30 realizaciones. Son **1350 corridas** (~8–12 min, ~0,85 GB en disco gracias a `--output-every 10`).
 Los observables se calculan **después**, nunca durante la simulación.
 
 La variante B (CLASICA_SALVO_CERO) **no** entra en este barrido: se corre únicamente en su **régimen de
@@ -131,7 +131,7 @@ ya implementado en `animate.py`:
 - Una **animación característica por parámetro estudiado**, idealmente con **dos valores extremos** para
   mostrar comportamientos distintos: p. ej. **baja densidad (N=5, flujo libre)** vs **alta densidad
   (N=30, congestión)**; y los **tres órdenes** de inserción en el protocolo incremental.
-- Ejes con leyenda **en palabras + unidad MKS** (`posición (mm)`), **fuente ≥ 20**, **barra de color**
+- Ejes con leyenda **en palabras + unidad física** (SI: mm, mm/s; p. ej. `posición (mm)`), **fuente ≥ 20**, **barra de color**
   rotulada (`velocidad (mm/s)`), tiempo en segundos, y los **parámetros fijos al costado** de la figura.
 - **Tiempo real** por defecto (24 fps si la corrida se generó con `--output-every 1`, igual que la
   cámara del experimento de 24 fps).
@@ -191,7 +191,7 @@ versionan**: son el entregable y se pueden abrir sin compilar nada. Para regener
 figuras, fotogramas hero y ambos PDFs— desde cero, con un solo comando:
 
 ```bash
-scripts/generar_entrega.sh          # variante oficial CONTACTO_PURO (~8–12 min, ~0,9 GB en disco)
+scripts/generar_entrega.sh          # variante oficial CONTACTO_PURO (~8–12 min, ~0,85 GB en disco)
 ```
 
 El script construye el motor, corre el barrido (1350 corridas: 900 N-fijo + 450 incremental, 30
@@ -200,7 +200,8 @@ validación triangular (`validacion.py`), los fotogramas hero (`animate.py`, nom
 `.tex`) y compila informe y presentación (`pdflatex` ×2). Requiere JDK 21, Maven, Python 3.12 con
 `analysis/requirements.txt` y `pdflatex` con `beamer`. El corte del estacionario (`--since-step 2000`)
 quedó elegido por inspección de la evolución temporal y registrado por punto en
-`figures/manifiesto.csv`.
+`figures/manifiesto.csv`. La integridad de los binarios versionados (ambos PDFs + el artículo
+`extras/FD_VDV.pdf`) se puede verificar con `sha256sum -c SHA256SUMS`.
 
 > **Entorno Python:** el script corre con las dependencias de `analysis/` (`numpy`, `matplotlib`,
 > `scipy` de `requirements.txt`). Si creaste el venv en `analysis/.venv` (paso 2 de *Análisis*), el
