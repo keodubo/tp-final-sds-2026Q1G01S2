@@ -127,3 +127,24 @@ Estado P0: pendiente el acto de commitear los PDFs finales (se hace en los commi
 - Informe y presentación compilan (o PDFs finales versionados y justificados).
 - Sin placeholders, URLs ficticias ni vocabulario prohibido.
 - Resultados no sobreprometen respecto del paper/modelo.
+
+### Ronda 2 — 6 auditores (workflow, 806K tokens, ~15 min)
+**14 hallazgos: 0 P0, 0 P1, 5 P2, 9 P3.** Criterio duro (sin P0/P1) CUMPLIDO. Físico/motor/estadística
+confirman correctitud (fuzz 200k = 0 solapamientos; números del informe = datos reales). Backlog P2/P3:
+
+| # | Sev | Dom | Hallazgo | Fix |
+|---|---|---|---|---|
+| 22 | P2 | cross | 3 fotogramas hero incrementales idénticos (todos N=30 lleno) | still_step en fase N=10 + regenerar |
+| 23 | P2 | repro | Script no pre-chequea entorno Python (muere tras 10 min) | preflight deps antes del barrido |
+| 24 | P2 | docs | Saturación N=30 con más cifras que el error; media no repr. en gridlock | redondear al error; p≥0.3 = congelado (mediana) |
+| 25 | P2 | docs | Captions prometen animaciones sin link (data_anim gitignored) | redacción honesta (regenerable con script) |
+| 26 | P2 | engine | "p=0 no consume PRNG" sin test behavior-only | RandomBrakeTest con RNG espía |
+| 27 | P3 | docs | "snapshot" en pseudocódigo vs "instantánea" en prosa | unificar |
+| 28 | P3 | analysis | FD incremental: ticks del eje x se solapan, leyenda tapa curva | MaxNLocator + legend loc + regenerar |
+| 29 | P3 | repro | CLAUDE.md nombra PDF "Presentación" con tilde; archivo sin tilde | unificar CLAUDE.md |
+| 30 | P3 | repro | `.impeccable/` no en .gitignore | agregar |
+| 31 | P3 | repro | Sin checksums de binarios versionados | SHA256SUMS |
+| 32 | P3 | analysis | detect_stationary/stationary_cut_step código muerto + comentario inexacto | corregir comentario |
+| 33 | P3 | docs | Mecanismo "agrupa a cualquier densidad" sobre-generaliza p=0 vs p=0.1 | precisar redacción |
+| 34 | P3 | docs | README llama "MKS" a mm (es SI, no base MKS) | → "SI: mm, mm/s" |
+| 35 | P3 | docs | Tamaño en disco 0,9 vs 0,8 GB inconsistente | unificar ~0,85 GB |
