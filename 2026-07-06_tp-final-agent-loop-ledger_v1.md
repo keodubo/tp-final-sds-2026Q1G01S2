@@ -148,3 +148,27 @@ confirman correctitud (fuzz 200k = 0 solapamientos; números del informe = datos
 | 33 | P3 | docs | Mecanismo "agrupa a cualquier densidad" sobre-generaliza p=0 vs p=0.1 | precisar redacción |
 | 34 | P3 | docs | README llama "MKS" a mm (es SI, no base MKS) | → "SI: mm, mm/s" |
 | 35 | P3 | docs | Tamaño en disco 0,9 vs 0,8 GB inconsistente | unificar ~0,85 GB |
+
+### Ronda 2 — 4 correctores por dominio (workflow, 186K tokens) — todos los P2 + P3 valiosos aplicados
+- **analysis**: `nearest_frame_index` + `still_step` (fotograma incremental en fase N=10; los 3 ahora
+  se distinguen por orden, md5 distintos); FD con `MaxNLocator(5)` + leyenda `loc='lower left'`;
+  comentario exacto + helper sin uso removido. +3 tests → **37 pytest**.
+- **engine**: `RandomBrakeTest` (RNG espía: p=0 → 0 extracciones; p>0 → 1; frena sii draw<p). **60 tests**.
+- **entregables**: cifras al error (~45±14); p≥0,3 congelado (mediana ~0); mecanismo a baja densidad
+  preciso (alcance repetido, no agrupamiento permanente); snapshot→instantanea; captions honestos.
+- **config**: preflight en `generar_entrega.sh` (falla rápido si falta entorno); SHA256SUMS; README
+  "SI: mm, mm/s" y disco ~0,85 GB; CLAUDE.md nombre sin tilde; `.impeccable/` en .gitignore.
+
+**Centralizado:** regeneradas figuras (FD legible) + 3 fotogramas incrementales en fase N=10;
+recompilados PDFs (informe 14 págs, presentación 17); `SHA256SUMS` generado y verificado (3/3 OK).
+
+**Verificación ronda 2:** `mvn test` **60** ✓ · `pytest` **37** ✓ · `pdflatex ×2` ambos ✓ ·
+anti-placeholders PDFs LIMPIO ✓ · `git diff --check` limpio ✓.
+
+**Commits ronda 2:** `c1c37d0`..`e049d0b` (analysis / engine / entregables / config+SHA / bitácora).
+
+## Estado de cierre
+- Ronda 2 de auditoría: **0 P0, 0 P1** (criterio duro cumplido). Todos los P2 corregidos; P3 corregidos
+  o con decisión (el "L=1320 vs 5280" de CLAUDE.md es la misma longitud en mm vs celdas, no es inconsistencia).
+- Ronda 3 de auditoría lanzada como confirmación de convergencia/regresiones.
+- 15 commits nuevos sobre `4fde54b`, sin pushear (esperando OK del grupo).
