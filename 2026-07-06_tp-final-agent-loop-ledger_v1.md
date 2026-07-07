@@ -172,3 +172,20 @@ anti-placeholders PDFs LIMPIO ✓ · `git diff --check` limpio ✓.
   o con decisión (el "L=1320 vs 5280" de CLAUDE.md es la misma longitud en mm vs celdas, no es inconsistencia).
 - Ronda 3 de auditoría lanzada como confirmación de convergencia/regresiones.
 - 15 commits nuevos sobre `4fde54b`, sin pushear (esperando OK del grupo).
+
+### Ronda 3 — auditoría (5/6 auditores; el editor tuvo error de reintentos del tool)
+**7 hallazgos: 1 P1, 3 P2, 3 P3** (uno del jurado fue output malformado, descartado). Los técnicos
+(motor: fuzz 200k = 0 solapamientos; estadística: 0 hallazgos; físico: recomputó datos) confirman
+**convergencia y sin regresiones** de los P0/P1 previos. Nuevos:
+- **P1 (regresión):** `still_step` implementado/testeado pero NO cableado en `generar_entrega.sh` → la
+  regeneración canónica dejaba los 3 hero incrementales idénticos (N=30). **Fix:** cablear still_step
+  (fase N=10) en el script y el README; verificado (3 md5 distintos).
+- **P2:** descripción de la PDF de velocidad invertida ("más marcada en creciente" → es DECRECIENTE).
+  Verificado con datos (creciente casi N-independiente 89.8→89.3; decreciente 116→81). **Fix** informe+pres.
+- **P3:** SHA no determinista (pdfTeX embebe fecha) → el script recalcula SHA256SUMS al final.
+- **P3:** preflight no chequeaba versiones/pillow → agregado pillow + reporte de versiones.
+- **P3:** Limitaciones PDF velocidad (moda 84-90, no puebla 30-65) → reformulado.
+
+**Verificación ronda 3:** PDFs recompilan (14/17 págs) ✓ · SHA -c OK ✓ · anti-placeholders LIMPIO ✓ ·
+still_step del script correcto (INC→6480) ✓ · pytest 37 / mvn 60 (sin cambios de código de prod) ✓.
+**Commits:** `9cc87d9` (entregables), `6b0ea7e` (repro).
