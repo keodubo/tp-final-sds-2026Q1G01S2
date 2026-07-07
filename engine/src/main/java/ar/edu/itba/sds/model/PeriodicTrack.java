@@ -80,16 +80,18 @@ public final class PeriodicTrack {
     }
 
     /**
-     * Verifica los invariantes geométricos: cada gap ≥ 0 y la suma de huecos más los cuerpos cubre
-     * exactamente la línea (no hay solapamiento ni inconsistencia). Lo usan los tests.
+     * Verifica el invariante geométrico: la suma de huecos más los cuerpos cubre exactamente la
+     * línea, es decir da una sola vuelta al anillo (no hay solapamiento ni inconsistencia). Cada
+     * {@code gapAhead} ya es no-negativo por construcción ({@link Math#floorMod} devuelve
+     * {@code [0, L)}), así que la única verificación efectiva es la de la suma: cualquier
+     * solapamiento u ordenamiento inconsistente rompe la igualdad {@code occupied + gaps == L}
+     * (equivale a exigir m=1 vueltas). Lo usan los tests.
      */
     public boolean isConsistent() {
         long occupied = (long) vehicles.size() * vehicleLength;
         long gaps = 0;
         for (int i = 0; i < vehicles.size(); i++) {
-            int g = gapAhead(i);
-            if (g < 0) return false;
-            gaps += g;
+            gaps += gapAhead(i);
         }
         return occupied + gaps == latticeLength;
     }
