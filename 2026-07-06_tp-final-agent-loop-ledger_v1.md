@@ -240,3 +240,23 @@ P3 corregidos: cita cruzada 3A/4A unificada; "La CLI" → "la herramienta de lí
 Loop CONVERGIDO. Ronda 4 + editor: **0 P0/P1/P2**. P3 corregidos o aceptados con decisión. 23 commits
 sobre `4fde54b`, **sin pushear**. Verificación final: Java 60 · pytest 37 · ambos PDF compilan (14/17 págs)
 · SHA256SUMS -c OK · anti-placeholders LIMPIO · git diff --check limpio.
+
+## Cierre de entrega (2026-07-07, con datos del grupo)
+Keo aportó nombres+legajos (Arias 62272, Dubovitsky 62815, Tognetti 61215) y pidió chequear contra las
+guías de la cátedra y mergear a main.
+
+- **Nombres/legajos** agregados a la carátula del informe y la presentación (recompilados; carátulas OK).
+- **Chequeo de cumplimiento vs guías** (2 revisores, informe vs GuiaInformes / presentación vs
+  GuiaPresentaciones; las guías literales NO están versionadas → se chequeó contra las reglas de la
+  cátedra en CLAUDE.md). Veredicto: **CUMPLE** todas las reglas estructurales/de contenido; solo formato
+  menor. Corregido:
+  - **P2 separador decimal**: figuras usaban punto (0.1), la prosa coma (0,1). Se agregó coma decimal a
+    ticks y leyendas (`plots.py` FuncFormatter + `_coma`; eje log intacto), al panel de fotogramas
+    (`animate.py`) y a la validación. Figuras regeneradas.
+  - **P3 anglicismos**: "PDF" (sigla inglesa) → "distribución"/"función de densidad" (9 en informe + 3 en
+    presentación); "preprint" → "prepublicación"; "sensado remoto" → "percepción remota".
+- **Verificación:** informe 14 págs + presentación 17 págs compilan ✓ · pytest 37 ✓ · SHA 3/3 OK ✓ ·
+  PDFs sin anglicismos (seed/snapshot/sensado/preprint/CLI/fps/PDF) ✓.
+- **Aceptado (external/no-bloqueante):** links de animaciones (captions honestos apuntan al script);
+  separador decimal ya resuelto; media página en blanco pág. 8.
+- **Merge a `main`** (fast-forward) tras estos commits.
