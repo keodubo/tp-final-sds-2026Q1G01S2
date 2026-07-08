@@ -1,6 +1,6 @@
 % ============================================================================
 %  Guion de defensa — TP Final SdS (72.25) — ITBA — 2026 Q1 — Grupo G01S2
-%  Sincronizado con SdS_TPFinal_2026Q1G01S2_Presentacion.pdf (17 diapositivas).
+%  Sincronizado con SdS_TPFinal_2026Q1G01S2_Presentacion.pdf (18 diapositivas).
 %  Compilar: pdflatex guion-defensa_v1.tex
 % ============================================================================
 \documentclass[11pt,a4paper]{article}
@@ -29,6 +29,7 @@
   \textcolor{#4}{\textbf{[#3]}}\hfill{\itshape\small(#5)}\par\nobreak\smallskip
 }
 \newcommand{\relevo}[1]{\hfill\textbf{\itshape #1}}
+\newcommand{\videocue}[1]{\textcolor{cian!85!black}{\textbf{[$\blacktriangleright$ REPRODUCIR: #1]}}\ }
 
 \setlength{\parindent}{0pt}
 
@@ -39,33 +40,33 @@
   {\large Diagrama fundamental de vehículos dirigidos por vibración (VDV)}\\[6pt]
   72.25 Simulación de Sistemas --- ITBA --- 2026 Q1 --- \textbf{Grupo G01S2}\\[4pt]
   \textcolor{cnico}{\textbf{Nico}} \; · \; \textcolor{cian}{\textbf{Ian}} \; · \; \textcolor{ckeo}{\textbf{Keo}}
-  \hspace{1.5em}|\hspace{1.5em}\textbf{Objetivo: $\le 12$ min}\\[2pt]
-  {\small Sincronizado con las 17 diapositivas de \texttt{Presentacion.pdf}. Modalidad online: cada uno lee su parte.}
+  \hspace{1.5em}|\hspace{1.5em}\textbf{Objetivo: $\sim$12 min}\\[2pt]
+  {\small Sincronizado con las 18 diapositivas de \texttt{Presentacion.pdf}. Online: cada uno habla su bloque de corrido.}
 \end{center}
 
 \vspace{2pt}
 \hrule
 \vspace{6pt}
 
-\section*{Reparto}
+\section*{Reparto (tres bloques de corrido, solo dos relevos)}
 
 \begin{center}
 \begin{tabular}{llll}
 \toprule
 \textbf{Bloque} & \textbf{Diapos} & \textbf{Presenta} & \textbf{Tiempo} \\
 \midrule
-Apertura y contexto & 1--3 & \textcolor{cnico}{\textbf{Nico}} & $\sim$2:40 \\
-Modelo y motor & 4--7 & \textcolor{cian}{\textbf{Ian}} & $\sim$2:30 \\
-Simulaciones y primeros resultados & 8--11 & \textcolor{ckeo}{\textbf{Keo}} & $\sim$2:40 \\
-Orden, distribuciones, FD, validación y límites & 12--16 & \textcolor{cian}{\textbf{Ian}} & $\sim$3:20 \\
-Conclusiones & 17 & \textcolor{cnico}{\textbf{Nico}} & $\sim$0:45 \\
+Contexto y modelo & 1--6 & \textcolor{cnico}{\textbf{Nico}} & $\sim$4:00 \\
+Motor, corridas y dinámica ($N$ fijo) & 7--12 & \textcolor{cian}{\textbf{Ian}} & $\sim$4:15 \\
+Resultados del orden, validación y cierre & 13--18 & \textcolor{ckeo}{\textbf{Keo}} & $\sim$4:05 \\
 \bottomrule
 \end{tabular}
 \end{center}
 
-\textbf{Tips:} al pasar de diapositiva, el que recibe arranca con el relevo que ya está escrito. Ritmo
-tranquilo ($\sim$150 palabras/min). Los tiempos son una guía: tomen el tiempo al ensayar y recorten donde
-se estire.
+\textbf{Videos:} las diapos \textbf{9} y \textbf{12} tienen animaciones (los fotogramas son clicables y abren
+el \texttt{.mp4}). Si el visor bloquea el click, tengan los \texttt{.mp4} de \texttt{data\_anim/} abiertos en un
+reproductor y los pasan al compartir pantalla. Dejen correr el video mientras leen el texto de esa diapo.
+
+\textbf{Tips:} ritmo tranquilo ($\sim$150 palabras/min). Tomen el tiempo al ensayar y recorten donde se estire.
 
 \vspace{4pt}
 \hrule
@@ -73,156 +74,136 @@ se estire.
 
 \section*{Guion}
 
-% ---------------------------------------------------------------- NICO 1-3
+% ============================ BLOQUE 1 --- NICO (1-6) ========================
 \diapo{1}{Portada}{NICO}{cnico}{20 s}
-Hola, buenas. Somos el grupo G01S2: yo soy Nico Arias, y conmigo están Keo Dubovitsky e Ian Tognetti. Lo
-que estudiamos es el \textbf{diagrama fundamental de vehículos dirigidos por vibración}: agarramos un
-autómata celular de Nagel--Schreckenberg, le metimos una interacción por contacto, y con eso reproducimos
-las \textbf{tendencias} que Patterson y Parisi midieron en el experimento. Arranco yo con el sistema real.
+Hola, buenas. Somos el grupo G01S2: Nico Arias, Keo Dubovitsky e Ian Tognetti. Lo que estudiamos es el
+\textbf{diagrama fundamental de vehículos dirigidos por vibración}: agarramos un autómata celular de
+Nagel--Schreckenberg, le metimos una interacción por contacto, y con eso reproducimos las \textbf{tendencias}
+que Patterson y Parisi midieron en el experimento. Arranco con el sistema real.
 
-\diapo{2}{El sistema real: VDV}{NICO}{cnico}{50 s}
-El sistema son unos robots comerciales, los Hexbug Nano, de 44 por 15 por 18 milímetros. Se mueven porque
-la vibración se rectifica sobre unas cerditas asimétricas. Los meten en un canal \textbf{circular} de unos
-1313 milímetros, así que es un sistema de \textbf{una dimensión}, y entran hasta 30. Lo interesante ---y por
-eso se usa este sistema--- es que \textbf{interactúan solo por contacto}: no tienen forma de ``ver'' al de
-adelante para frenar, como sí hace un auto. Cada uno tiene su velocidad libre, repartidas más o menos parejo
-entre 90 y 120 milímetros por segundo. Con esto se \textbf{aísla} la parte del diagrama fundamental que sale
-solo de los choques físicos, sin la frenada voluntaria del tránsito de todos los días.
+\diapo{2}{El sistema real: VDV}{NICO}{cnico}{45 s}
+El sistema son unos robots comerciales, los Hexbug Nano. Se mueven porque la vibración se rectifica sobre unas
+cerditas asimétricas. Los meten en un canal \textbf{circular} de unos 1313 milímetros, así que es un sistema de
+\textbf{una dimensión}, y entran hasta 30. Lo clave ---y por eso se usa este sistema--- es que
+\textbf{interactúan solo por contacto}: no tienen forma de ``ver'' al de adelante para frenar, como sí hace un
+auto. Cada uno tiene su velocidad libre, repartidas más o menos parejo entre 90 y 120 milímetros por segundo.
+Con esto se \textbf{aísla} la parte del diagrama fundamental que sale solo de los choques físicos.
 
-\diapo{3}{Lo que mide el experimento}{NICO}{cnico}{50 s}
-¿Qué es lo que mide el experimento? Cuatro cosas. Una: a densidad baja y media la velocidad media se queda
+\diapo{3}{Lo que mide el experimento}{NICO}{cnico}{45 s}
+¿Qué es lo que mide el experimento? Cuatro cosas. Una: a densidad baja y media la velocidad se queda
 \textbf{casi constante}. Dos: \textbf{cae entre un 25 y un 40 por ciento} cuando te acercás a la densidad de
-contacto. Tres: importa el \textbf{orden} en que vas metiendo los vehículos, ordenados por su velocidad libre
----el aleatorio queda \textbf{acotado} entre el creciente y el decreciente---. Y cuatro: cuando llegás a
-saturación, con los 30, las tres configuraciones \textbf{convergen}, y a una velocidad que encima es más baja
-que la del más lento: hay un colapso colectivo. Nuestra idea es reproducir estas \textbf{tendencias} con un
-modelo barato. \relevo{Ahí te paso, Ian, con el modelo.}
+contacto. Tres: importa el \textbf{orden} en que vas metiendo los vehículos ---el aleatorio queda \textbf{acotado}
+entre el creciente y el decreciente---. Y cuatro: cuando llegás a los 30, las tres configuraciones
+\textbf{convergen}, a una velocidad que encima queda por debajo de la del más lento. Nuestra idea es reproducir
+estas \textbf{tendencias} con un modelo barato.
 
-% ---------------------------------------------------------------- IAN 4-7
-\diapo{4}{Modelo: NaSch con contacto}{IAN}{cian}{50 s}
-Gracias. El modelo es un autómata celular de Nagel--Schreckenberg en una \textbf{ruta periódica de una
-dimensión}, de $L$ celdas. Cada vehículo ocupa $\ell$ celdas y su velocidad es entera, de 0 hasta su máximo.
-La actualización es \textbf{sincrónica}, en el orden R1, R3, R2, R4: acelerar, frenar al azar, resolver los
-contactos, y mover. Lo importante ---y esto lo decidimos a propósito--- es que \textbf{frenamos antes de
-resolver los contactos}: como frenar solo puede achicar el avance, resolver después nos garantiza que nunca
-se solapen dos vehículos. Lo que le cambiamos al Nagel--Schreckenberg original es la Regla 2, la de la
-interacción: la hicimos de \textbf{contacto puro}. El vehículo avanza libre hasta que alcanza al de adelante;
-si lo alcanzaría, queda pegadito a contacto, sin encimarse, y le \textbf{hereda la velocidad}. El
-desplazamiento es el mínimo entre lo que quería avanzar y el hueco más lo que avanza el de adelante, y eso
-asegura que no se solapen.
+\diapo{4}{Modelo: NaSch con contacto}{NICO}{cnico}{50 s}
+El modelo es un autómata celular de Nagel--Schreckenberg en una \textbf{ruta periódica de una dimensión}. Cada
+vehículo ocupa $\ell$ celdas y su velocidad es entera. La actualización es \textbf{sincrónica}, en el orden R1,
+R3, R2, R4: acelerar, frenar al azar, resolver los contactos, y mover. Lo importante ---y lo hicimos a
+propósito--- es que \textbf{frenamos antes de resolver los contactos}: como frenar solo achica el avance,
+resolver después nos garantiza que nunca se solapen. Lo que le cambiamos es la Regla 2, la interacción: la
+hicimos de \textbf{contacto puro}. El vehículo avanza libre hasta que alcanza al de adelante; si lo alcanzaría,
+queda pegadito a contacto y le \textbf{hereda la velocidad}. Esa fórmula del desplazamiento asegura que no se
+encimen.
 
-\diapo{5}{Dos variantes de la Regla 2}{IAN}{cian}{40 s}
+\diapo{5}{Dos variantes de la Regla 2}{NICO}{cnico}{35 s}
 Tenemos dos variantes de esa Regla 2. La \textbf{oficial, la A}, es contacto puro: sin anticipar nada, flujo
-libre hasta el contacto, y cuando alcanza al de adelante le hereda la velocidad. Esa es la física del
-experimento, que interactúa solo por contacto. La otra, la \textbf{B}, es la clásica de Nagel--Schreckenberg
-de manual, donde la velocidad se limita al hueco. Esta B la usamos \textbf{solo para validar} el motor contra
-la solución analítica, en el régimen homogéneo, con $p=0$ y partículas puntuales. Y ojo con esto, que es
-importante: la variante de contacto puro \textbf{no} se valida contra la curva triangular clásica, porque son
-modelos distintos.
+libre hasta el contacto, y al alcanzar al de adelante le hereda la velocidad. Esa es la física del experimento.
+La otra, la \textbf{B}, es la clásica de manual, que usamos \textbf{solo para validar} el motor contra la
+solución analítica. Y ojo: la de contacto puro \textbf{no} se valida contra la curva clásica, son modelos
+distintos.
 
-\diapo{6}{Calibración}{IAN}{cian}{35 s}
-Calibramos la grilla a la geometría del experimento. El paso espacial es un cuarto de milímetro; el temporal,
-uno sobre veinticuatro de segundo ---los 24 cuadros por segundo de la cámara---, que nos da un cuanto de
-velocidad de 6 milímetros por segundo. El vehículo mide 176 celdas, o sea 44 milímetros. Y elegimos la pista
-de 5280 celdas, 1320 milímetros, que es justo \textbf{30 veces el largo del vehículo}. Con eso, cuando ponés
-los 30, la ruta queda \textbf{exactamente llena a contacto}, con la densidad de contacto de 1 sobre 44
-milímetros.
+\diapo{6}{Calibración}{NICO}{cnico}{30 s}
+Y calibramos todo a la geometría del experimento: el paso espacial es un cuarto de milímetro; el temporal, uno
+sobre veinticuatro de segundo ---24 cuadros por segundo, como la cámara---; el vehículo mide 44 milímetros; y la
+pista la elegimos de 1320, que es justo 30 veces el largo del vehículo. Con eso, los 30 vehículos llenan la ruta
+exactamente a contacto. \relevo{Ahí te paso, Ian, con la implementación.}
 
-\diapo{7}{Implementación del motor}{IAN}{cian}{40 s}
-El motor está hecho en Java. El paso sincrónico se calcula sobre una \textbf{instantánea inmutable} de los
-huecos y las velocidades, así que el resultado \textbf{no depende del orden} en que recorrés los vehículos.
-La regla de colisión te devuelve el desplazamiento y la velocidad heredada, sin tocar el estado. El
-no-solapamiento está garantizado por construcción, y lo chequeamos en cada inserción. Para el protocolo
-incremental, cuando metemos 5 vehículos lo hacemos \textbf{por empuje}: los demás se corren lo justo, y así
-llegamos a los 30 exactos. Y algo que la cátedra nos remarca siempre: el motor es \textbf{determinista} dado
-el identificador de la realización, y saca \textbf{solo variables físicas} ---posición y velocidad---; el
-color de las animaciones lo calculamos después. \relevo{Seguí vos, Keo, con las simulaciones.}
+% ============================ BLOQUE 2 --- IAN (7-12) =======================
+\diapo{7}{Implementación del motor}{IAN}{cian}{35 s}
+Gracias. El motor está hecho en Java. Cada paso se calcula sobre una \textbf{instantánea inmutable} de los
+huecos y las velocidades, así que el resultado \textbf{no depende del orden} en que recorrés los vehículos. El
+no-solapamiento está garantizado por construcción, y la inserción incremental la hacemos \textbf{por empuje}, que
+nos deja llegar a los 30 exactos. Y algo que la cátedra nos remarca: el motor es \textbf{determinista} y saca
+\textbf{solo variables físicas}, posición y velocidad; el color lo calculamos después.
 
-% ---------------------------------------------------------------- KEO 8-11
-\diapo{8}{Simulaciones y observables}{KEO}{ckeo}{50 s}
-Gracias, Ian. Los \textbf{parámetros} que barremos son el número de vehículos, de 5 a 30, y la probabilidad
-de frenado $p$, de 0 a 0,4. Usamos dos \textbf{protocolos}: uno de $N$ fijo, de 10 mil pasos, y el incremental
-cada 180 segundos, que arranca en 5 y va sumando de a 5 hasta 30, con los tres órdenes de inserción. Corremos
-\textbf{30 realizaciones} por punto. Del lado de los \textbf{observables} ---y esto es clave para la
-cátedra--- todo se calcula \textbf{después} de la simulación, sobre los archivos de salida, nunca adentro del
-motor. Sacamos la velocidad media, con el error como el \textbf{desvío entre realizaciones} ---no un promedio
-de promedios---, la densidad de cada uno como la inversa de la distancia al vecino, y las distribuciones y el
-diagrama fundamental. El estacionario lo elegimos \textbf{a ojo, por inspección}.
+\diapo{8}{Simulaciones y observables}{IAN}{cian}{40 s}
+Del lado de las corridas: barremos el número de vehículos de 5 a 30, y la probabilidad de frenado de 0 a 0,4.
+Usamos dos protocolos, uno de $N$ fijo y el incremental que va de 5 a 30, con \textbf{30 realizaciones} por punto.
+Y algo clave para la cátedra: todos los observables se calculan \textbf{después} de la simulación, nunca adentro
+del motor. Sacamos la velocidad media ---con el error como el \textbf{desvío entre realizaciones}---, la densidad
+de cada uno, las distribuciones y el diagrama fundamental. El estacionario lo elegimos \textbf{a ojo, por
+inspección}.
 
-\diapo{9}{Dinámica: baja y alta densidad}{KEO}{ckeo}{35 s}
-Acá se ve la dinámica en dos extremos, con $N$ fijo. A la izquierda, \textbf{$N=5$}: es flujo libre, los
-vehículos van casi sin tocarse, rapidísimos. A la derecha, \textbf{$N=30$}: la ruta está llena a contacto, y
-forman un anillo rígido. El \textbf{color es la velocidad}. Son fotogramas representativos; la animación entera
-se puede regenerar desde el repo.
+\diapo{9}{Dinámica $N$ fijo --- ANIMACIONES}{IAN}{cian}{55 s}
+\videocue{N=5 y N=30 (izq.\ y der.)}Acá van las primeras animaciones, con $N$ fijo. Le doy play a la de la
+izquierda: \textbf{$N=5$}, densidad baja. Miren que los vehículos van casi sin tocarse, cada uno a lo suyo ---el
+\textbf{color es la velocidad}, verde es rápido---. Ahora la de la derecha: \textbf{$N=30$}, la ruta llena. Se ve
+el anillo rígido, todos pegados a contacto, moviéndose juntos. Lo que \textbf{cambia} entre las dos es la
+densidad, o sea cuántos vehículos hay; y esto lo vamos a \textbf{resumir con la velocidad media}, que sale en las
+próximas dos diapos.
 
-\diapo{10}{Estacionario por inspección}{KEO}{ckeo}{30 s}
-Antes de medir cualquier cosa, elegimos el corte del \textbf{estacionario}. Y lo hacemos \textbf{a ojo, por
-inspección}, mirando la serie temporal de la velocidad media ---no descartando un porcentaje fijo, que es lo
-que nos pide la cátedra---. Se ve clarito que, pasado el transitorio, la serie queda fluctuando alrededor de
-un valor estable, y de ahí para adelante promediamos.
+\diapo{10}{Estacionario por inspección}{IAN}{cian}{30 s}
+Antes de medir, elegimos el corte del \textbf{estacionario}, y lo hacemos \textbf{a ojo}, mirando la serie
+temporal de la velocidad media ---no descartando un porcentaje fijo, que es lo que pide la cátedra---. Se ve que,
+pasado el transitorio, la serie queda fluctuando alrededor de un valor estable, y de ahí para adelante
+promediamos.
 
-\diapo{11}{Velocidad media vs $N$ ($N$ fijo)}{KEO}{ckeo}{45 s}
-Esta es la curva respuesta--estímulo con $N$ fijo: velocidad media en función de $N$, una curva por cada $p$.
-A densidad baja la velocidad se queda casi constante, pero acá hay un detalle fino e importante: esa meseta
-\textbf{no} está en la velocidad libre media, que es 105, sino en la del vehículo \textbf{más lento} que hay,
-ahí en 90, 95. En una pista de un solo carril, donde nadie puede pasar al de adelante, todo se termina
-amontonando atrás del más lento. Y en $N=30$ ---la ruta justo llena, que es un punto \textbf{singular}---
-cuánto baja depende de $p$: con $p=0$ cruza a la velocidad del más lento, pero con $p>0$ la frenada al azar del
-pelotón lo hace caer por debajo. \relevo{Ahí te devuelvo, Ian, para el efecto del orden.}
+\diapo{11}{Velocidad media vs $N$ ($N$ fijo)}{IAN}{cian}{40 s}
+Y esta es la curva respuesta--estímulo con $N$ fijo: velocidad media contra $N$, una curva por cada $p$. A
+densidad baja se queda casi constante, pero ojo con el detalle: esa meseta \textbf{no} está en la velocidad libre
+media, que es 105, sino en la del \textbf{más lento}, ahí en 90. Es que en un solo carril, sin poder pasar, todo
+se amontona atrás del más lento. Y en $N=30$, la ruta justo llena, cuánto baja depende de $p$.
 
-% ---------------------------------------------------------------- IAN 12-16
-\diapo{12}{Efecto del orden de inserción}{IAN}{cian}{50 s}
-Gracias. Este es el resultado análogo a la \textbf{Figura 2} del paper, con el protocolo incremental: la
-velocidad media según el \textbf{orden} en que van entrando los vehículos. El \textbf{decreciente} ---los más
-rápidos primero--- da la velocidad más alta; el \textbf{creciente} ---los más lentos primero--- la más baja;
-y el \textbf{aleatorio} queda acotado en el medio. Eso reproduce la tendencia del experimento. Y las tres
-configuraciones \textbf{convergen a saturación}, ahí en torno a 81 milímetros por segundo con $p=0{,}1$, que
-ya está por debajo de los 90 del más lento.
+\diapo{12}{Efecto del orden --- ANIMACIONES}{IAN}{cian}{55 s}
+\videocue{los 3 órdenes (creciente / decreciente / aleatorio)}Ahora las animaciones del protocolo incremental, que
+arranca en 5 y va sumando de a 5 hasta 30. Las tres son al mismo $p$ y muestran los tres órdenes: a la izquierda
+\textbf{creciente} ---primero los lentos---, en el medio \textbf{decreciente} ---primero los rápidos---, y a la
+derecha \textbf{aleatorio}. Le doy play... Fíjense que a \textbf{igual $N$} el color, o sea la velocidad, cambia
+según el orden: el decreciente arranca más verde, más rápido, y el creciente más lento. Lo que \textbf{cambia}
+acá es el \textbf{orden de inserción}, y de nuevo lo vamos a resumir con la velocidad media. \relevo{Ahí te paso,
+Keo, con la curva.}
 
-\diapo{13}{Distribuciones por orden}{IAN}{cian}{45 s}
+% ============================ BLOQUE 3 --- KEO (13-18) ======================
+\diapo{13}{Velocidad media vs $N$ por orden}{KEO}{ckeo}{45 s}
+Gracias, Ian. Efectivamente, esta es la curva análoga a la \textbf{Figura 2} del paper: la velocidad media según
+el orden. El \textbf{decreciente} da la más alta, el \textbf{creciente} la más baja, y el \textbf{aleatorio}
+queda acotado en el medio ---justo lo que pasa en el experimento---. Y las tres terminan \textbf{convergiendo a
+saturación}, ahí en 81 milímetros por segundo con $p=0{,}1$, que ya está por debajo de los 90 del más lento.
+
+\diapo{14}{Distribuciones por orden}{KEO}{ckeo}{40 s}
 Acá están las distribuciones por $N$ activo, análogas a las \textbf{Figuras 3 y 4}. A la izquierda, la
-\textbf{densidad}: el pico cae en la densidad de contacto, 1 sobre 44 milímetros, y se hace más marcado a
-medida que sube $N$. A la derecha, la \textbf{velocidad}. Un detalle fino: estamos mostrando el orden
-\textbf{creciente}, donde la distribución de velocidad es \textbf{casi independiente de $N$} ---justo porque el
-más lento ya está desde $N=5$---. En cambio, en el \textbf{decreciente}, que no lo mostramos acá, la
-distribución sí se corre bien para abajo a medida que sube $N$, porque van entrando los más lentos.
+\textbf{densidad}: el pico cae en la densidad de contacto, 1 sobre 44, y se hace más marcado a medida que sube
+$N$. A la derecha, la \textbf{velocidad}, para el orden creciente: es casi independiente de $N$, porque en el
+creciente el más lento ya está desde el arranque. En el decreciente, en cambio, la distribución se corre para
+abajo a medida que van entrando los más lentos.
 
-\diapo{14}{Diagrama fundamental por orden}{IAN}{cian}{40 s}
-El \textbf{diagrama fundamental} por orden, análogo a la Figura 5D, confirma toda la estructura: velocidad
-instantánea contra densidad. El \textbf{decreciente} es la curva de arriba, el \textbf{creciente} la de abajo,
-y el \textbf{aleatorio} queda acotado entre las dos. La línea punteada marca la densidad de contacto, que es el
-\textbf{límite}: por el no-solapamiento duro, no hay nada más allá de ahí. Y la velocidad se cae al acercarse
-al contacto, igual que en el experimento.
+\diapo{15}{Diagrama fundamental por orden}{KEO}{ckeo}{35 s}
+El \textbf{diagrama fundamental} por orden confirma toda la estructura: el decreciente es la curva de arriba, el
+creciente la de abajo, y el aleatorio queda acotado entre las dos. Y la velocidad se cae al acercarse a la
+densidad de contacto, igual que en el experimento.
 
-\diapo{15}{Validación del motor}{IAN}{cian}{40 s}
-Antes de las limitaciones, la \textbf{validación}. Acá usamos la variante clásica, la B, en su régimen de
-validez: partículas puntuales, velocidad homogénea, $p=0$ y reparto uniforme. En ese caso hay solución
-analítica: el diagrama fundamental \textbf{triangular}, $Q=\min(\rho\,v_{\max},\,1-\rho)$. Y el motor lo
-reproduce \textbf{a precisión de máquina} ---un error del orden de $10^{-16}$--- y encima lo tenemos cubierto
-con tests automáticos a tolerancia $10^{-9}$. Repito el punto: esto valida \textbf{el motor}; el contacto puro
-\textbf{no} se valida contra esta curva, porque da flujo libre hasta el contacto.
+\diapo{16}{Validación del motor}{KEO}{ckeo}{40 s}
+Antes de las limitaciones, la \textbf{validación}. Con la variante clásica, la B, en su régimen ---partículas
+puntuales, homogénea, $p=0$--- hay solución analítica: el diagrama \textbf{triangular}. Y el motor lo reproduce a
+\textbf{precisión de máquina}, con tests automáticos a tolerancia $10^{-9}$. De nuevo el punto: esto valida
+\textbf{el motor}; el contacto puro no se valida contra esta curva.
 
-\diapo{16}{Limitaciones y sensibilidad}{IAN}{cian}{50 s}
-Y acá viene lo más \textbf{honesto} del trabajo: las limitaciones. Primera: el modelo impone no-solapamiento
-duro, así que \textbf{no} reproduce la cola de densidad por arriba del contacto que sí aparece en el
-experimento ---por solapamiento y desalineación---. Segunda: el punto $N=30$ es \textbf{singular}, la ruta
-justo llena, y depende de que fijemos $L=1320$; el experimento tiene 1313. Y tercera, la más importante: la
-caída por debajo del más lento \textbf{necesita $p>0$}, y el mecanismo ---la frenada al azar de un pelotón
-rígido--- es \textbf{distinto} al del experimento. Es más: con $p\ge 0{,}3$ el anillo lleno se \textbf{congela}
-casi del todo, con velocidad cerca de cero, que ya no es ningún régimen del experimento; por eso el punto que
-sí es comparable es \textbf{$p=0{,}1$}. En criollo: reproducimos \textbf{tendencias}, no el mecanismo punto por
-punto. \relevo{Nico, cerrá vos con las conclusiones.}
+\diapo{17}{Limitaciones}{KEO}{ckeo}{45 s}
+Y lo más \textbf{honesto}, las limitaciones. Primera: como imponemos no-solapamiento duro, \textbf{no}
+reproducimos la cola de densidad por arriba del contacto que sí ve el experimento. Segunda: el punto $N=30$ es
+\textbf{singular} y depende de que fijemos $L$ en 1320; el experimento tiene 1313. Y tercera: la caída por debajo
+del más lento necesita $p>0$, y el mecanismo es \textbf{distinto} al del experimento ---de hecho, con $p\ge0{,}3$
+el anillo lleno se \textbf{congela}, que ya no es ningún régimen real---; por eso el punto que sí es comparable es
+$p=0{,}1$.
 
-% ---------------------------------------------------------------- NICO 17
-\diapo{17}{Conclusiones}{NICO}{cnico}{45 s}
-Bueno, para cerrar. El autómata celular con interacción por contacto \textbf{reproduce las tendencias
-centrales} del diagrama fundamental de estos vehículos: velocidad casi plana a baja densidad y caída cerca del
-contacto. El \textbf{orden de inserción} modula el diagrama, con el aleatorio acotado entre el creciente y el
-decreciente, igual que en el experimento. Reproducimos el \textbf{pico de densidad} en la densidad de contacto
-y el angostamiento de la distribución de velocidad con $N$. La caída por debajo del más lento la conseguimos
-en el punto singular con $p>0$: es la reproducción de una \textbf{tendencia}, con un mecanismo distinto al
-experimental. Y la variante clásica \textbf{valida el motor} contra la curva triangular analítica. Bueno,
-muchas gracias, y quedamos para las preguntas que tengan.
+\diapo{18}{Conclusiones}{KEO}{ckeo}{40 s}
+Y para cerrar. El autómata con \textbf{contacto puro} reproduce las \textbf{tendencias} centrales del diagrama
+fundamental: velocidad casi plana a baja densidad y caída cerca del contacto. El \textbf{orden de inserción}
+modula el diagrama, con el aleatorio acotado entre el creciente y el decreciente. Reproducimos el pico de
+densidad en el contacto y el angostamiento de la velocidad con $N$. Y la variante clásica \textbf{valida el
+motor} contra la curva triangular. Bueno, muchas gracias, y quedamos para las preguntas que tengan.
 
 \vspace{6pt}
 \hrule
