@@ -60,6 +60,31 @@ def build_command(jar, out_dir, *, n, p, rule, protocol, realization, steps, out
     return cmd, out_file
 
 
+def _last_recorded_step(path: Path) -> int | None:
+    """Devuelve el número de paso de la última fila de datos, o None si no hay datos."""
+    last = None
+    with open(path) as fh:
+        for line in fh:
+            if line and not line.startswith("#"):
+                head = line.split(None, 1)[0]
+                try:
+                    last = int(head)
+                except ValueError:
+                    pass
+    return last
+
+
+def run_is_complete(path: Path, steps: int, output_every: int) -> bool:
+    """¿La corrida llegó hasta el final? Una corrida truncada (interrumpida) puede tener tamaño>0
+    pero le faltan pasos: saltearla con --skip-existing dejaría un dataset incompleto pasando por
+    completo. El último paso escrito es el mayor múltiplo de output_every menor que steps."""
+    if not path.exists() or path.stat().st_size == 0:
+        return False
+    expected_last = ((steps - 1) // output_every) * output_every if steps > 0 else 0
+    last = _last_recorded_step(path)
+    return last is not None and last >= expected_last
+
+
 def build_jobs(args) -> list[dict]:
     """Genera las corridas respetando la semántica de cada protocolo (sin cruces redundantes)."""
     fixed_steps = args.steps if args.steps is not None else FIXED_STEPS
@@ -117,9 +142,9 @@ def main() -> None:
         cmd, out_file = build_command(args.jar, out_dir, output_every=args.output_every, **job)
         if args.dry_run:
             print(" ".join(cmd))
-        elif args.skip_existing and out_file.exists() and out_file.stat().st_size > 0:
+        elif args.skip_existing and run_is_complete(out_file, job["steps"], args.output_every):
             skipped += 1
-            print("skip (ya existe) →", out_file)
+            print("skip (ya existe y completa) →", out_file)
         else:
             subprocess.run(cmd, check=True)
             done += 1

@@ -65,6 +65,14 @@ public record Config(
 
     /** Validación básica de consistencia de los parámetros. */
     public Config {
+        // Rechazar NaN/Infinity explícitamente: sin esto, un valor no finito se cuela por las
+        // comparaciones (p. ej. NaN<0 y NaN>1 son ambas false, así que "p debe estar en [0,1]" no
+        // lo atraparía) y contaminaría toda la corrida en silencio.
+        if (!Double.isFinite(cellSizeMm)) throw new IllegalArgumentException("dx debe ser finito");
+        if (!Double.isFinite(timeStepS)) throw new IllegalArgumentException("dt debe ser finito");
+        if (!Double.isFinite(brakeProb)) throw new IllegalArgumentException("p debe ser finito");
+        if (!Double.isFinite(freeSpeedMinMmS)) throw new IllegalArgumentException("vfree-min debe ser finito");
+        if (!Double.isFinite(freeSpeedMaxMmS)) throw new IllegalArgumentException("vfree-max debe ser finito");
         if (latticeLength <= 0) throw new IllegalArgumentException("latticeLength debe ser > 0");
         if (vehicleLength <= 0) throw new IllegalArgumentException("vehicleLength debe ser > 0");
         if (cellSizeMm <= 0) throw new IllegalArgumentException("dx debe ser > 0");

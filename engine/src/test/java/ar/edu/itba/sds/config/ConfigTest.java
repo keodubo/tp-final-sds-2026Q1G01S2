@@ -90,6 +90,37 @@ class ConfigTest {
     }
 
     @Test
+    void rechazaValoresNoFinitos() {
+        Config d = Config.defaults();
+        // NaN se cuela por las comparaciones de rango (NaN<0 y NaN>1 son ambas false): hay que
+        // rechazarlo explícitamente para que --p NaN (o dx/dt/vfree no finitos) no pase silencioso.
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), Double.NaN, d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), Double.NaN, d.timeStepS(),
+                d.n(), d.brakeProb(), d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), Double.POSITIVE_INFINITY,
+                d.n(), d.brakeProb(), d.freeSpeedMinMmS(), d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+        assertThrows(IllegalArgumentException.class, () -> new Config(
+                d.latticeLength(), d.vehicleLength(), d.cellSizeMm(), d.timeStepS(),
+                d.n(), d.brakeProb(), Double.NaN, d.freeSpeedMaxMmS(),
+                d.collisionRule(), d.insertionOrder(), d.protocol(),
+                d.seed(), d.steps(), d.transientSteps(), d.outputEvery()
+        ));
+    }
+
+    @Test
     void rechazaOutputEveryNoPositivo() {
         Config d = Config.defaults();
         assertThrows(IllegalArgumentException.class, () -> new Config(

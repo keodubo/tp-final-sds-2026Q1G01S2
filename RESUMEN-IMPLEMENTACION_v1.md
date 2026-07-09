@@ -31,7 +31,7 @@
 - `run_matrix.py`: barrido; por defecto el núcleo (N×p, N fijo, variante B); órdenes/incremental opt-in.
 
 ## Verificación (evidencia)
-- `mvn -f engine/pom.xml clean test` → **39 tests, 0 fallas**. `python3 -m pytest analysis/tests -q` → **13 passed**.
+- `mvn -f engine/pom.xml clean test` → **61 tests, 0 fallas**. `python3 -m pytest analysis/tests -q` → **37 passed**.
 - **0 solapamientos** (verificado por mí y fuzz de 2M casos de un jurado); **reproducibilidad bit-a-bit**.
 - Validación `p=0` (variante B, ℓ=1) reproduce `Q(ρ)=min(ρ·vmax, 1−ρ)` con tolerancia 1e-9.
 - Flujo de extremo a extremo: genera figuras del núcleo, figuras incrementales por orden, diagrama

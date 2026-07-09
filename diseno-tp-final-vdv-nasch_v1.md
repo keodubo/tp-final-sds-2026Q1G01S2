@@ -353,7 +353,7 @@ invariantes: N conservado, sin solapamiento, orden periódico, reproducibilidad)
 | 4 | Variante A (contacto puro) + resolución de agrupamientos + tests | ✅ completado |
 | 5 | Matriz (N, p, variante, orden, protocolo) + observables Python | ✅ completado (barrido oficial corrido: 1350 corridas CONTACTO_PURO) |
 | 6 | Figuras + animaciones + comparación con el artículo | ✅ completado (figuras + animación; estacionario elegido por inspección, `--since-step 2000`) |
-| 7 | Sensibilidades (`dt`, `L`, `Δx`) + doble carril si da el tiempo | pendiente (extensión opcional) |
+| 7 | Sensibilidades (`dt`, `L`, `Δx`) | **obligatorias** (exigidas por la cátedra): estudio de control corrido (`run_sensitivity.py` → `data_sens/`, `analyze_sensitivity.py` → figuras). Doble carril: extensión opcional, fuera de alcance. |
 | 8 | Informe (GuiaInformes) + presentación (~10-15 min) con links a animaciones | ✅ completado (PDFs finales versionados, regenerables con `scripts/generar_entrega.sh`) |
 
 > **Estado (snapshot v1):** el **motor y el análisis están implementados y verificados** (suite JUnit +

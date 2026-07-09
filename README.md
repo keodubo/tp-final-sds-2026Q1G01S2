@@ -139,6 +139,10 @@ ya implementado en `animate.py`:
   fija** de un fotograma representativo y, **debajo, una nota neutral de publicación** hasta tener
   links reales a las animaciones. `animate.py`
   exporta ese fotograma (`*_fotograma.png`) junto al GIF.
+  - **Estado actual:** la presentación usa fotograma fijo + nota (macro `\videohero`). Los 5 videos
+    (`animaciones_presentacion_2026Q1G01S2.zip`) están **pendientes de subir a YouTube**. Cuando estén
+    los enlaces, reemplazar `\videohero{base}{ancho}` por `\videolink{base}{ancho}{URL}` en el `.tex`
+    (macro ya definido) — **no** dejar enlaces `run:` a archivos `.mp4` locales (llegan rotos al docente).
 
 > **Camino canónico para los fotogramas hero del entregable:** usá **`scripts/generar_entrega.sh`**.
 > Corre estas mismas corridas hero y exporta los fotogramas con el **nombre exacto que referencian los

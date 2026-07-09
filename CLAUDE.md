@@ -73,5 +73,8 @@ Cada vehículo tiene su `vmax_i` (heterogéneo) derivado de una velocidad libre 
 
 No reabrir las decisiones ya confirmadas (R2 oficial A, orden R1→R3→R2→R4, órdenes+incremental en
 alcance, `p` por paso, `L=1320`, error entre realizaciones, observables post-simulación). Sí documentar:
-contrato temporal exacto de salida en la frontera incremental, sensibilidad de `dt`, `L` y `Δx`, y
-nivel de coincidencia cuantitativa que den los barridos reales.
+contrato temporal exacto de salida en la frontera incremental y nivel de coincidencia cuantitativa que
+den los barridos reales. La **sensibilidad de `dt`, `L` y `Δx`** (exigida por la cátedra) ya está
+estudiada: `analysis/run_sensitivity.py` → `data_sens/`, `analysis/analyze_sensitivity.py` → figura, y
+sección *Sensibilidad* del informe. **Estacionariedad:** en `N=30` solo `p≤0.1` es estacionario a 10⁴
+pasos; `p≥0.2` es transitorio (no reportar un valor de saturación ahí). Punto comparable: `p=0.1`.
