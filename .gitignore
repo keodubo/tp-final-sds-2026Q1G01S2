@@ -27,6 +27,9 @@ data_anim/
 # === macOS ===
 .DS_Store
 
+# === Windows/WSL ===
+*:Zone.Identifier
+
 # === Documentos de trabajo no versionados ===
 promptmaestro.md
 .fable-tmp/
