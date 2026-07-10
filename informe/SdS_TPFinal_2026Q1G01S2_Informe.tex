@@ -309,7 +309,8 @@ contacto.
 \includegraphics[width=0.9\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
 \caption{Fotogramas en régimen a baja densidad ($N=5$, arriba) y a saturación
 ($N=30$, abajo), contacto puro, $p=0{,}1$. Color según velocidad. Se muestra un fotograma
-representativo.}
+representativo. Animaciones: \href{https://youtu.be/JwYnKDu1ROo}{$N=5$ (flujo libre)} y
+\href{https://youtu.be/T6ROKZ-W7C8}{$N=30$ (saturación)}.}
 \label{fig:anim-fixed}
 \end{figure}
 
@@ -405,7 +406,8 @@ fotogramas de los tres órdenes de inserción.
 \includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
 \caption{Fotogramas del protocolo incremental para los órdenes creciente (arriba),
 decreciente (medio) y aleatorio (abajo) (contacto puro, $p=0{,}1$). Se muestra un fotograma
-representativo.}
+representativo. Animaciones: \href{https://youtu.be/s9kKOWMmMY4}{creciente},
+\href{https://youtu.be/WKloPloEGXU}{decreciente} y \href{https://youtu.be/3gbWR-lisGk}{aleatorio}.}
 \label{fig:anim-inc}
 \end{figure}
 
@@ -465,56 +467,6 @@ protocolo incremental). A densidad baja y media el orden aleatorio queda acotado
 creciente y el decreciente; convergen en la saturación. Comparar con la Fig.~5D del artículo~[1].}
 \label{fig:fd-inc}
 \end{figure}
-
-% ============================================================================
-\section{Sensibilidad a la discretización ($\Delta x$, $\Delta t$, $L$)}\label{sec:sensibilidad}
-% ============================================================================
-
-La calibración (Tabla~\ref{tab:calib}) fija la malla del autómata. Para verificar que las
-tendencias reportadas no son artefactos de esa elección, repetimos el punto físicamente
-comparable (contacto puro, $p=0{,}1$, protocolo $N$ fijo, curva $\bar v(N)$) variando cada
-constante por separado y midiendo el observable en unidades físicas (Figura~\ref{fig:sensibilidad}).
-Como la velocidad libre de cada vehículo depende sólo del identificador de la realización, cada
-realización es la \emph{misma} población física en todas las variaciones (comparación pareada);
-sólo cambia la discretización. Se mantiene fijo el tiempo físico total ($\approx417\unit{s}$) y el
-corte del estacionario ($t\ge83\unit{s}$). Se corrieron $30$ realizaciones por punto.
-
-\begin{figure}[H]\centering
-\includegraphics[width=\linewidth]{sensibilidad_dt_L_dx.png}
-\caption{Sensibilidad de la velocidad media estacionaria $\bar v(N)$ (contacto puro, $p=0{,}1$) a
-las constantes de calibración: $\Delta x$ (izquierda), $\Delta t$ (centro) y $L$ (derecha). Una
-curva de color por valor; la barra de error es el desvío entre las $30$ realizaciones. Los paneles
-$\Delta x$ y $\Delta t$ resultan indistinguibles (las curvas de igual $\Delta v$ coinciden a
-$\le0{,}02\unit{mm/s}$): en la práctica sólo el cuanto $\Delta v=\Delta x/\Delta t$ afecta el
-resultado.}
-\label{fig:sensibilidad}
-\end{figure}
-
-Tres resultados:
-\begin{itemize}
-  \item \textbf{$L$ es prácticamente irrelevante.} Pasar de $L=1320$ a $1313\unit{mm}$ desplaza
-  $\bar v(N)$ en $\le0{,}03\unit{mm/s}$ para $N\le25$: las curvas son indistinguibles. El único
-  efecto de $L$ es geométrico —$N=30$ sólo cierra a contacto en $1320$—, no dinámico.
-  \item \textbf{$\Delta x$ y $\Delta t$ no actúan por separado: sólo importa su cociente}
-  $\Delta v=\Delta x/\Delta t$. Corridas con igual $\Delta v$ y distinta malla coinciden
-  \emph{dentro del error} ($\le0{,}02\unit{mm/s}$, muy por debajo del desvío entre realizaciones):
-  $\Delta x=0{,}125\unit{mm}$ da la misma curva que $\Delta t=1/12\unit{s}$ (ambas $\Delta v=3$), e
-  ídem $\Delta x=0{,}5$ y $\Delta t=1/48$ (ambas $\Delta v=12$). A $\Delta v$ fijo, duplicar la
-  resolución espacial ($\ell:176\to352$ celdas) no cambia el resultado ($\le0{,}02\unit{mm/s}$): el
-  modelo está \textbf{convergido en el espacio}.
-  \item \textbf{El cuanto de velocidad $\Delta v$ fija un piso de cuantización.} Refinar de
-  $\Delta v=6$ a $3\unit{mm/s}$ mueve $\bar v(N)$ en $\le1{,}2\unit{mm/s}$ (converge); engrosar a
-  $\Delta v=12$ la sube hasta $\approx5\unit{mm/s}$ a densidad baja/media, porque
-  $v_{\max}=\mathrm{round}(v^{\mathrm{libre}}/\Delta v)\cdot\Delta v$ redondea la velocidad del más
-  lento ($\approx90$) hacia arriba (a $96$). En la saturación $N=30$ el valor va de $\approx88$
-  ($\Delta v=3$) a $\approx85\unit{mm/s}$ ($\Delta v=6$ y $12$).
-\end{itemize}
-
-En todos los casos la \emph{forma} de la curva se conserva —meseta cercana a la velocidad del más
-lento y descenso al acercarse al contacto—: las tendencias que reporta este trabajo son robustas a
-la discretización. El único efecto cuantitativo es el piso de cuantización que impone $\Delta v$, que
-se atenúa al refinar; la calibración base ($\Delta v=6\unit{mm/s}$) está a $\le1{,}2\unit{mm/s}$ del
-refinamiento $\Delta v=3$, cerca del valor convergido.
 
 % ============================================================================
 \section{Validación}\label{sec:validacion}
