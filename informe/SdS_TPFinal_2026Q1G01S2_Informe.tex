@@ -36,7 +36,7 @@ reproducción de tendencias con un autómata celular de Nagel--Schreckenberg
 con interacción por contacto}}
 \author{Nicolás Valentín Arias (Leg.~62272), Keoni Lucas Dubovitsky (Leg.~62815),\\
         Ian Franco Tognetti (Leg.~61215) \\[3pt]
-        Grupo G01S2 --- 72.25 Simulación de Sistemas --- ITBA --- 2026, primer cuatrimestre}
+        Grupo G01S2 --- 72.25 Simulación de Sistemas --- ITBA --- 2026 Q1}
 \date{Julio de 2026}
 
 \begin{document}
@@ -218,8 +218,7 @@ La malla discreta se calibra a la geometría del experimento
 (Tabla~\ref{tab:calib}). El cuanto de velocidad es $\Delta v=\Delta x/\Delta t=6\unit{mm/s}$
 y la velocidad máxima de cada vehículo es $v_{\max,i}=\mathrm{round}(v^{\mathrm{libre}}_i/\Delta v)\in\{15,\dots,20\}$.
 La longitud de pista se fija en $L=30\,\ell=5280$ celdas $=1320\unit{mm}$ para que
-$N=30$ cierre exactamente a contacto (el experimento reporta $\approx1313\unit{mm}$;
-la diferencia se discute en Sec.~\ref{sec:limitaciones}). La densidad global es
+$N=30$ cierre exactamente a contacto (el experimento reporta $\approx1313\unit{mm}$). La densidad global es
 $\rho=N/L_{\mathrm{fis}}$, que a $N=30$ vale $0{,}0227\unit{mm^{-1}}=1/(44\unit{mm})$.
 
 \begin{table}[h]\centering
@@ -310,7 +309,7 @@ contacto.
 \includegraphics[width=0.9\linewidth]{N30_p01_CONTACTO_PURO_FIXED_N_r1_fotograma.png}
 \caption{Fotogramas en régimen a baja densidad ($N=5$, arriba) y a saturación
 ($N=30$, abajo), contacto puro, $p=0{,}1$. Color según velocidad. Se muestra un fotograma
-representativo; la animación completa se regenera con \texttt{scripts/generar\_entrega.sh}.}
+representativo.}
 \label{fig:anim-fixed}
 \end{figure}
 
@@ -406,7 +405,7 @@ fotogramas de los tres órdenes de inserción.
 \includegraphics[width=0.9\linewidth]{INC_p01_CONTACTO_PURO_RANDOM_r1_fotograma.png}
 \caption{Fotogramas del protocolo incremental para los órdenes creciente (arriba),
 decreciente (medio) y aleatorio (abajo) (contacto puro, $p=0{,}1$). Se muestra un fotograma
-representativo; la animación completa se regenera con \texttt{scripts/generar\_entrega.sh}.}
+representativo.}
 \label{fig:anim-inc}
 \end{figure}
 
@@ -547,47 +546,6 @@ $\sim10^{-16}$).}
 \end{figure}
 
 % ============================================================================
-\section{Limitaciones}\label{sec:limitaciones}
-% ============================================================================
-
-El modelo reproduce \emph{tendencias}, no el experimento punto a punto. Sus límites,
-que enmarcan las conclusiones:
-\begin{itemize}
-  \item \textbf{Sin colas de densidad más allá del contacto.} El experimento observa
-  densidades $\rho_i>1/(44\unit{mm})$ por solapamiento parcial, desalineación por la
-  geometría triangular del VDV y errores de seguimiento. El modelo impone
-  no-solapamiento duro, así que \emph{deliberadamente} no reproduce esa cola: su distribución de
-  densidad se corta en $1/(44\unit{mm})$.
-  \item \textbf{Punto $N=30$ singular y dependiente de $L$.} Se fija $L=1320\unit{mm}$
-  ($=30\ell$) para que $N=30$ cierre exacto a contacto; el experimento tiene
-  $\approx1313\unit{mm}$, físicamente más corto que $30$ vehículos rígidos, lo que en la
-  realidad admite solapamiento pero en el modelo es imposible. El estudio de sensibilidad
-  (Sec.~\ref{sec:sensibilidad}) muestra que, para $N\le25$, cambiar $L$ de $1320$ a $1313\unit{mm}$
-  no altera la curva ($\le0{,}03\unit{mm/s}$): el efecto de $L$ es sólo geométrico. El punto de
-  saturación $N=30$ sólo existe a $L=1320$ (a $1313$, $30\ell=5280>5252$ celdas no entran).
-  \item \textbf{Mecanismo del colapso a saturación.} La coincidencia con ``velocidad de
-  saturación menor que la del más lento'' se apoya en el punto lleno-exacto $N=30$ y
-  requiere $p>0$ (el frenado aleatorio del anillo rígido). No es el mismo mecanismo físico
-  del experimento (agrupamiento con solapamiento/desalineación): es el frenado estocástico
-  de un cúmulo rígido en el cierre exacto de la ruta. Se reporta como reproducción de la
-  \emph{tendencia}, no del mecanismo.
-  \item \textbf{Velocidad cuantizada.} La velocidad está discretizada en pasos de
-  $\Delta v=6\unit{mm/s}$; el modelo no reproduce colas instantáneas finas de velocidad.
-  \item \textbf{Forma de la distribución de velocidad.} El modelo reproduce la tendencia de
-  angostamiento y corrimiento con $N$, pero no la forma: su distribución es un conjunto de deltas cuantizadas
-  ($\Delta v=6\unit{mm/s}$) con la moda entre $\approx84$ y $90\unit{mm/s}$ (la velocidad
-  del cúmulo bloqueado por el más lento, en saturación un cuanto por debajo de su velocidad
-  libre), mientras el experimento tiene una distribución suave con pico en
-  $\approx65\unit{mm/s}$ y cola hasta $\approx300\unit{mm/s}$. Al agruparse rígidamente
-  detrás del más lento, la velocidad microscópica del modelo queda concentrada cerca de la
-  del cúmulo y \emph{no} reproduce la población ancha de baja velocidad
-  ($\approx30$--$65\unit{mm/s}$) que muestra el experimento.
-  \item \textbf{$p$ representativo.} Las figuras microscópicas se muestran a $p=0{,}1$; no
-  son automáticamente representativas de todo $p$ (el barrido completo en $p$ está en los
-  datos).
-\end{itemize}
-
-% ============================================================================
 \section{Conclusiones}
 % ============================================================================
 
@@ -604,13 +562,13 @@ Sobre lo mostrado en Resultados:
   \item El pico de densidad individual en $1/(44\unit{mm})$ y el angostamiento de la
   distribución de velocidad con $N$ reproducen la \emph{tendencia} de angostamiento y
   corrimiento con $N$, con la salvedad de que el modelo no genera la cola de densidad por
-  solapamiento ni la forma detallada de la distribución (Sec.~\ref{sec:limitaciones}).
+  solapamiento ni la forma detallada de la distribución.
   \item La caída de la velocidad de saturación por debajo del agente más lento se obtiene ya
   en el punto singular $N=30$ con frenado aleatorio $p=0{,}1$ (saturación \emph{estacionaria}
   $\approx85\unit{mm/s}$, por debajo del más lento $\approx90$); es la reproducción de una
   tendencia, con un mecanismo distinto al experimental. Para $p\ge0{,}2$ el anillo lleno no
   estabiliza en el horizonte simulado y se reporta como respuesta de horizonte finito, no como
-  saturación (Sec.~\ref{sec:limitaciones}).
+  saturación.
   \item La variante clásica valida el motor contra el diagrama fundamental triangular
   analítico con tolerancia $10^{-9}$ (Sec.~\ref{sec:validacion}).
 \end{itemize}

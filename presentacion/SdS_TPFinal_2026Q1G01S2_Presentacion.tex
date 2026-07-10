@@ -58,7 +58,7 @@
 \subtitle{Reproducción de tendencias con un autómata celular de Nagel--Schreckenberg con contacto}
 \author[Grupo G01S2]{Nicolás V. Arias (Leg.~62272) \and Keoni L. Dubovitsky (Leg.~62815) \and Ian F. Tognetti (Leg.~61215)}
 \institute[ITBA]{72.25 Simulación de Sistemas --- ITBA}
-\date{2026, primer cuatrimestre}
+\date{2026 Q1}
 
 \begin{document}
 
@@ -77,20 +77,16 @@
   \item Interactúan \textbf{solo por contacto} (sin percepción remota: no ``ven'' al de adelante).
   \item Velocidades libres heterogéneas, $\sim\mathcal{U}[90,120]\unit{mm/s}$.
 \end{itemize}
-\vfill
-{\footnotesize Aísla la parte del diagrama fundamental debida \textbf{solo a colisiones físicas}.}
 \end{frame}
 
-% ---- Lo que mide el experimento ---------------------------------------------
-\begin{frame}{Lo que mide el experimento (Patterson \& Parisi, 2023)}
+% ---- Lo que midió el experimento --------------------------------------------
+\begin{frame}{Lo que midió el experimento}
 \begin{itemize}
   \item Velocidad media \textbf{casi constante} a densidad baja/media.
   \item \textbf{Cae 25--40\%} cerca de la densidad de contacto ($1/(44\unit{mm})$).
   \item El \textbf{orden de inserción} importa: el aleatorio queda \emph{acotado} entre creciente y decreciente.
   \item A saturación ($N=30$) \textbf{convergen}, por debajo del más lento ($90\unit{mm/s}$).
 \end{itemize}
-\vfill
-{\footnotesize \textbf{Objetivo:} reproducir estas \emph{tendencias} con un autómata celular de bajo costo.}
 \end{frame}
 
 % ---- Modelo -----------------------------------------------------------------
@@ -193,33 +189,24 @@ Largo de pista & $L$ & $5280$ celdas $=1320\unit{mm}=30\,\ell$ \\
 \;\textbf{Instantánea inmutable} $\Rightarrow$ independiente del orden de iteración; \textbf{no-solapamiento} por construcción.}
 \end{frame}
 
-% ---- El paso del motor (pseudocódigo) --------------------------------------
+% ---- El paso del motor (pseudocódigo de la simulación principal) ------------
 \begin{frame}{El paso del motor}
-\begin{columns}[T]
-\begin{column}{0.54\textwidth}
-Cada paso se computa sobre una \textbf{instantánea inmutable} de huecos y velocidades deseadas:
-\medskip
-{\footnotesize
-\begin{block}{}
+\centering
+{\small
+\begin{block}{Bucle principal de la simulación (contacto puro)}
 \begin{tabbing}
-\quad\=\kill
-por cada paso (instantánea):\\
-\>R1: $\hat v_i\leftarrow\min(v_i+1,\,v_{\max,i})$\\
-\>R3: con prob $p$: $\hat v_i\leftarrow\max(0,\hat v_i-1)$\\
-\>R2: $d_i\leftarrow\min(\hat v_i,\,g_i+d_{i+1})$\\
+\quad\=\quad\=\kill
+inicializar la ruta con los vehículos (velocidad $0$)\\[2pt]
+\textbf{por cada paso} $t=0,\dots,T-1$:\\
+\>registrar el estado $(x_i,v_i)$ \hfill\textit{// salida física}\\
+\>[incremental] si toca lote: insertar $5$ vehículos (por empuje)\\
+\>\textbf{para cada vehículo} $i$ (sobre la instantánea inmutable):\\
+\>\>R1: $\hat v_i\leftarrow\min(v_i+1,\,v_{\max,i})$\\
+\>\>R3: con prob.\ $p$: $\hat v_i\leftarrow\max(0,\,\hat v_i-1)$\\
+\>R2: $d_i\leftarrow\min(\hat v_i,\;g_i+d_{i+1})$ \hfill\textit{// contactos, sin solapar}\\
 \>R4: $x_i\leftarrow(x_i+d_i)\bmod L$
 \end{tabbing}
 \end{block}}
-\end{column}
-\begin{column}{0.44\textwidth}
-\begin{itemize}\small
-  \item \textbf{No-solapamiento} por construcción ($d_i\le g_i+d_{i+1}$): R3 antes que R2.
-  \item Inserción incremental \textbf{por empuje} (llega a $N=30$ exacto).
-  \item \textbf{Determinista} dada la realización (un único PRNG; con $p=0$ no se consume aleatoriedad).
-  \item Emite \textbf{solo} $x,v$ (físico); color y observables se derivan \emph{después}.
-\end{itemize}
-\end{column}
-\end{columns}
 \end{frame}
 
 % ---- Simulaciones ----------------------------------------------------------
@@ -230,13 +217,10 @@ por cada paso (instantánea):\\
   \item \textbf{$M=30$ realizaciones} por punto; una realización $=$ condiciones iniciales $+$ velocidades libres $+$ secuencia del PRNG.
   \item \textbf{Estacionario por inspección} de la evolución temporal (no un \% fijo).
 \end{itemize}
-\vfill
-{\footnotesize También un estudio de \textbf{sensibilidad} de la discretización ($\Delta x$, $\Delta t$, $L$).}
 \end{frame}
 
 % ---- Observables (post-simulación, con definición matemática) --------------
-\begin{frame}{Observables (post-simulación)}
-Todos se calculan \textbf{después} de la simulación, desde los archivos de salida.
+\begin{frame}{Observables}
 \begin{columns}[T]
 \begin{column}{0.55\textwidth}
 \textbf{Velocidad media} (sobre $N$ vehículos y la ventana estacionaria $T$) y su error como
@@ -277,8 +261,7 @@ Todos se calculan \textbf{después} de la simulación, desde los archivos de sal
 % ---- observable temporal (N fijo) ------------------------------------------
 \begin{frame}{Estacionario por inspección ($N$ fijo)}
 \centering
-\includegraphics[height=0.74\textheight]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}\\
-{\footnotesize El corte del transitorio se elige mirando la serie (no un \% fijo).}
+\includegraphics[height=0.8\textheight]{evolucion_temporal_contacto_puro_sin_orden_fixed.png}
 \end{frame}
 
 % ---- curva respuesta-estímulo (N fijo) -------------------------------------
@@ -289,23 +272,25 @@ Todos se calculan \textbf{después} de la simulación, desde los archivos de sal
 los puntos $p\ge0{,}2$ \textbf{no son estacionarios} en el horizonte simulado (respuesta de horizonte finito). Comparable: $p=0{,}1$.}
 \end{frame}
 
-% ---- ANIMACIÓN (estudio orden) ---------------------------------------------
-\begin{frame}{Efecto del orden de inserción (protocolo incremental)}
-\begin{columns}[c]
-\begin{column}{0.33\textwidth}\centering
-\videohero{INC_p01_CONTACTO_PURO_ASCENDING_r1}{\linewidth}\\
-{\footnotesize creciente}
-\end{column}
-\begin{column}{0.33\textwidth}\centering
-\videohero{INC_p01_CONTACTO_PURO_DESCENDING_r1}{\linewidth}\\
-{\footnotesize decreciente}
-\end{column}
-\begin{column}{0.33\textwidth}\centering
-\videohero{INC_p01_CONTACTO_PURO_RANDOM_r1}{\linewidth}\\
-{\footnotesize aleatorio}
-\end{column}
-\end{columns}
-\vfill\centering \playnota\ Incremental $5\to30$, $p=0{,}1$.
+% ---- ANIMACIÓN (estudio orden) — creciente ---------------------------------
+\begin{frame}{Efecto del orden: inserción creciente}
+\centering
+\videohero{INC_p01_CONTACTO_PURO_ASCENDING_r1}{\linewidth}\\[4pt]
+{\footnotesize Incremental $5\to30$, $p=0{,}1$ --- los más lentos primero. Color $=$ velocidad.}\\ \playnota
+\end{frame}
+
+% ---- ANIMACIÓN (estudio orden) — decreciente -------------------------------
+\begin{frame}{Efecto del orden: inserción decreciente}
+\centering
+\videohero{INC_p01_CONTACTO_PURO_DESCENDING_r1}{\linewidth}\\[4pt]
+{\footnotesize Incremental $5\to30$, $p=0{,}1$ --- los más rápidos primero. Color $=$ velocidad.}\\ \playnota
+\end{frame}
+
+% ---- ANIMACIÓN (estudio orden) — aleatorio ---------------------------------
+\begin{frame}{Efecto del orden: inserción aleatoria}
+\centering
+\videohero{INC_p01_CONTACTO_PURO_RANDOM_r1}{\linewidth}\\[4pt]
+{\footnotesize Incremental $5\to30$, $p=0{,}1$ --- orden aleatorio. Color $=$ velocidad.}\\ \playnota
 \end{frame}
 
 % ---- observable temporal (incremental) : escalera de inserción -------------
@@ -313,29 +298,28 @@ los puntos $p\ge0{,}2$ \textbf{no son estacionarios} en el horizonte simulado (r
 \centering
 \includegraphics[height=0.72\textheight]{evolucion_temporal_incremental_contacto_puro_p01_incremental.png}\\
 {\footnotesize Cada $180\unit{s}$ entran $5$ vehículos: la velocidad media salta y se reacomoda. El observable de cada
-fase se promedia sobre su ventana completa de $180\unit{s}$ (igual que el artículo).}
+fase se promedia sobre su ventana completa de $180\unit{s}$.}
 \end{frame}
 
 % ---- curva respuesta-estímulo (orden) --------------------------------------
-\begin{frame}{Velocidad media vs.\ $N$ por orden (\(\approx\)Fig.~2)}
+\begin{frame}{Velocidad media vs.\ $N$ por orden}
 \centering
 \includegraphics[height=0.74\textheight]{velocidad_media_incremental_contacto_puro_p01_incremental.png}\\
 {\footnotesize Decreciente $>$ aleatorio $>$ creciente a densidad baja/media; convergen a saturación.}
 \end{frame}
 
-% ---- distribuciones --------------------------------------------------------
-\begin{frame}{Distribuciones por orden (\(\approx\)Figs.~3 y 4)}
-\begin{columns}[c]
-\begin{column}{0.5\textwidth}\centering
-\includegraphics[width=\linewidth]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}
-\end{column}
-\begin{column}{0.5\textwidth}\centering
-\includegraphics[width=\linewidth]{pdf_velocidad_incremental_contacto_puro_ascending_p01_incremental.png}
-\end{column}
-\end{columns}
-\vfill
-{\footnotesize Orden creciente: la \textbf{densidad} pica en $1/(44\unit{mm})$ y la \textbf{velocidad} queda casi
-independiente de $N$ (el más lento está desde $N=5$).}
+% ---- distribuciones: densidad ----------------------------------------------
+\begin{frame}{Distribución de densidad por orden}
+\centering
+\includegraphics[height=0.78\textheight]{pdf_densidad_incremental_contacto_puro_ascending_p01_incremental.png}\\
+{\footnotesize Orden creciente: la \textbf{densidad} pica en $1/(44\unit{mm})$ y el pico se acentúa al subir $N$.}
+\end{frame}
+
+% ---- distribuciones: velocidad ---------------------------------------------
+\begin{frame}{Distribución de velocidad por orden}
+\centering
+\includegraphics[height=0.78\textheight]{pdf_velocidad_incremental_contacto_puro_ascending_p01_incremental.png}\\
+{\footnotesize Orden creciente: la \textbf{velocidad} queda casi independiente de $N$ (el más lento está desde $N=5$).}
 \end{frame}
 
 % ---- diagrama fundamental --------------------------------------------------
@@ -370,17 +354,6 @@ independiente de $N$ (el más lento está desde $N=5$).}
 {\footnotesize $\bar v(N)$ (contacto puro, $p=0{,}1$) variando cada constante. \textbf{$L$} irrelevante ($\le0{,}03\unit{mm/s}$);
 \textbf{$\Delta x$ y $\Delta t$} sólo importan por su cociente $\Delta v=\Delta x/\Delta t$ (convergido en el espacio);
 la \emph{forma} es robusta, el cuanto $\Delta v$ fija un piso de cuantización ($\le1{,}2\unit{mm/s}$ al refinar).}
-\end{frame}
-
-% ---- limitaciones ----------------------------------------------------------
-\begin{frame}{Limitaciones}
-\begin{itemize}
-  \item No reproduce la \textbf{cola de densidad} $>1/(44\unit{mm})$ del experimento (impone no-solapamiento).
-  \item $N=30$ es \textbf{singular} y depende de $L=1320$ (el experimento usa $\approx1313$).
-  \item La caída bajo el más lento aparece ya a $p=0{,}1$ (satura $\approx85$, estacionario); a $p\ge0{,}2$
-  el anillo lleno \textbf{no estabiliza} en el horizonte simulado (relaja lentísimo / queda casi detenido),
-  régimen ajeno al experimento. Punto comparable: $p=0{,}1$.
-\end{itemize}
 \end{frame}
 
 % ---- conclusiones ----------------------------------------------------------

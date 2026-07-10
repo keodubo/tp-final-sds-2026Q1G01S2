@@ -87,7 +87,9 @@ def plot_density_pdf(pdfs_by_n, outfile) -> None:
     ax.set_xlabel("densidad (mm$^{-1}$)")
     ax.set_ylabel("densidad de probabilidad")
     ax.set_yscale("log")  # 2.4.7: varios órdenes de magnitud
-    ax.legend()
+    # Leyenda FUERA del área de datos (el pico de densidad está a la derecha; una leyenda interna
+    # taparía la curva). bbox='tight' en configure() la incluye al guardar.
+    ax.legend(loc="center left", bbox_to_anchor=(1.0, 0.5), fontsize=FONTSIZE - 5)
     _coma_ejes(ax, y=False)  # el eje y es logarítmico: dejar el formateador de potencias
     fig.savefig(outfile)
     plt.close(fig)
@@ -102,7 +104,8 @@ def plot_velocity_pdf(pdfs_by_n, outfile) -> None:
         ax.plot(centros, pdf, label=f"N = {n}")
     ax.set_xlabel("velocidad (mm/s)")
     ax.set_ylabel("densidad de probabilidad")
-    ax.legend()
+    # Leyenda fuera del área de datos, igual que en la PDF de densidad (evita tapar los picos).
+    ax.legend(loc="center left", bbox_to_anchor=(1.0, 0.5), fontsize=FONTSIZE - 5)
     _coma_ejes(ax)
     fig.savefig(outfile)
     plt.close(fig)
@@ -120,7 +123,7 @@ def plot_time_evolution(curves, outfile) -> None:
             ax.axvline(cut, ls=":", lw=1.5, color=line.get_color())
     ax.set_xlabel("tiempo (s)")
     ax.set_ylabel("velocidad media (mm/s)")
-    ax.legend(title="corte sugerido: línea punteada")
+    ax.legend()
     _coma_ejes(ax)
     fig.savefig(outfile)
     plt.close(fig)

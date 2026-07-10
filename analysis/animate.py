@@ -161,7 +161,8 @@ def _panel_text(meta: dict, n_active: int, t_s: float) -> str:
 # --------------------------------------------------------------------------------------------------
 # Punto de entrada.
 # --------------------------------------------------------------------------------------------------
-def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step=0, still_step=None):
+def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step=0, still_step=None,
+            make_gif=True):
     """Renderiza la realización en ``path``: un GIF (animación) y un fotograma fijo (PNG estacionario).
 
     ``fps=None`` reproduce en tiempo real según la cadencia de muestreo. ``since_step`` fija desde qué
@@ -254,9 +255,12 @@ def animate(path, outfile=None, fps=None, max_frames=600, still=True, since_step
 
         out = str(outfile) if outfile else str(Path(path).with_suffix(".gif"))
         anim = FuncAnimation(fig, draw, frames=len(frames), interval=1000.0 / fps)
-        anim.save(out, writer=PillowWriter(fps=fps))
+        # El GIF es lento y pesado para miles de fotogramas: con make_gif=False se omite y sólo se
+        # exporta el MP4 (mejor para proyectar / subir a YouTube), lo que permite animaciones fluidas.
+        if make_gif:
+            anim.save(out, writer=PillowWriter(fps=fps))
 
-        # MP4 opcional (mejor para proyectar); no es parte del contrato: si falla, se ignora.
+        # MP4 (mejor para proyectar); si no hay ffmpeg, se ignora.
         if shutil.which("ffmpeg"):
             try:
                 from matplotlib.animation import FFMpegWriter
